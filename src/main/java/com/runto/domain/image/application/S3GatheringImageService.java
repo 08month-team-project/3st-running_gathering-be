@@ -27,9 +27,7 @@ import static com.runto.global.exception.ErrorCode.*;
 public class S3GatheringImageService {
 
     private static final List<String> SUPPORT_IMAGE_EXTENSION = List.of("jpg", "jpeg", "png", "bmp", "webp");
-
     private static final String TEMPORARY_STORE_PREFIX = "temp/";
-
     private static final String FILE_PATH = System.getProperty("user.dir") + "/src/main/resources/temp_images/";
 
     private final S3Client s3Client;
@@ -91,7 +89,10 @@ public class S3GatheringImageService {
             validateUpload(optimizedFile);
 
             // S3 URL과 , 요청에서 받아온 이미지 순서를 다시 넣어서 반환 (이건 아직 실제로 저장돼있는 url 이 아님)
-            return new ImageUrlDto(getImageUrl(optimizedFile, ""), imageDto.getOrder());
+            //return new ImageUrlDto(getImageUrl(optimizedFile, ""), imageDto.getOrder());
+
+            // TODO 임시용 (moveImageProcess 에러 해결 전까지 사용)
+            return new ImageUrlDto(getImageUrl(optimizedFile, TEMPORARY_STORE_PREFIX), imageDto.getOrder());
 
         } catch (ImageException e) {
             throw new ImageException(e.getErrorCode());
@@ -112,6 +113,7 @@ public class S3GatheringImageService {
 
         validateUpload(TEMPORARY_STORE_PREFIX + imageName);
 
+        // TODO 에러 해결
         CopyObjectRequest copyObjectRequest = CopyObjectRequest.builder()
                 .sourceBucket(bucketName)
                 .sourceKey(TEMPORARY_STORE_PREFIX + imageName)

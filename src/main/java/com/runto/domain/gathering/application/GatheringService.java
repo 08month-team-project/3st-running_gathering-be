@@ -42,8 +42,9 @@ public class GatheringService {
         gatheringRepository.save(gathering);
 
         // s3 temp 경로에 있던 이미지파일들을 정식 경로에 옮기기
-        imageService.moveImageFromTempToPermanent(request.getGatheringImageUrls()
-                .getContentImageUrls());
+        // TODO moveImageProcess 에러 해결되면 주석 풀기
+//        imageService.moveImageFromTempToPermanent(request.getGatheringImageUrls()
+//                .getContentImageUrls());
     }
 
     private void addContentImages(GatheringImageUrlsDto imageUrlDto, Gathering gathering) {
