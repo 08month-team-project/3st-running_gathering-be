@@ -98,6 +98,7 @@ public class S3GatheringImageService {
 
         } finally {
             deleteFile(optimizedFile);
+            deleteFile(convertedFile);
         }
     }
 
