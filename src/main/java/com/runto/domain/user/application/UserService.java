@@ -20,7 +20,7 @@ public class UserService {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Transactional
-    public void createUser(@Valid SignupRequest signupRequest) {
+    public void createUser(SignupRequest signupRequest) {
         userRepository.findByEmail(signupRequest.getEmail())
                 .ifPresent(user->{throw new UserException(ErrorCode.ALREADY_EXIST_USER);});
 
