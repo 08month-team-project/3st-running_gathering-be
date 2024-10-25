@@ -23,7 +23,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String accessToken = request.getHeader("access");
+        String accessToken = jwtUtil.extractAccessToken(request);
 
         if(accessToken == null) {
             System.out.println("Authorization header is missing");
@@ -46,7 +46,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
         if(!category.equals("access")) {
             PrintWriter writer = response.getWriter();
-            writer.print("엑세스토큰이 아닌데요?");
+            writer.print("엑세스토큰이 아닙니다.");
 
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;

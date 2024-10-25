@@ -36,6 +36,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         //클라이언트 요청에서 username, password 추출
+
         try {
             if (!request.getMethod().equals("POST")){
                 response.setContentType("application/json; charset=UTF-8");
@@ -90,7 +91,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         //Refresh 토큰 저장
 //        addRefreshEntity(username, refresh, 86400000L);
 
-        response.addHeader("access",access);
+        response.addHeader("access","Bearer "+access);
 //        response.addCookie(createCookie("refresh",refresh));
         response.setStatus(HttpStatus.OK.value());
     }

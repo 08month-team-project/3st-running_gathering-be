@@ -1,6 +1,7 @@
 package com.runto.global.security.util;
 
 import io.jsonwebtoken.Jwts;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -38,5 +39,12 @@ public class JWTUtil {
     }
     public String getCategory(String token){
         return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("category", String.class);
+    }
+    public String extractAccessToken(HttpServletRequest request) {
+        String authorization = request.getHeader("access");
+        if (authorization != null && authorization.startsWith("Bearer ")) {
+            return authorization.split(" ")[1];
+        }
+        return null;
     }
 }
