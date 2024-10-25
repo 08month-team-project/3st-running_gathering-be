@@ -1,6 +1,7 @@
 package com.runto.global.exception;
 
 import com.runto.domain.gathering.exception.GatheringException;
+import com.runto.domain.image.exception.ImageException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -26,6 +27,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(GatheringException.class)
     public ResponseEntity<ErrorResult> handleGatheringException(GatheringException e) {
+        return makeErrorResult(e.getErrorCode());
+    }
+
+    @ExceptionHandler(ImageException.class)
+    public ResponseEntity<ErrorResult> handleImageException(ImageException e) {
+        log.error("[ImageException] ex", e);
         return makeErrorResult(e.getErrorCode());
     }
 
