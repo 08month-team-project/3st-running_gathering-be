@@ -22,11 +22,11 @@ public class GroupChatRoom extends BaseTimeEntity {
     @Column(name = "group_chat_id")
     private Long id;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "gathering_id",unique = true)
     private Gathering gathering;
 
-    @OneToMany(mappedBy = "groupChatRoom")
+    @OneToMany(mappedBy = "groupChatRoom",fetch = FetchType.LAZY,cascade = CascadeType.ALL)
     private List<GroupChatRoomUser> roomUserList = new ArrayList<>();
 
     //최신 메시지 타임스탬프?
