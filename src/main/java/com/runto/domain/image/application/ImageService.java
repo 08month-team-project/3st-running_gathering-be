@@ -1,11 +1,10 @@
 package com.runto.domain.image.application;
 
+import com.runto.domain.image.dto.GatheringImageUrlsDto;
 import com.runto.domain.image.dto.ImageUploadRequest;
 import com.runto.domain.image.dto.ImageUrlDto;
-import com.runto.domain.image.dto.GatheringImageUrlDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -15,16 +14,22 @@ public class ImageService {
 
     private final S3GatheringImageService s3GatheringImageService;
 
-    public GatheringImageUrlDto registerGatheringImages(MultipartFile thumbnail,
-                                                        List<MultipartFile> contentImages,
-                                                        int[] contentImageOrder) {
+    public GatheringImageUrlsDto registerGatheringImages(ImageUploadRequest uploadRequest) {
 
-        ImageUrlDto thumbnailUrl = s3GatheringImageService
-                .uploadThumbnail(ImageUploadRequest.from(thumbnail));
+        if(uploadRequest == null) return null;
 
         List<ImageUrlDto> contentImageUrls = s3GatheringImageService
-                .uploadContentImages(ImageUploadRequest.createRequestList(contentImages, contentImageOrder));
+                .uploadContentImages(uploadRequest.getImages());
 
-        return GatheringImageUrlDto.of(thumbnailUrl, contentImageUrls);
+        return GatheringImageUrlsDto.of(
+                uploadRequest.getRepresentativeImageIndex(), contentImageUrls);
+    }
+
+    public void moveImageFromTempToPermanent(List<ImageUrlDto> contentImageUrls) {
+
+        if(contentImageUrls == null || contentImageUrls.isEmpty()) return;
+
+        contentImageUrls.forEach(imageUrlDto ->
+                s3GatheringImageService.moveImageProcess(imageUrlDto.getImageUrl()));
     }
 }
