@@ -24,18 +24,14 @@ public class UserService {
     private final LocalAccountRepository localAccountRepository;
 
     @Transactional
-    public SignupResponse createUser(@Valid SignupRequest signupRequest) {
+    public void createUser(@Valid SignupRequest signupRequest) {
         userRepository.findByEmail(signupRequest.getEmail())
                 .ifPresent(user->{throw new UserException(ErrorCode.ALREADY_EXIST_USER);});
 
         String encodedPwd = bCryptPasswordEncoder.encode(signupRequest.getPassword());
         //s3 이미지
 
-        User user = User.from(signupRequest);
+        User user = User.of(signupRequest,encodedPwd);
         userRepository.save(user);
-        LocalAccount localAccount = LocalAccount.from(user,encodedPwd);
-        localAccountRepository.save(localAccount);
-
-        return SignupResponse.builder().message("가입완료").build();
     }
 }

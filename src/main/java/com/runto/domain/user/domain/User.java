@@ -54,13 +54,18 @@ public class User extends BaseTimeEntity {
         status = UserStatus.ACTIVE;
     }
 
-    public static User from(SignupRequest signupRequest) {
-        return User.builder()
+    public static User of(SignupRequest signupRequest,String password) {
+         User user = User.builder()
                 .email(signupRequest.getEmail())
                 .nickname(signupRequest.getNickname())
                 .gender(Gender.NONE)
                 .status(UserStatus.ACTIVE)
                 .role(UserRole.USER)
                 .build();
+         user.localAccount= LocalAccount.builder()
+                 .password(password)
+                 .user(user)
+                 .build();
+        return user;
     }
 }
