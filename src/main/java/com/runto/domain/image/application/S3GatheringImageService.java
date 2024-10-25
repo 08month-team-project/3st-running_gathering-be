@@ -1,9 +1,8 @@
 package com.runto.domain.image.application;
 
-import com.runto.domain.image.dto.ImageUploadRequest;
+import com.runto.domain.image.dto.ImageDto;
 import com.runto.domain.image.dto.ImageUrlDto;
 import com.runto.domain.image.exception.ImageException;
-import io.awspring.cloud.s3.S3Exception;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,10 +11,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
-import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
-import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,7 +32,7 @@ public class S3GatheringImageService {
 
     private final S3Client s3Client;
 
-    private final ImageCompressService imageCompressService;
+    private final ImageOptimizeService imageOptimizeService;
 
 
     @Value("${spring.cloud.aws.s3.bucket}")
@@ -46,79 +42,104 @@ public class S3GatheringImageService {
     private String region;
 
 
-    public List<ImageUrlDto> uploadContentImages(List<ImageUploadRequest> contentImages) {
+    public List<ImageUrlDto> uploadContentImages(List<ImageDto> images) {
 
-        if (contentImages == null || contentImages.size() < 1) {
+        if (images == null || images.size() < 1) {
             return null;
         }
         List<ImageUrlDto> imageUrls = new ArrayList<>();
-
-        for (ImageUploadRequest contentImageFile : contentImages) {
-            imageUrls.add(processUploadImage(contentImageFile));
-        }
+        images.forEach(imageDto -> imageUrls.add(processUploadContentImage(imageDto)));
 
         return imageUrls;
     }
 
-    public ImageUrlDto uploadThumbnail(ImageUploadRequest imageUploadRequest) {
 
-        if (imageUploadRequest == null || imageUploadRequest.getMultipartFile() == null) {
-            return null;
-        }
-        return processUploadImage(imageUploadRequest);
-    }
-
-
-    private ImageUrlDto processUploadImage(ImageUploadRequest imageUploadRequest) {
+    private ImageUrlDto processUploadContentImage(ImageDto imageDto) {
 
         File convertedFile = null;
-        File pressedFile = null;
+        File optimizedFile = null;
 
         try {
-            MultipartFile requestFile = imageUploadRequest.getMultipartFile();
+            MultipartFile requestFile = imageDto.getMultipartFile();
 
             // 지원하는 이미지 확장자 파일인지 검증
             validateImageExtension(requestFile);
 
             // 고유의 이미지 이름 생성
-            String imageName = createUniqueFileName(requestFile);
+            String imageName = createUniqueFileName();
 
             // 파일 객체로 변환 & 서버에 임시저장
             convertedFile = convertToFile(imageName, requestFile);
 
             // 이미지 최적화 & 서버에 임시저장
-            pressedFile = compressToWebp(requestFile.getName(), imageName, convertedFile);
+            optimizedFile = convertToWebp(imageName, convertedFile);
 
 
             // s3에 업로드하기 위한 객체 생성
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                     .bucket(bucketName)
-                    .key(TEMPORARY_STORE_PREFIX + pressedFile.getName())
+                    .key(TEMPORARY_STORE_PREFIX + optimizedFile.getName())
                     .acl(ObjectCannedACL.PUBLIC_READ)
                     .build();
 
-            // s3에 최적화한 이미지 업로드
-            s3Client.putObject(putObjectRequest, RequestBody.fromFile(pressedFile));
+            // s3에 webp형식으로 최적화한 이미지 업로드
+            s3Client.putObject(putObjectRequest, RequestBody.fromFile(optimizedFile));
 
             // 실제로 업로드가 잘 됐는지 검증
-            validateUpload(pressedFile);
+            validateUpload(optimizedFile);
 
-            // S3 URL과 , 요청에서 받아온 이미지 순서를 다시 넣어서 반환
-            return new ImageUrlDto(getImageUrl(pressedFile), imageUploadRequest.getOrder());
+            // S3 URL과 , 요청에서 받아온 이미지 순서를 다시 넣어서 반환 (이건 아직 실제로 저장돼있는 url 이 아님)
+            return new ImageUrlDto(getImageUrl(optimizedFile, ""), imageDto.getOrder());
 
-        } catch (IOException | S3Exception e) {
+        } catch (ImageException e) {
+            throw new ImageException(e.getErrorCode());
+        } catch (Exception e) { // 직접 의도하지 않은 에러 처리용
             throw new ImageException(e, IMAGE_SERVER_ERROR);
 
         } finally {
-            deleteFile(convertedFile);
-            deleteFile(pressedFile);
+            deleteFile(optimizedFile);
         }
-
     }
 
-    private String getImageUrl(File pressedFile) {
+
+    //s3의 temp/ 폴더에 있던 파일을 정식폴더에 복사한 후 삭제
+    public void moveImageProcess(String imageUrl) {
+
+        String imageName = extractImageName(imageUrl);
+
+        validateUpload(TEMPORARY_STORE_PREFIX + imageName);
+
+        CopyObjectRequest copyObjectRequest = CopyObjectRequest.builder()
+                .sourceBucket(bucketName)
+                .sourceKey(TEMPORARY_STORE_PREFIX + imageName)
+                .destinationKey(imageName)
+                .acl(ObjectCannedACL.PUBLIC_READ)
+                .build();
+        s3Client.copyObject(copyObjectRequest);
+
+
+        DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
+                .bucket(bucketName)
+                .key(TEMPORARY_STORE_PREFIX + imageName)
+                .build();
+        s3Client.deleteObject(deleteObjectRequest);
+    }
+
+
+    private String getImageUrl(File pressedFile, String prefix) {
         return String.format("https://%s.s3.%s.amazonaws.com/%s",
-                bucketName, region, TEMPORARY_STORE_PREFIX + pressedFile.getName());
+                bucketName, region, prefix + pressedFile.getName());
+    }
+
+    private String getImageUrl(String imageName, String prefix) {
+        return String.format("https://%s.s3.%s.amazonaws.com/%s",
+                bucketName, region, prefix + imageName);
+    }
+
+    private String extractImageName(String imageUrl) {
+
+        String[] parts = imageUrl.split("/"); // URL에서 파일명 부분만 추출
+        return parts[parts.length - 1]; // 마지막 부분이 파일 이름
     }
 
     private void validateUpload(File pressedFile) {
@@ -136,8 +157,23 @@ public class S3GatheringImageService {
         }
     }
 
-    private String createUniqueFileName(MultipartFile multipartFile) {
-        return multipartFile.getName()+ "-" + UUID.randomUUID();
+    private void validateUpload(String imageName) {
+
+        // 업로드된 객체 확인 (headObject 사용)
+        HeadObjectRequest headRequest = HeadObjectRequest.builder()
+                .bucket(bucketName)
+                .key(imageName)
+                .build();
+
+        HeadObjectResponse response = s3Client.headObject(headRequest);
+
+        if (response == null) {
+            throw new ImageException(S3_OBJECT_NOT_FOUND);
+        }
+    }
+
+    private String createUniqueFileName() {
+        return UUID.randomUUID().toString();
     }
 
     /**
@@ -146,22 +182,23 @@ public class S3GatheringImageService {
      */
     private File convertToFile(String uniqueName, MultipartFile multipartFile) throws IOException {
 
-        File file = new File(System.getProperty("user.dir") +
-                "/images/" + uniqueName + multipartFile.getName());
+        if (multipartFile == null || multipartFile.isEmpty()) {
+            throw new ImageException(INVALID_FILE);
+        }
 
-        multipartFile.transferTo(file); // 실제 파일 생성
+        File file = new File(System.getProperty("user.dir") +
+                "/images/" + uniqueName + "." + extractExtension(multipartFile.getOriginalFilename()));
+
+        // 해당 경로의 폴더가 존재하지 않는다면 생성
+        if (!file.exists()) {
+            file.mkdirs();
+        }
+        multipartFile.transferTo(file); // multipartFile를 변환 후 file객체의 경로에 생성
         return file;
     }
 
-    /**
-     * 썸네일 이미지인 경우 일반압축
-     * 본문 이미지의 경우 무손실 압축
-     */
-    private File compressToWebp(String partName, String fileName, File originalFile) {
-        if (!"thumbnail".equals(partName)) {
-            return imageCompressService.convertToWebpWithLossless(fileName, originalFile);
-        }
-        return imageCompressService.convertToWebp(fileName, originalFile);
+    private File convertToWebp(String fileName, File originalFile) {
+        return imageOptimizeService.convertToWebp(fileName, originalFile);
     }
 
     private void validateImageExtension(MultipartFile multipartFile) {
@@ -174,11 +211,9 @@ public class S3GatheringImageService {
         if (!SUPPORT_IMAGE_EXTENSION.contains(extension)) {
             throw new ImageException(UNSUPPORTED_IMAGE_EXTENSION);
         }
-
     }
 
     private String extractExtension(String originalFilename) {
-
         return originalFilename
                 .substring(originalFilename.indexOf(".") + 1);
     }
