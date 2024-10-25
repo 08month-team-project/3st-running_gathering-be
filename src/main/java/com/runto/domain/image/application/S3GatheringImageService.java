@@ -30,6 +30,8 @@ public class S3GatheringImageService {
 
     private static final String TEMPORARY_STORE_PREFIX = "temp/";
 
+    private static final String FILE_PATH = System.getProperty("user.dir") + "/src/main/resources/temp_images/";
+
     private final S3Client s3Client;
 
     private final ImageOptimizeService imageOptimizeService;
@@ -177,18 +179,14 @@ public class S3GatheringImageService {
         return UUID.randomUUID().toString();
     }
 
-    /**
-     * System.getProperty("user.dir") -> 현재 프로젝트 최상위 디렉토리
-     * 프로젝트 최상위 폴더 하위에 images 라는 폴더를 만들어놓고 저장중인 상황
-     */
+
     private File convertToFile(String uniqueName, MultipartFile multipartFile) throws IOException {
 
         if (multipartFile == null || multipartFile.isEmpty()) {
             throw new ImageException(INVALID_FILE);
         }
 
-        File file = new File(System.getProperty("user.dir") +
-                "/images/" + uniqueName + "." + extractExtension(multipartFile.getOriginalFilename()));
+        File file = new File(FILE_PATH + uniqueName + "." + extractExtension(multipartFile.getOriginalFilename()));
 
         // 해당 경로의 폴더가 존재하지 않는다면 생성
         if (!file.exists()) {
