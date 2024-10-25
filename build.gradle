@@ -61,6 +61,8 @@ dependencies {
         delete file('src/main/generated')
     }
 
+    //Swagger
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.2'
 }
 
 tasks.named('test') {
