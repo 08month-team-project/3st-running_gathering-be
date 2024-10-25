@@ -14,8 +14,6 @@ import lombok.NoArgsConstructor;
 @Getter
 public class ImageUrlDto {
 
-    //boolean isThumbnail; // 변경될 여지가 있음
-
     @Pattern(regexp = "^(https?|ftp)://[^\\s/$.?#].[^\\s]*\\.(webp)$", message = "유효하지 않은 이미지 URL입니다.")
     private String imageUrl;
 
