@@ -1,14 +1,12 @@
 package com.runto.domain.user.dao;
 
-
-import com.runto.domain.user.domain.User;
+import com.runto.domain.user.domain.LocalAccount;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, Long> {
-
-    Optional<User> findByEmail(String email);
+public interface LocalAccountRepository extends JpaRepository<LocalAccount, Long> {
+    Optional<LocalAccount> findByUserId(Long userId);;
 }

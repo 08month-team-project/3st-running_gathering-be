@@ -1,6 +1,7 @@
 package com.runto.domain.user.domain;
 
 import com.runto.domain.common.BaseTimeEntity;
+import com.runto.domain.user.dto.SignupRequest;
 import com.runto.domain.user.type.Gender;
 import com.runto.domain.user.type.UserRole;
 import com.runto.domain.user.type.UserStatus;
@@ -25,14 +26,10 @@ public class User extends BaseTimeEntity {
     @Column(nullable = false)
     private String email;
 
-    @Column(nullable = false)
     private String name;
 
     @Column(nullable = false, length = 15)
     private String nickname;
-
-    @Column(name = "phone_number")
-    private String phoneNumber;
 
     @Column(nullable = false)
     @Enumerated(STRING)
@@ -49,8 +46,26 @@ public class User extends BaseTimeEntity {
     @Column(name = "profile_image_url")
     private String profileImageUrl;
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private LocalAccount localAccount;
+
     @PrePersist
     public void prePersist() {
         status = UserStatus.ACTIVE;
+    }
+
+    public static User of(String email,String nickname,String password) {
+         User user = User.builder()
+                .email(email)
+                .nickname(nickname)
+                .gender(Gender.NONE)
+                .status(UserStatus.ACTIVE)
+                .role(UserRole.USER)
+                .build();
+         user.localAccount = LocalAccount.builder()
+                 .password(password)
+                 .user(user)
+                 .build();
+        return user;
     }
 }
