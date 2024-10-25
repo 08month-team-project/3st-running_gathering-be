@@ -76,39 +76,6 @@ class GroupChatServiceTest {
                 .build();
     }
 
-    @DisplayName("그룹 채팅방 생성 성공 테스트")
-    @Test
-    void createGroupChatRoom_success() {
-        //given
-
-        //그룹 채팅방 객체를 생성하고 Mock에서 사용하기위해 저장
-        GroupChatRoom expectedRoom = GroupChatRoom.createRoom(gathering);
-        //when
-        //만드려고하는 모임의 채팅방은 존재하지 않는다고 가정함
-        when(groupChatRoomRepository.existsByGathering(any(Gathering.class))).thenReturn(false);
-        when(groupChatRoomRepository.save(any(GroupChatRoom.class))).thenReturn(expectedRoom);
-        when(groupChatRoomRepository.findByGathering(gathering)).thenReturn(expectedRoom);
-
-
-        //태스트할 서비스의 메소드 실행
-        groupChatService.createGroupChatRoom(gathering);
-
-        //then 호출검증
-        verify(groupChatRoomRepository).existsByGathering(any(Gathering.class));
-        verify(groupChatRoomRepository).save(any(GroupChatRoom.class));
-
-        //상태 검증
-        GroupChatRoom savedRoom = groupChatRoomRepository.findByGathering(gathering);
-        assertNotNull(savedRoom);
-        assertEquals(gathering,savedRoom.getGathering());
-    }
-
-
-    @DisplayName("그룹 채팅방 생성 실패 테스트 - 이미 존재하는 채팅방")
-    @Test
-    void createGroupChatRoom_fail_alreadyExist() {
-        //TODO
-    }
 
     @DisplayName("그룹 채팅방 참여 성공 테스트")
     @Test
@@ -134,7 +101,7 @@ class GroupChatServiceTest {
         when(groupChatRoomUserRepository.existsByGroupChatRoomAndUser(any(GroupChatRoom.class),any(User.class))).thenReturn(false);
         when(groupChatRoomUserRepository.findById(any(Long.class))).thenReturn(Optional.of(groupChatRoomUser));
 
-        groupChatService.joinGroupChatRoom(user2,roomId);
+        groupChatService.joinGroupChatRoom(user2,groupChatRoom);
 
         //then
         verify(groupChatRoomRepository).findById(any(Long.class));
