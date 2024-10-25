@@ -1,5 +1,5 @@
 package com.runto.domain.user.type;
 
 public enum UserStatus {
-    ACTIVE
+    ACTIVE,DISABLED,BANNED
 }
