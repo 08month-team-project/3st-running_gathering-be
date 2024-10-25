@@ -16,15 +16,6 @@ import org.springframework.web.multipart.MultipartFile;
 @Slf4j
 public class UserController {
     private final UserService userService;
-
-//    @PostMapping("/signup")
-//    public ResponseEntity<SignupResponse> signup(@RequestPart ("email") String email,
-//                                                 @RequestPart("nickname") String nickname,
-//                                                 @RequestPart("password") String password,
-//                                                 @RequestPart("file") MultipartFile file) {
-//        SignupRequest signupRequest = new SignupRequest(email, nickname, password,file);
-//        return ResponseEntity.ok(userService.createUser(signupRequest));
-//    }
     //model attribute 사용시 setter필요
 @PostMapping("/signup")
 @Operation(summary = "회원가입")

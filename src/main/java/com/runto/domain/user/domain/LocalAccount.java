@@ -21,4 +21,11 @@ public class LocalAccount{
     private User user;
 
     private String password;
+
+    public static LocalAccount from(User user, String password) {
+        return LocalAccount.builder()
+                .user(user)
+                .password(password)
+                .build();
+    }
 }

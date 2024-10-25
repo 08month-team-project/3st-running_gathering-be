@@ -7,9 +7,6 @@ import com.runto.domain.user.domain.User;
 import com.runto.domain.user.dto.SignupRequest;
 import com.runto.domain.user.dto.SignupResponse;
 import com.runto.domain.user.excepction.UserException;
-import com.runto.domain.user.type.Gender;
-import com.runto.domain.user.type.UserRole;
-import com.runto.domain.user.type.UserStatus;
 import com.runto.global.exception.ErrorCode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -33,18 +30,10 @@ public class UserService {
 
         String encodedPwd = bCryptPasswordEncoder.encode(signupRequest.getPassword());
         //s3 이미지
-        User user = User.builder()
-                .email(signupRequest.getEmail())
-                .nickname(signupRequest.getNickname())
-                .gender(Gender.NONE)
-                .status(UserStatus.ACTIVE)
-                .role(UserRole.USER)
-                .build();
+
+        User user = User.from(signupRequest);
         userRepository.save(user);
-        LocalAccount localAccount = LocalAccount.builder()
-                .user(user)
-                .password(encodedPwd)
-                .build();
+        LocalAccount localAccount = LocalAccount.from(user,encodedPwd);
         localAccountRepository.save(localAccount);
 
         return SignupResponse.builder().message("가입완료").build();

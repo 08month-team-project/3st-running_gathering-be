@@ -1,6 +1,7 @@
 package com.runto.domain.user.domain;
 
 import com.runto.domain.common.BaseTimeEntity;
+import com.runto.domain.user.dto.SignupRequest;
 import com.runto.domain.user.type.Gender;
 import com.runto.domain.user.type.UserRole;
 import com.runto.domain.user.type.UserStatus;
@@ -51,5 +52,15 @@ public class User extends BaseTimeEntity {
     @PrePersist
     public void prePersist() {
         status = UserStatus.ACTIVE;
+    }
+
+    public static User from(SignupRequest signupRequest) {
+        return User.builder()
+                .email(signupRequest.getEmail())
+                .nickname(signupRequest.getNickname())
+                .gender(Gender.NONE)
+                .status(UserStatus.ACTIVE)
+                .role(UserRole.USER)
+                .build();
     }
 }
