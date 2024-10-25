@@ -1,7 +1,8 @@
 package com.runto.domain.image.api;
 
 import com.runto.domain.image.application.ImageService;
-import com.runto.domain.image.dto.GatheringImageUrlDto;
+import com.runto.domain.image.dto.GatheringImageUrlsDto;
+import com.runto.domain.image.dto.ImageUploadRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,13 +21,12 @@ public class ImageController {
     private final ImageService imageService;
 
     @PostMapping("/gathering")
-    public ResponseEntity<GatheringImageUrlDto> registerGatheringImages(
-            @RequestPart(value = "thumbnail", required = false) MultipartFile thumbnail,
-            @RequestPart(value = "content_images", required = false) List<MultipartFile> contentImages,
-            @RequestPart(value = "content_image_order", required = false) int[] contentImageOrder) { // 안에 하나하나 null 체크 하는 것보다 0으로 받기로 함
+    public ResponseEntity<GatheringImageUrlsDto> registerGatheringImages(
+            @RequestPart(value = "representative_image_index", required = false) Integer representativeImageIndex,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images,
+            @RequestPart(value = "image_order", required = false) int[] imageOrder) { // 안에 하나하나 null 체크 하는 것보다 0으로 받기로 함
 
-        return ResponseEntity.ok(imageService.
-                registerGatheringImages(thumbnail, contentImages, contentImageOrder));
-
+        return ResponseEntity.ok(imageService.registerGatheringImages(
+                ImageUploadRequest.of(representativeImageIndex, images, imageOrder)));
     }
 }

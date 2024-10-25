@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 import static com.runto.global.exception.ErrorCode.IMAGE_ORDER_MISMATCH;
+import static com.runto.global.exception.ErrorCode.INVALID_REPRESENTATIVE_IMAGE_INDEX;
 
 @Builder
 @NoArgsConstructor
@@ -19,34 +20,33 @@ import static com.runto.global.exception.ErrorCode.IMAGE_ORDER_MISMATCH;
 @Getter
 public class ImageUploadRequest {
 
-    private MultipartFile multipartFile;
-    private int order;
+    List<ImageDto> images;
+    private int representativeImageIndex;
 
+    public static ImageUploadRequest of(Integer representativeImageIndex,
+                                        List<MultipartFile> imageFiles,
+                                        int[] contentImageOrder) {
 
-    public static List<ImageUploadRequest> createRequestList(
-            List<MultipartFile> multipartFiles,
-            int[] contentImageOrder) {
-
-        if (multipartFiles == null || multipartFiles.size() < 1) {
+        if (imageFiles == null || imageFiles.size() < 1) {
             return null;
         }
-        if (contentImageOrder == null || contentImageOrder.length != multipartFiles.size()) {
+        if (representativeImageIndex == null || representativeImageIndex < 0) {
+            representativeImageIndex = 0;
+        }
+        if (contentImageOrder == null || contentImageOrder.length != imageFiles.size()) {
             throw new ImageException(IMAGE_ORDER_MISMATCH);
         }
+        if (representativeImageIndex > imageFiles.size() - 1) {
+            throw new ImageException(INVALID_REPRESENTATIVE_IMAGE_INDEX);
+        }
 
-        List<ImageUploadRequest> result = new ArrayList<>();
-
-        IntStream.range(0, multipartFiles.size())
-                .forEach(i -> result.add(new ImageUploadRequest(multipartFiles.get(i), contentImageOrder[i])));
-
-        return result;
-    }
-
-    // 순서 데이터 사용하지 않는 경우 사용 ex)썸네일
-    public static ImageUploadRequest from(MultipartFile multipartFile) {
+        List<ImageDto> images = new ArrayList<>();
+        IntStream.range(0, imageFiles.size())
+                .forEach(i -> images.add(new ImageDto(imageFiles.get(i), contentImageOrder[i])));
 
         return ImageUploadRequest.builder()
-                .multipartFile(multipartFile)
+                .representativeImageIndex(representativeImageIndex)
+                .images(images)
                 .build();
     }
 }
