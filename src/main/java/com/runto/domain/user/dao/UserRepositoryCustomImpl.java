@@ -13,6 +13,7 @@ import java.util.List;
 
 import static com.runto.domain.user.domain.QUser.user;
 import static com.runto.domain.user.type.UserStatus.ACTIVE;
+import static com.runto.domain.user.type.UserStatus.DISABLED;
 
 @RequiredArgsConstructor
 @Repository
@@ -31,9 +32,9 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
                 .select(Projections.constructor(MonthUserResponse.class,
                         formatDate.as("month"),
                         new CaseBuilder()
-                                .when(user.status.eq(ACTIVE)).then(1).otherwise(0).sum().as("active_user_count")
-//                        new CaseBuilder()
-//                                .when(user.status.eq(DE_ACTIVE)).then(1).otherwise(0).sum().as("deactivated_user_count")
+                                .when(user.status.eq(ACTIVE)).then(1).otherwise(0).sum().as("active_user_count"),
+                        new CaseBuilder()
+                                .when(user.status.eq(DISABLED)).then(1).otherwise(0).sum().as("deactivated_user_count")
                 ))
                 .from(user)
                 .groupBy(user.createdAt.yearMonth())
