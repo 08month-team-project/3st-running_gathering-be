@@ -4,6 +4,8 @@ package com.runto.domain.gathering.application;
 import com.runto.domain.gathering.dao.GatheringRepository;
 import com.runto.domain.gathering.domain.Gathering;
 import com.runto.domain.gathering.dto.CreateGatheringRequest;
+import com.runto.domain.gathering.dto.GatheringDetailResponse;
+import com.runto.domain.gathering.exception.GatheringException;
 import com.runto.domain.image.application.ImageService;
 import com.runto.domain.image.domain.GatheringImage;
 import com.runto.domain.image.dto.GatheringImageUrlsDto;
@@ -18,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 import static com.runto.domain.gathering.type.GatheringMemberRole.ORGANIZER;
+import static com.runto.global.exception.ErrorCode.GATHERING_NOT_FOUND;
 
 @Slf4j
 @Transactional(readOnly = true)
@@ -58,5 +61,13 @@ public class GatheringService {
                 .map(ImageUrlDto::toEntity)
                 .toList();
         gathering.addContentImages(gatheringImages);
+    }
+
+    public GatheringDetailResponse getGatheringDetail(Long gatheringId) {
+
+        Gathering gathering = gatheringRepository.findGatheringDetailById(gatheringId)
+                .orElseThrow(() -> new GatheringException(GATHERING_NOT_FOUND));
+
+        return GatheringDetailResponse.from(gathering);
     }
 }
