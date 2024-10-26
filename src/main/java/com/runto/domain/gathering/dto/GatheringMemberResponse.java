@@ -2,6 +2,7 @@ package com.runto.domain.gathering.dto;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import com.runto.domain.gathering.type.GatheringMemberRole;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -19,6 +20,7 @@ public class GatheringMemberResponse {
     private Long gatheringMemberId;
     private String nickname;
     private String profileImageUrl;
+    private GatheringMemberRole role;
 
     public static List<GatheringMemberResponse> from(List<GatheringMember> gatheringMembers) {
 
@@ -33,6 +35,7 @@ public class GatheringMemberResponse {
                 .gatheringMemberId(gatheringMember.getId())
                 .nickname(gatheringMember.getUser().getNickname())
                 .profileImageUrl(gatheringMember.getUser().getProfileImageUrl())
+                .role(gatheringMember.getRole())
                 .build();
     }
 
