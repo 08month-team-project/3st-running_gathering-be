@@ -12,18 +12,8 @@ public class LocalAccount{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name="local_id")
     private Long id;
 
-    @OneToOne
-    @JoinColumn(name = "user_id")
-    private User user;
-
     private String password;
-
-    public static LocalAccount from(User user, String password) {
-        return LocalAccount.builder()
-                .user(user)
-                .password(password)
-                .build();
-    }
 }

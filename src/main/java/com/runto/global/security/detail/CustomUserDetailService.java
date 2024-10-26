@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class CustomUserDetailService implements UserDetailsService {
     private final UserRepository userRepository;
-    private final LocalAccountRepository localAccountRepository;
     //loginfilter가 username을 인식못하고 무한루프하게됨.
     // 그래서 이메일을 유저네임으로 바꿔주는 작업
     // 무한루프 방지 코드
@@ -24,8 +23,7 @@ public class CustomUserDetailService implements UserDetailsService {
     public CustomUserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND));
-        LocalAccount localAccount = localAccountRepository.findByUserId(user.getId())
-                .orElseThrow(() -> new UserException(ErrorCode.USER_NOT_FOUND));
-        return new CustomUserDetails(UserDetailsDTO.of(user,localAccount));
+
+        return new CustomUserDetails(UserDetailsDTO.of(user));
     }
 }
