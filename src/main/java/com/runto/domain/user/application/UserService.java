@@ -5,8 +5,8 @@ import com.runto.domain.user.domain.User;
 import com.runto.domain.user.dto.SignupRequest;
 import com.runto.domain.user.excepction.UserException;
 import com.runto.global.exception.ErrorCode;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,13 +14,14 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
+@Slf4j
 public class UserService {
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Transactional
-    public void createUser(@Valid SignupRequest signupRequest) {
+    public void createUser(SignupRequest signupRequest) {
         userRepository.findByEmail(signupRequest.getEmail())
                 .ifPresent(user->{throw new UserException(ErrorCode.ALREADY_EXIST_USER);});
 
@@ -29,7 +30,7 @@ public class UserService {
         String nickname = signupRequest.getNickname();
         String email = signupRequest.getEmail();
 
-        User user = User.of(nickname,email,encodedPwd);
+        User user = User.of(email,nickname,encodedPwd);
 
         userRepository.save(user);
     }
