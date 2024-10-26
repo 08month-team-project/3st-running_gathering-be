@@ -57,8 +57,8 @@ public class User extends BaseTimeEntity {
 
     public static User of(String email,String nickname,String password) {
          User user = User.builder()
-                .email(email)
                 .nickname(nickname)
+                .email(email)
                 .gender(Gender.NONE)
                 .status(UserStatus.ACTIVE)
                 .role(UserRole.USER)
