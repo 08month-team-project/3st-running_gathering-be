@@ -8,5 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface LocalAccountRepository extends JpaRepository<LocalAccount, Long> {
-    Optional<LocalAccount> findByUserId(Long userId);;
+
 }

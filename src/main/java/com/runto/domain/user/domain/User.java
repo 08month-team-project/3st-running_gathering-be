@@ -46,7 +46,8 @@ public class User extends BaseTimeEntity {
     @Column(name = "profile_image_url")
     private String profileImageUrl;
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL,fetch = FetchType.LAZY)
+    @JoinColumn(name = "local_id")
     private LocalAccount localAccount;
 
     @PrePersist
@@ -56,15 +57,14 @@ public class User extends BaseTimeEntity {
 
     public static User of(String email,String nickname,String password) {
          User user = User.builder()
-                .email(email)
                 .nickname(nickname)
+                .email(email)
                 .gender(Gender.NONE)
                 .status(UserStatus.ACTIVE)
                 .role(UserRole.USER)
                 .build();
          user.localAccount = LocalAccount.builder()
                  .password(password)
-                 .user(user)
                  .build();
         return user;
     }

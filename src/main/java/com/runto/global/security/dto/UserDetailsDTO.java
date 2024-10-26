@@ -21,14 +21,14 @@ public class UserDetailsDTO {
     private String gender;
     private String role;
 
-    public static UserDetailsDTO of(User user, LocalAccount account) {
+    public static UserDetailsDTO of(User user) {
         return UserDetailsDTO.builder()
                 .userId(user.getId())
                 .name(user.getName())
                 .nickname(user.getNickname())
                 .email(user.getEmail())
                 .gender(user.getGender().name())
-                .password(account.getPassword())
+                .password(user.getLocalAccount().getPassword())
                 .role(user.getRole().name())
                 .build();
     }

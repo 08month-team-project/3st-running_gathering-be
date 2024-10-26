@@ -34,7 +34,6 @@ public class TestDataInit {
                 //.profileImageUrl()
                 .build();
         LocalAccount localAccount = LocalAccount.builder()
-                .user(user)
                 .password("123456")
                 .build();
 
