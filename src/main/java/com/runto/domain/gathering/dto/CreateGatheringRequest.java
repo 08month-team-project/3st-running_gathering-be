@@ -50,10 +50,10 @@ public class CreateGatheringRequest {
     @Valid
     private GatheringImageUrlsDto gatheringImageUrls;
 
-    public Gathering toEntity(User host) {
+    public Gathering toEntity(User organizer) {
 
         return Gathering.builder()
-                .host(host)
+                .organizerId(organizer.getId())
                 .title(title)
                 .description(description)
                 .appointedAt(appointedAt)

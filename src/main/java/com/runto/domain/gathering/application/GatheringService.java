@@ -17,6 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static com.runto.domain.gathering.type.GatheringMemberRole.ORGANIZER;
+
 @Slf4j
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -30,13 +32,15 @@ public class GatheringService {
 
 
     // TODO: 회원관련 기능 dev에 머지되면 param 에 UserDetails 추가 & 교체 , user 관련 예외로 수정
+    // TODO: 만약 신고기능 구현하는거면 나중에 관련 로직 추가 필요
     @Transactional
     public void createGatheringGeneral(CreateGatheringRequest request) {
 
-        User findUser = userRepository.findById(1L)
+        User user = userRepository.findById(1L)
                 .orElseThrow(() -> new RuntimeException("없는 유저"));
 
-        Gathering gathering = request.toEntity(findUser);
+        Gathering gathering = request.toEntity(user);
+        gathering.addMember(user, ORGANIZER);
         addContentImages(request.getGatheringImageUrls(), gathering);
 
         gatheringRepository.save(gathering);
@@ -48,7 +52,7 @@ public class GatheringService {
     }
 
     private void addContentImages(GatheringImageUrlsDto imageUrlDto, Gathering gathering) {
-        if(imageUrlDto == null) return;
+        if (imageUrlDto == null) return;
 
         List<GatheringImage> gatheringImages = imageUrlDto.getContentImageUrls().stream()
                 .map(ImageUrlDto::toEntity)

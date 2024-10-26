@@ -3,10 +3,13 @@ package com.runto.domain.gathering.domain;
 import com.runto.domain.common.BaseTimeEntity;
 import com.runto.domain.gathering.dto.GatheringMember;
 import com.runto.domain.gathering.exception.GatheringException;
+import com.runto.domain.gathering.type.GatheringMemberRole;
 import com.runto.domain.gathering.type.GatheringStatus;
 import com.runto.domain.gathering.type.GoalDistance;
 import com.runto.domain.gathering.type.RunningConcept;
 import com.runto.domain.image.domain.GatheringImage;
+import com.runto.domain.user.domain.User;
+import com.runto.domain.user.type.UserStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,7 +21,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.runto.domain.gathering.type.GatheringStatus.NORMAL;
-import static com.runto.global.exception.ErrorCode.*;
+import static com.runto.global.exception.ErrorCode.IMAGE_SAVE_LIMIT_EXCEEDED;
+import static com.runto.global.exception.ErrorCode.USER_INACTIVE;
 import static lombok.AccessLevel.PROTECTED;
 
 @Builder
@@ -79,7 +83,7 @@ public class Gathering extends BaseTimeEntity {
     private Integer currentNumber;
 
     @Builder.Default
-    @OneToMany(mappedBy = "gathering", cascade = CascadeType.PERSIST)
+    @OneToMany(mappedBy = "gathering", cascade = CascadeType.ALL)
     private List<GatheringImage> contentImages = new ArrayList<>();
 
     @Builder.Default
@@ -100,6 +104,13 @@ public class Gathering extends BaseTimeEntity {
             image.assignGathering(this);
             this.contentImages.add(image);
         });
+    }
+
+    public void addMember(User user, GatheringMemberRole role) {
+        if (!UserStatus.ACTIVE.equals(user.getStatus())) {
+            throw new GatheringException(USER_INACTIVE);
+        }
+        gatheringMembers.add(GatheringMember.of(this, user, role));
     }
 
 

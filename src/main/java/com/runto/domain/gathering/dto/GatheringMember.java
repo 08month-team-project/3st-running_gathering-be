@@ -35,6 +35,14 @@ public class GatheringMember extends BaseTimeEntity {
     @Column(name = "gathering_member_role")
     private GatheringMemberRole role;
 
+    public static GatheringMember of(Gathering gathering, User user, GatheringMemberRole role) {
+        return GatheringMember.builder()
+                .gathering(gathering)
+                .user(user)
+                .role(role)
+                .build();
+    }
+
     @PrePersist
     public void prePersist() {
         attendanceStatus = AttendanceStatus.PENDING;
