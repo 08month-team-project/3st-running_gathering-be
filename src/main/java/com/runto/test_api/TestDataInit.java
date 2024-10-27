@@ -24,17 +24,19 @@ public class TestDataInit {
     @Transactional
     public void init() {
 
+
+        LocalAccount localAccount = LocalAccount.builder()
+                .password("123456")
+                .build();
         User user = User.builder()
                 .email("runto@gmail.com")
                 .name("임시유저")
                 .nickname("임시유저")
                 .gender(WOMAN)
                 //.status()
+                .localAccount(localAccount)
                 .role(UserRole.USER)
                 //.profileImageUrl()
-                .build();
-        LocalAccount localAccount = LocalAccount.builder()
-                .password("123456")
                 .build();
 
         userRepository.save(user);
