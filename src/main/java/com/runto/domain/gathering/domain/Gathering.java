@@ -1,12 +1,15 @@
 package com.runto.domain.gathering.domain;
 
 import com.runto.domain.common.BaseTimeEntity;
+import com.runto.domain.gathering.dto.GatheringMember;
 import com.runto.domain.gathering.exception.GatheringException;
+import com.runto.domain.gathering.type.GatheringMemberRole;
 import com.runto.domain.gathering.type.GatheringStatus;
 import com.runto.domain.gathering.type.GoalDistance;
 import com.runto.domain.gathering.type.RunningConcept;
 import com.runto.domain.image.domain.GatheringImage;
 import com.runto.domain.user.domain.User;
+import com.runto.domain.user.type.UserStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,8 +21,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.runto.domain.gathering.type.GatheringStatus.NORMAL;
-import static com.runto.global.exception.ErrorCode.*;
-import static jakarta.persistence.FetchType.LAZY;
+import static com.runto.global.exception.ErrorCode.IMAGE_SAVE_LIMIT_EXCEEDED;
+import static com.runto.global.exception.ErrorCode.USER_INACTIVE;
 import static lombok.AccessLevel.PROTECTED;
 
 @Builder
@@ -37,8 +40,9 @@ public class Gathering extends BaseTimeEntity {
     @Column(name = "gathering_id")
     private Long id;
 
-    @ManyToOne(fetch = LAZY)
-    private User host;
+    // 주최자 닉네임 반정규화는 보류
+    @Column(name = "organizer_id", nullable = false)
+    private Long organizerId;
 
     @Column(nullable = false, length = 30)
     private String title;
@@ -79,8 +83,12 @@ public class Gathering extends BaseTimeEntity {
     private Integer currentNumber;
 
     @Builder.Default
-    @OneToMany(mappedBy = "gathering", cascade = CascadeType.PERSIST)
+    @OneToMany(mappedBy = "gathering", cascade = CascadeType.ALL)
     private List<GatheringImage> contentImages = new ArrayList<>();
+
+    @Builder.Default
+    @OneToMany(mappedBy = "gathering", cascade = CascadeType.ALL)
+    private List<GatheringMember> gatheringMembers = new ArrayList<>();
 
 
     // 양방향관계,영속성전이를 통한 저장방식, 엔티티에서 dto를 참조하지 않는 구조를 고려하여 만들었음
@@ -96,6 +104,13 @@ public class Gathering extends BaseTimeEntity {
             image.assignGathering(this);
             this.contentImages.add(image);
         });
+    }
+
+    public void addMember(User user, GatheringMemberRole role) {
+        if (!UserStatus.ACTIVE.equals(user.getStatus())) {
+            throw new GatheringException(USER_INACTIVE);
+        }
+        gatheringMembers.add(GatheringMember.of(this, user, role));
     }
 
 

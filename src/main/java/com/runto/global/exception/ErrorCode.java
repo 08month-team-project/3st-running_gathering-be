@@ -12,6 +12,10 @@ public enum ErrorCode {
 
 
     USER_NOT_FOUND(NOT_FOUND,"존재하지 않는 유저입니다." ),
+    USER_INACTIVE(FORBIDDEN,"사용자가 비활성 상태입니다. 이 작업을 수행할 수 없습니다."),
+
+    // 모임글 & 이벤트 관련
+    GATHERING_NOT_FOUND(NOT_FOUND, "존재하지 않는 모임글입니다."),
 
     // 채팅관련,
     CHATROOM_ALREADY_EXIST(CONFLICT,"이미 존재하는 채팅방입니다."),
