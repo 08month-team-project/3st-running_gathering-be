@@ -27,4 +27,11 @@ public class ImageController {
         return ResponseEntity.ok(imageService.registerGatheringImages(
                 ImageUploadRequest.of(representativeImageIndex, images, imageOrder)));
     }
+
+    @GetMapping
+    public ResponseEntity<ImageUrlsResponse> getGatheringImages(
+            @RequestParam("gathering_id") Long gatheringId) {
+
+        return ResponseEntity.ok(imageService.getGatheringImages(gatheringId));
+    }
 }

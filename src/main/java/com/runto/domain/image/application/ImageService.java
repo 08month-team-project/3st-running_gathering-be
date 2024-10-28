@@ -19,7 +19,7 @@ public class ImageService {
 
     public ImageRegisterResponse registerGatheringImages(ImageUploadRequest uploadRequest) {
 
-        if(uploadRequest == null) return null;
+        if (uploadRequest == null) return null;
 
         List<ImageUrlDto> contentImageUrls = s3GatheringImageService
                 .uploadContentImages(uploadRequest.getImages());
@@ -30,10 +30,18 @@ public class ImageService {
 
     public void moveImageFromTempToPermanent(List<ImageUrlDto> contentImageUrls) {
 
-        if(contentImageUrls == null || contentImageUrls.isEmpty()) return;
+        if (contentImageUrls == null || contentImageUrls.isEmpty()) return;
 
         contentImageUrls.forEach(imageUrlDto ->
                 s3GatheringImageService.moveImageProcess(imageUrlDto.getImageUrl()));
+    }
+
+    public ImageUrlsResponse getGatheringImages(Long gatheringId) {
+
+        return new ImageUrlsResponse(
+                gatheringImageRepository.findGatheringImagesByGatheringId(gatheringId).stream()
+                        .map(ImageUrlDto::from)
+                        .toList());
     }
 
 }
