@@ -28,7 +28,7 @@ public class DirectChatService {
 
         //동일한 아이디의 채팅방 생성 막기
         if (me.getId().equals(otherUser.getId())){
-            throw new ChatException(ErrorCode.CHATROOM_CREATE_FAILED);
+            throw new ChatException(ErrorCode.CHATROOM_CREATE_FAILED_OWN);
         }
 
         //A와 B의 채팅방이 이미 존재하는지 확인

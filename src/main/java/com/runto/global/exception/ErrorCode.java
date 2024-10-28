@@ -22,7 +22,7 @@ public enum ErrorCode {
     CHATROOM_ALREADY_JOINED(BAD_REQUEST,"이미 참여중인 채팅방입니다."),
     CHATROOM_FULL(BAD_REQUEST,"채팅방이 최대 인원수에 도달했습니다."),
     ALREADY_EXIST_USER(CONFLICT,"이미 존재하는 사용자입니다."),
-    CHATROOM_CREATE_FAILED(INTERNAL_SERVER_ERROR,"채팅방 생성중 오류가 발생했습니다."),
+    CHATROOM_CREATE_FAILED_OWN(INTERNAL_SERVER_ERROR,"나 자신과의 채팅방을 만들 수 없습니다."),
 
 
     // 이미지 관련
