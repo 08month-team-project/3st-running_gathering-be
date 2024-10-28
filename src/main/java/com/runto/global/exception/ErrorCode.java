@@ -10,7 +10,6 @@ import static org.springframework.http.HttpStatus.*;
 @AllArgsConstructor
 public enum ErrorCode {
 
-
     USER_NOT_FOUND(NOT_FOUND,"존재하지 않는 유저입니다." ),
     USER_INACTIVE(FORBIDDEN,"사용자가 비활성 상태입니다. 이 작업을 수행할 수 없습니다."),
 
@@ -23,6 +22,7 @@ public enum ErrorCode {
     CHATROOM_ALREADY_JOINED(BAD_REQUEST,"이미 참여중인 채팅방입니다."),
     CHATROOM_FULL(BAD_REQUEST,"채팅방이 최대 인원수에 도달했습니다."),
     ALREADY_EXIST_USER(CONFLICT,"이미 존재하는 사용자입니다."),
+    CHATROOM_CREATE_FAILED(INTERNAL_SERVER_ERROR,"채팅방 생성중 오류가 발생했습니다."),
 
 
     // 이미지 관련
