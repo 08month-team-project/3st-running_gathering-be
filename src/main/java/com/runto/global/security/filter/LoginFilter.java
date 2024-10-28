@@ -91,7 +91,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         //Refresh 토큰 저장
 //        addRefreshEntity(username, refresh, 86400000L);
 
-        response.addHeader("access","Bearer "+access);
+        response.addHeader("Authorization","Bearer "+access);
 //        response.addCookie(createCookie("refresh",refresh));
         response.setStatus(HttpStatus.OK.value());
     }
