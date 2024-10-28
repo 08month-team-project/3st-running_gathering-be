@@ -36,7 +36,7 @@ public class JwtFilter extends OncePerRequestFilter {
         }catch (ExpiredJwtException e){
             //response body
             PrintWriter writer = response.getWriter();
-            writer.println("엑세스 토큰 만료");
+            writer.println("AccessToken expired");
             //상태코드
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
@@ -46,7 +46,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
         if(!category.equals("access")) {
             PrintWriter writer = response.getWriter();
-            writer.print("엑세스토큰이 아닙니다.");
+            writer.print("Not an access token");
 
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;

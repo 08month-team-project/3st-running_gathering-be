@@ -8,6 +8,7 @@ import com.runto.domain.user.type.UserRole;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,27 +20,25 @@ public class TestDataInit {
 
     private final UserRepository userRepository;
     private final LocalAccountRepository localAccountRepository;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @EventListener(ApplicationReadyEvent.class)
     @Transactional
     public void init() {
-
+        String password=bCryptPasswordEncoder.encode("123456");
 
         LocalAccount localAccount = LocalAccount.builder()
-                .password("123456")
+                .password(password)
                 .build();
         User user = User.builder()
                 .email("runto@gmail.com")
                 .name("임시유저")
                 .nickname("임시유저")
                 .gender(WOMAN)
-                //.status()
                 .localAccount(localAccount)
                 .role(UserRole.USER)
-                //.profileImageUrl()
                 .build();
 
         userRepository.save(user);
-        localAccountRepository.save(localAccount);
     }
 }
