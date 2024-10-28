@@ -1,5 +1,6 @@
 package com.runto.domain.admin.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -9,13 +10,13 @@ import lombok.NoArgsConstructor;
 public class MonthUserResponse {
 
     private String month;
-    private Integer activeUserCount;
-    private Integer deactivatedUserCount;
 
-    public MonthUserResponse(String month, Integer activeUserCount, Integer deactivatedUserCount) {
+    @JsonProperty("user_count")
+    private Long userCount;
+
+    public MonthUserResponse(String month, Long userCount) {
         this.month = month;
-        this.activeUserCount = activeUserCount;
-        this.deactivatedUserCount = deactivatedUserCount;
+        this.userCount = userCount;
     }
 
 }

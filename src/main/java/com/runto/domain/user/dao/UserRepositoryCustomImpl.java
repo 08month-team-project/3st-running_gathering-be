@@ -1,11 +1,12 @@
 package com.runto.domain.user.dao;
 
 import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.dsl.CaseBuilder;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.StringTemplate;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.runto.domain.admin.dto.MonthUserResponse;
+import com.runto.domain.user.type.UserStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -22,7 +23,7 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public List<MonthUserResponse> findAllByUserByMonth() {
+    public List<MonthUserResponse> findAllByUserByMonth(UserStatus status) {
 
         StringTemplate formatDate = Expressions.stringTemplate(
                 "DATE_FORMAT({0}, {1})", user.createdAt, "%Y-%m"
@@ -31,13 +32,21 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
         return queryFactory
                 .select(Projections.constructor(MonthUserResponse.class,
                         formatDate.as("month"),
-                        new CaseBuilder()
-                                .when(user.status.eq(ACTIVE)).then(1).otherwise(0).sum().as("active_user_count"),
-                        new CaseBuilder()
-                                .when(user.status.eq(DISABLED)).then(1).otherwise(0).sum().as("deactivated_user_count")
+                        user.count().as("user_count")
                 ))
                 .from(user)
+                .where(userStateCondition(status))
                 .groupBy(user.createdAt.yearMonth())
                 .fetch();
+    }
+
+    private BooleanExpression userStateCondition(UserStatus status) {
+
+        return switch (status) {
+            case ACTIVE -> user.status.eq(ACTIVE);
+            case DISABLED -> user.status.eq(DISABLED);
+            default -> null;
+        };
+
     }
 }

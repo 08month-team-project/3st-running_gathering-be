@@ -15,9 +15,7 @@ import static jakarta.persistence.GenerationType.*;
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-@Table(name = "users", indexes = {
-        @Index(name = "idx_status_created_at", columnList = "user_status, created_at")
-})
+@Table(name = "users")
 @Entity
 public class User extends BaseTimeEntity {
     @Id
