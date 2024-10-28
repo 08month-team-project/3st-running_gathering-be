@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.runto.domain.gathering.domain.Gathering;
 import com.runto.domain.gathering.type.GoalDistance;
 import com.runto.domain.gathering.type.RunningConcept;
-import com.runto.domain.image.dto.GatheringImageUrlsDto;
+import com.runto.domain.image.dto.ImageRegisterResponse;
 import com.runto.domain.user.domain.User;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -48,7 +48,7 @@ public class CreateGatheringRequest {
     private RunningConcept concept;
 
     @Valid
-    private GatheringImageUrlsDto gatheringImageUrls;
+    private ImageRegisterResponse imageRegisterResponse;
 
     public Gathering toEntity(User organizer) {
 
@@ -60,7 +60,7 @@ public class CreateGatheringRequest {
                 .deadline(deadline)
                 .concept(concept)
                 .goalDistance(goalDistance)
-                .thumbnailUrl(gatheringImageUrls.getRepresentativeImageUrl())
+                .thumbnailUrl(imageRegisterResponse.getRepresentativeImageUrl())
                 .location(location.toLocation())
                 .maxNumber(maxNumber)
                 .build();

@@ -8,7 +8,7 @@ import com.runto.domain.gathering.dto.GatheringDetailResponse;
 import com.runto.domain.gathering.exception.GatheringException;
 import com.runto.domain.image.application.ImageService;
 import com.runto.domain.image.domain.GatheringImage;
-import com.runto.domain.image.dto.GatheringImageUrlsDto;
+import com.runto.domain.image.dto.ImageRegisterResponse;
 import com.runto.domain.image.dto.ImageUrlDto;
 import com.runto.domain.user.dao.UserRepository;
 import com.runto.domain.user.domain.User;
@@ -49,7 +49,7 @@ public class GatheringService {
 
         Gathering gathering = request.toEntity(user);
         gathering.addMember(user, ORGANIZER);
-        addContentImages(request.getGatheringImageUrls(), gathering);
+        addContentImages(request.getImageRegisterResponse(), gathering);
 
         gatheringRepository.save(gathering);
 
@@ -64,7 +64,7 @@ public class GatheringService {
         return;
     }
 
-    private void addContentImages(GatheringImageUrlsDto imageUrlDto, Gathering gathering) {
+    private void addContentImages(ImageRegisterResponse imageUrlDto, Gathering gathering) {
         if (imageUrlDto == null) return;
 
         List<GatheringImage> gatheringImages = imageUrlDto.getContentImageUrls().stream()
