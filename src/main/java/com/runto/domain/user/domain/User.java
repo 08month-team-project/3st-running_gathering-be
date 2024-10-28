@@ -28,6 +28,7 @@ public class User extends BaseTimeEntity {
 
     private String name;
 
+    //TODO 추후 비속어필터 적용예정.
     @Column(nullable = false, length = 15)
     private String nickname;
 

@@ -1,5 +1,6 @@
 package com.runto.global.config;
 
+import com.runto.global.security.filter.CustomLogoutFilter;
 import com.runto.global.security.filter.JwtFilter;
 import com.runto.global.security.filter.LoginFilter;
 import com.runto.global.security.util.JWTUtil;
@@ -16,6 +17,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
@@ -72,6 +74,7 @@ public class SecurityConfig {
         http.addFilterAt(new LoginFilter(jwtUtil,authenticationManager(authenticationConfiguration)),
                 UsernamePasswordAuthenticationFilter.class);
         http.addFilterBefore(new JwtFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(new CustomLogoutFilter(), LogoutFilter.class);
 
         http.sessionManagement(session->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
