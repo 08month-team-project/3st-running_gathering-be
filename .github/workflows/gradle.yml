@@ -78,6 +78,10 @@ jobs:
           -e "AWS_DB_USERNAME=${{ secrets.AWS_DB_USERNAME }}" \
           -e "AWS_DB_PASSWORD=${{ secrets.AWS_DB_PASSWORD }}" \
           -e "SECRET_KEY=${{ secrets.SECRET_KEY }}" \
+          -e "AWS_ACCESS_KEY=${{ secrets.AWS_ACCESS_KEY }}" \
+          -e "AWS_SECRET_KEY=${{ secrets.AWS_SECRET_KEY }}" \
+          -e "BUCKET=${{ secrets.BUCKET }}" \
+          -e "STATIC_REGION=${{ secrets.STATIC_REGION }}" \
           ${{ secrets.DOCKERHUB_USERNAME }}/runto-cicd:latest
 
       - name: delete old docker image

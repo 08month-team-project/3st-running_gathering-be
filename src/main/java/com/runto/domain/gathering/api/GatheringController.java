@@ -2,6 +2,7 @@ package com.runto.domain.gathering.api;
 
 import com.runto.domain.gathering.application.GatheringService;
 import com.runto.domain.gathering.dto.CreateGatheringRequest;
+import com.runto.domain.gathering.dto.GatheringDetailResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,12 @@ public class GatheringController {
 
         gatheringService.createGatheringGeneral(request);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{gathering_id}")
+    public ResponseEntity<GatheringDetailResponse> getGatheringDetail(
+            @PathVariable("gathering_id") Long gatheringId) {
+        return ResponseEntity.ok(gatheringService.getGatheringDetail(gatheringId));
     }
 
 }
