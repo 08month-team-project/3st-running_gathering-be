@@ -1,5 +1,6 @@
 package com.runto.global.exception;
 
+import com.runto.domain.chat.exception.ChatException;
 import com.runto.domain.gathering.exception.GatheringException;
 import com.runto.domain.image.exception.ImageException;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +34,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ImageException.class)
     public ResponseEntity<ErrorResult> handleImageException(ImageException e) {
         log.error("[ImageException] ex", e);
+        return makeErrorResult(e.getErrorCode());
+    }
+
+    @ExceptionHandler(ChatException.class)
+    public ResponseEntity<ErrorResult> handleChatException(ChatException e) {
         return makeErrorResult(e.getErrorCode());
     }
 
