@@ -5,9 +5,11 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.runto.domain.image.domain.GatheringImage;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
@@ -18,6 +20,13 @@ public class ImageUrlDto {
     private String imageUrl;
 
     private int order;
+
+    public static ImageUrlDto from(GatheringImage image) {
+        return ImageUrlDto.builder()
+                .imageUrl(image.getImageUrl())
+                .order(image.getImageOrder())
+                .build();
+    }
 
     public GatheringImage toEntity() {
         return GatheringImage.builder()

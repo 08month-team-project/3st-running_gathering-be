@@ -17,7 +17,7 @@ import static com.runto.global.exception.ErrorCode.INVALID_REPRESENTATIVE_IMAGE_
 @AllArgsConstructor
 @Getter
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class GatheringImageUrlsDto {
+public class ImageRegisterResponse {
 
     private Integer representativeImageIndex;
 
@@ -25,7 +25,7 @@ public class GatheringImageUrlsDto {
     @Size(max = 3, message = "이미지 등록은 최대 3개까지만 허용됩니다.")
     private List<ImageUrlDto> contentImageUrls;
 
-    public static GatheringImageUrlsDto of(Integer representativeImageIndex, List<ImageUrlDto> imageUrls) {
+    public static ImageRegisterResponse of(Integer representativeImageIndex, List<ImageUrlDto> imageUrls) {
 
         if (representativeImageIndex == null || representativeImageIndex < 0) {
             representativeImageIndex = 0;
@@ -34,11 +34,12 @@ public class GatheringImageUrlsDto {
             throw new ImageException(INVALID_REPRESENTATIVE_IMAGE_INDEX);
         }
 
-        return GatheringImageUrlsDto.builder()
+        return ImageRegisterResponse.builder()
                 .representativeImageIndex(representativeImageIndex)
                 .contentImageUrls(imageUrls)
                 .build();
     }
+
 
     public String getRepresentativeImageUrl() {
         return contentImageUrls
