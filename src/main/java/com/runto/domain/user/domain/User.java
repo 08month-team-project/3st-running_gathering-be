@@ -1,15 +1,14 @@
 package com.runto.domain.user.domain;
 
 import com.runto.domain.common.BaseTimeEntity;
-import com.runto.domain.user.dto.SignupRequest;
 import com.runto.domain.user.type.Gender;
 import com.runto.domain.user.type.UserRole;
 import com.runto.domain.user.type.UserStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
-import static jakarta.persistence.EnumType.*;
-import static jakarta.persistence.GenerationType.*;
+import static jakarta.persistence.EnumType.STRING;
+import static jakarta.persistence.GenerationType.IDENTITY;
 
 @Builder
 @AllArgsConstructor
@@ -23,13 +22,13 @@ public class User extends BaseTimeEntity {
     @Column(name = "user_id")
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String email;
 
     private String name;
 
     //TODO 추후 비속어필터 적용예정.
-    @Column(nullable = false, length = 15)
+    @Column(nullable = false, length = 15, unique = true)
     private String nickname;
 
     @Column(nullable = false)
@@ -50,6 +49,9 @@ public class User extends BaseTimeEntity {
     @OneToOne(cascade = CascadeType.ALL,fetch = FetchType.LAZY)
     @JoinColumn(name = "local_id")
     private LocalAccount localAccount;
+
+    @Column(name = "report_count")
+    private Long reportCount;
 
     @PrePersist
     public void prePersist() {

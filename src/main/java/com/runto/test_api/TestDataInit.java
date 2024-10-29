@@ -13,6 +13,7 @@ import com.runto.domain.user.type.UserRole;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,12 +31,15 @@ public class TestDataInit {
 
     private final UserRepository userRepository;
     private final LocalAccountRepository localAccountRepository;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     private final GatheringRepository gatheringRepository;
 
     @EventListener(ApplicationReadyEvent.class)
     @Transactional
     public void init() {
+
+        String password = bCryptPasswordEncoder.encode("123456");
 
         List<User> users = new ArrayList<>();
 
@@ -121,9 +125,7 @@ public class TestDataInit {
         }
 
 
-
         gatherings = gatheringRepository.saveAll(gatherings);
-
 
     }
 }
