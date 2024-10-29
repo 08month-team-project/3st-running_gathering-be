@@ -1,6 +1,8 @@
 package com.runto.domain.admin.application;
 
 import com.runto.domain.admin.dto.MonthUserResponse;
+import com.runto.domain.admin.dto.UserCountResponse;
+import com.runto.domain.admin.type.AdminStatsCount;
 import com.runto.domain.user.dao.UserRepository;
 import com.runto.domain.user.type.UserStatus;
 import lombok.RequiredArgsConstructor;
@@ -18,5 +20,9 @@ public class AdminService {
 
     public List<MonthUserResponse> getUserByMonth(UserStatus status) {
         return userRepository.findAllByUserByMonth(status);
+    }
+
+    public UserCountResponse getUserCount(AdminStatsCount statsCount) {
+        return userRepository.countUsersByType(statsCount);
     }
 }
