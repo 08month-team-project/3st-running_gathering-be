@@ -6,12 +6,15 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.StringTemplate;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.runto.domain.admin.dto.MonthUserResponse;
+import com.runto.domain.admin.dto.UserCountResponse;
+import com.runto.domain.admin.type.AdminStatsCount;
 import com.runto.domain.user.type.UserStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+import static com.runto.domain.user.domain.QBlackList.blackList;
 import static com.runto.domain.user.domain.QUser.user;
 import static com.runto.domain.user.type.UserStatus.ACTIVE;
 import static com.runto.domain.user.type.UserStatus.DISABLED;
@@ -40,13 +43,36 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
                 .fetch();
     }
 
+    @Override
+    public UserCountResponse countUsersByType(AdminStatsCount statsCount) {
+
+        return queryFactory
+                .select(Projections.constructor(UserCountResponse.class,
+                        user.count().as("user_count")))
+                .from(user)
+                .leftJoin(blackList)
+                .on(user.id.eq(blackList.user.id))
+                .where(userTypeCondition(statsCount))
+                .fetchOne();
+    }
+
     private BooleanExpression userStateCondition(UserStatus status) {
 
         return switch (status) {
             case ACTIVE -> user.status.eq(ACTIVE);
             case DISABLED -> user.status.eq(DISABLED);
-            default -> null;
+            default -> Expressions.TRUE.isTrue();
         };
 
     }
+
+    private BooleanExpression userTypeCondition(AdminStatsCount type) {
+        BooleanExpression notDisabled = user.status.ne(DISABLED);
+        return switch (type) {
+            case TOTAL -> notDisabled;
+            case REPORTED -> notDisabled.and(user.reportCount.gt(0)).and(user.status.eq(ACTIVE));
+            case BLACKLIST -> notDisabled.and(blackList.user.id.isNotNull());
+        };
+    }
+
 }
