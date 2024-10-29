@@ -41,7 +41,7 @@ public class JWTUtil {
         return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("category", String.class);
     }
     public String extractAccessToken(HttpServletRequest request) {
-        String authorization = request.getHeader("access");
+        String authorization = request.getHeader("Authorization");
         if (authorization != null && authorization.startsWith("Bearer ")) {
             return authorization.split(" ")[1];
         }
