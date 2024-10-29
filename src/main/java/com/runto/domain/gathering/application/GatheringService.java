@@ -5,6 +5,8 @@ import com.runto.domain.gathering.dao.GatheringRepository;
 import com.runto.domain.gathering.domain.Gathering;
 import com.runto.domain.gathering.dto.CreateGatheringRequest;
 import com.runto.domain.gathering.dto.GatheringDetailResponse;
+import com.runto.domain.gathering.dto.UserGatheringsRequestParams;
+import com.runto.domain.gathering.dto.UserGatheringsResponse;
 import com.runto.domain.gathering.exception.GatheringException;
 import com.runto.domain.image.application.ImageService;
 import com.runto.domain.image.domain.GatheringImage;
@@ -14,6 +16,7 @@ import com.runto.domain.user.dao.UserRepository;
 import com.runto.domain.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -58,7 +61,7 @@ public class GatheringService {
 //        imageService.moveImageFromTempToPermanent(request.getGatheringImageUrls()
 //                .getContentImageUrls());
     }
-    
+
     // TODO: 설정 날짜 관련 서비스 정책? 정하고 구현
     private void validateDate(LocalDateTime deadLine, LocalDateTime appointedAt) {
         return;
@@ -79,5 +82,15 @@ public class GatheringService {
                 .orElseThrow(() -> new GatheringException(GATHERING_NOT_FOUND));
 
         return GatheringDetailResponse.from(gathering);
+    }
+
+
+    // 내 모임목록조회에만 사용되지 않고 특정유저의 모임목록을 조회할 수 있는 상황을 고려하였음
+    public UserGatheringsResponse getUserGatherings(Long userId,
+                                                    Pageable pageable,
+                                                    UserGatheringsRequestParams requestParams) {
+
+        return UserGatheringsResponse.fromGatherings(
+                gatheringRepository.getUserGatherings(userId, pageable, requestParams));
     }
 }

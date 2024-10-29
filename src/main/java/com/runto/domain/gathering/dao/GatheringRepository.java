@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface GatheringRepository extends JpaRepository<Gathering, Long> {
+public interface GatheringRepository extends JpaRepository<Gathering, Long>, GatheringRepositoryCustom {
 
     @Query("select g from Gathering g " +
             " join fetch g.gatheringMembers gm " +

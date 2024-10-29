@@ -106,6 +106,7 @@ public class Gathering extends BaseTimeEntity {
         });
     }
 
+    // TODO: 참가 구현시 동시성 적용
     public void addMember(User user, GatheringMemberRole role) {
         if (!UserStatus.ACTIVE.equals(user.getStatus())) {
             throw new GatheringException(USER_INACTIVE);
