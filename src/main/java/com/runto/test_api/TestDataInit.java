@@ -49,7 +49,7 @@ public class TestDataInit {
                     .build();
 
             users.add(User.builder()
-                    .email("runto@gmail.com")
+                    .email("runto" + i + "@gmail.com")
                     .name("테스트유저이름" + i + 1)
                     .nickname("테스트유저닉네임" + i + 1)
                     .gender(WOMAN)
