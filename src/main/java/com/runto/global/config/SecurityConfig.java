@@ -1,5 +1,6 @@
 package com.runto.global.config;
 
+import com.runto.domain.user.dao.RefreshRepository;
 import com.runto.global.security.filter.CustomLogoutFilter;
 import com.runto.global.security.filter.JwtFilter;
 import com.runto.global.security.filter.LoginFilter;
@@ -29,6 +30,7 @@ import java.util.Collections;
 public class SecurityConfig {
     private final AuthenticationConfiguration authenticationConfiguration;
     private final JWTUtil jwtUtil;
+    private final RefreshRepository refreshRepository;
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
@@ -71,10 +73,10 @@ public class SecurityConfig {
                 .anyRequest().authenticated());
 
 
-        http.addFilterAt(new LoginFilter(jwtUtil,authenticationManager(authenticationConfiguration)),
+        http.addFilterAt(new LoginFilter(jwtUtil,authenticationManager(authenticationConfiguration),refreshRepository),
                 UsernamePasswordAuthenticationFilter.class);
         http.addFilterBefore(new JwtFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
-        http.addFilterBefore(new CustomLogoutFilter(), LogoutFilter.class);
+        http.addFilterBefore(new CustomLogoutFilter(jwtUtil,refreshRepository), LogoutFilter.class);
 
         http.sessionManagement(session->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
