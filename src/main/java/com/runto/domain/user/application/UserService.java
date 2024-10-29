@@ -39,8 +39,7 @@ public class UserService {
 
         userRepository.save(user);
     }
-
-    @Transactional
+    
     public void checkEmailDuplicate(CheckEmailRequest checkEmailRequest){
         Optional<User> findUser = userRepository.findByEmail(checkEmailRequest.getEmail());
 
