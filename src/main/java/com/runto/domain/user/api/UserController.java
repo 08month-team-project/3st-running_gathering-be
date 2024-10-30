@@ -19,10 +19,9 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
     private final UserService userService;
 
-    //model attribute 사용시 setter필요
     @PostMapping("/signup")
     @Operation(summary = "회원가입")
-    public ResponseEntity<Void> signup(@ModelAttribute @Valid SignupRequest signupRequest) {
+    public ResponseEntity<Void> signup(@Valid @RequestBody SignupRequest signupRequest) {
         userService.createUser(signupRequest);
         return ResponseEntity.ok().build();
     }
@@ -31,11 +30,6 @@ public class UserController {
     @PostMapping("/check-email")
     public ResponseEntity<Void> checkEmail(@Valid @RequestBody CheckEmailRequest checkEmailRequest) {
         userService.checkEmailDuplicate(checkEmailRequest);
-        return ResponseEntity.ok().build();
-    }
-    @GetMapping("/my")
-    public ResponseEntity<Void> getUser(@AuthenticationPrincipal CustomUserDetails user) {
-        System.out.println(user.getUserId());
         return ResponseEntity.ok().build();
     }
 }
