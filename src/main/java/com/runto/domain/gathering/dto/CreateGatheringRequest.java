@@ -34,7 +34,7 @@ public class CreateGatheringRequest {
     @NotNull(message = "약속장소는 필수값입니다.")
     private LocationDto location;
 
-    @ValidGatheringMaxNumber
+    //@ValidGatheringMaxNumber // TODO 에러해결되면 교체 (현재는 서비스에서 따로 검증 후 예외발생시키는걸로 임시조치)
     private int maxNumber;
 
     @NotBlank(message = "본문 내용은 필수값입니다.")

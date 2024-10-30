@@ -17,6 +17,7 @@ public class GatheringMaxNumberValidator implements ConstraintValidator<ValidGat
     @Override
     public boolean isValid(Integer maxNumber, ConstraintValidatorContext context) {
 
+        // BUG: Caused by: jakarta.validation.ValidationException: HV000036: Type com.runto.domain.gathering.dto.CreateGatheringRequest not supported for unwrapping.
         CreateGatheringRequest request = context.unwrap(CreateGatheringRequest.class);
         GatheringType type = request.getGatheringType();
 
