@@ -6,6 +6,7 @@ import com.runto.domain.user.domain.Refresh;
 import com.runto.domain.user.dto.LoginRequest;
 import com.runto.global.security.detail.CustomUserDetails;
 import com.runto.global.security.util.JWTUtil;
+import com.runto.global.security.util.RefreshUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,12 +33,12 @@ import java.util.regex.Pattern;
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     private final AuthenticationManager authenticationManager;
     private final JWTUtil jwtUtil;
-    private final RefreshRepository refreshRepository;
+    private final RefreshUtil refreshUtil;
 
-    public LoginFilter(JWTUtil jwtUtil, AuthenticationManager authenticationManager, RefreshRepository refreshRepository) {
+    public LoginFilter(JWTUtil jwtUtil, AuthenticationManager authenticationManager, RefreshUtil refreshUtil) {
         this.jwtUtil = jwtUtil;
         this.authenticationManager = authenticationManager;
-        this.refreshRepository = refreshRepository;
+        this.refreshUtil = refreshUtil;
         setFilterProcessesUrl("/users/login");
     }
 
@@ -98,7 +99,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         String refresh = jwtUtil.createJwt("refresh",userId,username,role,3*24*60*60*1000L);
 
         //Refresh 토큰 저장
-        addRefreshEntity(username, refresh, 3*24*60*60*1000L);
+        refreshUtil.addRefreshEntity(username, refresh, 3*24*60*60*1000L);
 
         response.setContentType("application/json; charset=UTF-8");
         response.getWriter().write("{" +
@@ -106,33 +107,12 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
                 "}");
         response.addHeader("Authorization","Bearer "+access);
 
-        response.addCookie(createCookie("refresh",refresh));
+        response.addCookie(refreshUtil.createCookie("refresh",refresh));
         response.setStatus(HttpStatus.OK.value());
     }
     //로그인 실패시 실행하는 메소드
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) {
         response.setStatus(401);
-    }
-
-        private Cookie createCookie(String key, String value) {
-        Cookie cookie = new Cookie(key, value);
-        cookie.setMaxAge(24*60*1000);
-        cookie.setSecure(true);
-        cookie.setHttpOnly(true);
-
-        return cookie;
-    }
-
-    private void addRefreshEntity(String username, String refresh, Long expiredMs) {
-
-        Date date = new Date(System.currentTimeMillis() + expiredMs);
-
-        Refresh refreshEntity = Refresh.builder()
-                .username(username)
-                .refresh(refresh)
-                .expiration(date.toString())
-                .build();
-        refreshRepository.save(refreshEntity);
     }
 }

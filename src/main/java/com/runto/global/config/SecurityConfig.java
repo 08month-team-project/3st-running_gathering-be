@@ -4,7 +4,9 @@ import com.runto.domain.user.dao.RefreshRepository;
 import com.runto.global.security.filter.CustomLogoutFilter;
 import com.runto.global.security.filter.JwtFilter;
 import com.runto.global.security.filter.LoginFilter;
+import com.runto.global.security.filter.ReissueFilter;
 import com.runto.global.security.util.JWTUtil;
+import com.runto.global.security.util.RefreshUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -30,6 +32,7 @@ import java.util.Collections;
 public class SecurityConfig {
     private final AuthenticationConfiguration authenticationConfiguration;
     private final JWTUtil jwtUtil;
+    private final RefreshUtil refreshUtil;
     private final RefreshRepository refreshRepository;
 
     @Bean
@@ -73,8 +76,8 @@ public class SecurityConfig {
                 .requestMatchers("images/**", "gatherings/**").authenticated()
                 .anyRequest().authenticated());
 
-
-        http.addFilterAt(new LoginFilter(jwtUtil,authenticationManager(authenticationConfiguration),refreshRepository),
+        http.addFilterBefore(new ReissueFilter(jwtUtil,refreshUtil,refreshRepository),UsernamePasswordAuthenticationFilter.class);
+        http.addFilterAt(new LoginFilter(jwtUtil,authenticationManager(authenticationConfiguration),refreshUtil),
                 UsernamePasswordAuthenticationFilter.class);
         http.addFilterBefore(new JwtFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
         http.addFilterBefore(new CustomLogoutFilter(jwtUtil,refreshRepository), LogoutFilter.class);
