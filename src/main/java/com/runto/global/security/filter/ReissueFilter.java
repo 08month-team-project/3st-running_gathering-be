@@ -74,7 +74,7 @@ public class ReissueFilter extends OncePerRequestFilter {
         String role = jwtUtil.getRole(refresh);
 
         //다맞다면 엑세스 재발급
-        String newAccess = jwtUtil.createJwt("access",userId,username,role,24*60*60*1000L);
+        String newAccess = jwtUtil.createJwt("access",userId,username,role,2*60*60*1000L);
         //Refresh Rotate
         String newRefresh = jwtUtil.createJwt("refresh",userId,username,role,3*24*60*60*1000L);
 
