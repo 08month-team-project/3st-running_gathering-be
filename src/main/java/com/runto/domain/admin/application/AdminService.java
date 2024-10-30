@@ -1,19 +1,21 @@
 package com.runto.domain.admin.application;
 
-import com.runto.domain.admin.dao.CouponRepository;
-import com.runto.domain.admin.domain.Coupon;
-import com.runto.domain.admin.dto.CouponRequest;
+import com.runto.domain.coupon.dao.CouponRepository;
+import com.runto.domain.coupon.domain.Coupon;
+import com.runto.domain.coupon.dto.CouponRequest;
 import com.runto.domain.admin.dto.MonthUserResponse;
 import com.runto.domain.admin.dto.UserCountResponse;
 import com.runto.domain.admin.type.AdminStatsCount;
 import com.runto.domain.user.dao.UserRepository;
 import com.runto.domain.user.type.UserStatus;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -37,4 +39,5 @@ public class AdminService {
         couponRepository.save(coupon);
 
     }
+
 }

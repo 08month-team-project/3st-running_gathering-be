@@ -1,4 +1,4 @@
-package com.runto.domain.admin.type;
+package com.runto.domain.coupon.type;
 
 public enum CouponStatus {
     AWAITING,  // 발급 대기

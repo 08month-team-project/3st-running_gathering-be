@@ -1,4 +1,4 @@
-package com.runto.domain.admin.dto;
+package com.runto.domain.coupon.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Future;
@@ -19,7 +19,7 @@ public class CouponRequest {
 
     @NotNull(message = "수량은 필수입니다.")
     @Min(value = 0, message = "수량은 0 이상이어야 합니다.")
-    private Integer quantity;
+    private Long quantity;
 
     @Future(message = "만료일은 현재 시점 이후여야 합니다.")
     @JsonProperty("expired_at")
