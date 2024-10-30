@@ -19,10 +19,17 @@ public class UserGatheringsResponse {
 
     private Slice<GatheringResponse> userGatheringResponses;
 
-    public static UserGatheringsResponse fromGatherings(Slice<Gathering> gatherings) {
+    public static UserGatheringsResponse fromGeneralGatherings(Slice<Gathering> gatherings) {
 
         return UserGatheringsResponse.builder()
-                .userGatheringResponses(gatherings.map(GatheringResponse::from))
+                .userGatheringResponses(gatherings.map(GatheringResponse::fromGeneralGathering))
+                .build();
+    }
+
+    public static UserGatheringsResponse fromEventGatherings(Slice<Gathering> gatherings) {
+
+        return UserGatheringsResponse.builder()
+                .userGatheringResponses(gatherings.map(GatheringResponse::fromEventGathering))
                 .build();
     }
 
