@@ -4,7 +4,6 @@ import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.runto.domain.gathering.domain.EventGathering;
 import com.runto.domain.gathering.domain.Gathering;
 import com.runto.domain.gathering.dto.UserGatheringsRequestParams;
 import com.runto.domain.gathering.type.GatheringMemberRole;
@@ -15,12 +14,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.runto.domain.common.SortUtil.getOrderSpecifier;
 import static com.runto.domain.gathering.domain.QEventGathering.eventGathering;
@@ -28,6 +27,7 @@ import static com.runto.domain.gathering.domain.QGathering.gathering;
 import static com.runto.domain.gathering.dto.QGatheringMember.gatheringMember;
 import static com.runto.domain.gathering.type.EventRequestStatus.APPROVED;
 import static com.runto.domain.gathering.type.GatheringMemberRole.ORGANIZER;
+import static com.runto.domain.gathering.type.GatheringOrderField.CREATED_AT;
 import static com.runto.domain.gathering.type.GatheringStatus.DELETED;
 import static com.runto.domain.gathering.type.GatheringTimeStatus.ENDED;
 import static com.runto.domain.gathering.type.GatheringTimeStatus.ONGOING;
@@ -62,29 +62,31 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
         return new SliceImpl<>(gatherings, pageable, hasNextPage(pageable, gatherings));
     }
 
+    /**
+     * 양방향으로 바꾸면서 getUserGeneralGatherings 과 한개의 조건을 제외하고 완전히 똑같아서,
+     * <p>
+     * eventGathering.status 에 대한 condition을 따로 만들고(일반 모임은 null로 반환하면 되니까)
+     * 두 메서드를 합쳐서 쓸까 했지만
+     * 일반모임 조회일때도 eventGathering.status 에 대한 조건 로직이 들어가는게 뭔가 이상해보여서 그만두었음
+     */
     @Override
     public Slice<Gathering> getUserEventGatherings(Long userId,
                                                    Pageable pageable,
                                                    UserGatheringsRequestParams request) {
 
-        // OneToOne 단방향이어서 일반모임목록 조회랑 select 대상이 다름
-        List<EventGathering> eventGatherings = jpaQueryFactory.selectFrom(eventGathering)
-                .join(eventGathering.gathering).fetchJoin()
+        List<Gathering> gatherings = jpaQueryFactory.selectFrom(gathering)
+                .join(gathering).fetchJoin()
                 .where(
                         memberRoleCondition(userId, request.getMemberRole()),
                         timeCondition(request.getGatheringTimeStatus()),
                         gatheringTypeCondition(EVENT),
                         gathering.status.ne(DELETED),
-                        eventGathering.status.eq(APPROVED)
+                        eventGathering.status.eq(APPROVED) // 메서드를 합칠까말까 고민됐던 부분
                 )
                 .offset(pageable.getOffset())
-                .limit(pageable.getPageSize() + 1) // 다음 페이지에 가져올 컨텐츠가 있는지 확인하기 위함
+                .limit(pageable.getPageSize() + 1)
                 .orderBy(orderCondition(request.getOrderBy(), request.getSortDirection()))
                 .fetch();
-
-        List<Gathering> gatherings = eventGatherings.stream()
-                .map(EventGathering::getGathering)
-                .collect(Collectors.toList());
 
         return new SliceImpl<>(gatherings, pageable, hasNextPage(pageable, gatherings));
     }
@@ -142,7 +144,7 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
 
     // PathBuilder 동적 표현식 활용 (이유는 pr에 작성)
     private OrderSpecifier<?> orderCondition(GatheringOrderField gatheringOrderField,
-                                             Sort.Direction direction) {
+                                             Direction direction) {
 
         return getOrderSpecifier(Gathering.class,
                 gatheringOrderField.getName(), direction);
