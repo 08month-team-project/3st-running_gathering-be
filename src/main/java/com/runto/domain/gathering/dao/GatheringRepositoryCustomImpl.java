@@ -155,13 +155,21 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
         if (ORGANIZER.equals(memberRole)) {
             return gathering.organizerId.eq(userId);
         }
-
         // 회원이 참가자인 모임
+        if (PARTICIPANT.equals(memberRole)) {
+
+            return gathering.id.in(
+                    JPAExpressions.select(gathering.id)
+                            .from(gatheringMember)
+                            .where(gatheringMember.user.id.eq(userId)
+                                    .and(gatheringMember.role.eq(PARTICIPANT))));
+        }
+
+        // 회원이 해당 모임의 멤버인 경우(주최자, 참가자 상관없이)
         return gathering.id.in(
                 JPAExpressions.select(gathering.id)
                         .from(gatheringMember)
-                        .where(gatheringMember.user.id.eq(userId)
-                                .and(gatheringMember.role.eq(PARTICIPANT))));
+                        .where(gatheringMember.user.id.eq(userId)));
     }
 
     private BooleanExpression yearMonthCondition(int year, int month) {
