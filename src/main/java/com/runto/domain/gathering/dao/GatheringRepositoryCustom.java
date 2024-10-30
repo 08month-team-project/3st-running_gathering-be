@@ -9,7 +9,11 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface GatheringRepositoryCustom {
 
-    Slice<Gathering> getUserGatherings(Long userId,
+    Slice<Gathering> getUserGeneralGatherings(Long userId,
+                                              Pageable pageable,
+                                              UserGatheringsRequestParams requestParams);
+
+    Slice<Gathering> getUserEventGatherings(Long userId,
                                        Pageable pageable,
                                        UserGatheringsRequestParams requestParams);
 }

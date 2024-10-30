@@ -91,11 +91,11 @@ public class GatheringService {
 
         if (EVENT.equals(requestParams.getGatheringType())) {
             return UserGatheringsResponse.fromEventGatherings(
-                    gatheringRepository.getUserGatherings(userId, pageable, requestParams));
+                    gatheringRepository.getUserEventGatherings(userId, pageable, requestParams));
         }
 
         return UserGatheringsResponse.fromGeneralGatherings(
-                gatheringRepository.getUserGatherings(userId, pageable, requestParams));
+                gatheringRepository.getUserGeneralGatherings(userId, pageable, requestParams));
     }
 
 
