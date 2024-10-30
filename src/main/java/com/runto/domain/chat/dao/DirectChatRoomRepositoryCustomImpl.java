@@ -1,6 +1,7 @@
 package com.runto.domain.chat.dao;
 
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.runto.domain.chat.domain.DirectChatRoom;
@@ -26,20 +27,15 @@ public class DirectChatRoomRepositoryCustomImpl implements DirectChatRoomReposit
         QDirectChatRoom d = QDirectChatRoom.directChatRoom;
         QUser u = QUser.user;
 
-
         List<DirectChatRoomResponse> chatRoomList = jpaQueryFactory
                 .select(Projections.constructor(DirectChatRoomResponse.class,
                         d.id,
                         JPAExpressions.select(u.name)
                                 .from(u)
-                                .where(d.user1.id.eq(userId).and(d.user2.id.eq(u.id))
-                                        .or(d.user2.id.eq(userId).and(d.user1.id.eq(u.id)))
-                                ),
+                                .where(isUserOpponent(userId,d,u)),
                         JPAExpressions.select(u.profileImageUrl)
                                 .from(u)
-                                .where(d.user1.id.eq(userId).and(d.user2.id.eq(u.id))
-                                        .or(d.user2.id.eq(userId).and(d.user1.id.eq(u.id)))
-                                )
+                                .where(isUserOpponent(userId,d,u))
                         ))//select end
                 .from(d)
                 .where(d.user1.id.eq(userId).or(d.user2.id.eq(userId)))
@@ -47,7 +43,6 @@ public class DirectChatRoomRepositoryCustomImpl implements DirectChatRoomReposit
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize() + 1)
                 .fetch();
-
 
         return new SliceImpl<>(chatRoomList, pageable, hasNextPage(pageable, chatRoomList));
     }
@@ -58,5 +53,10 @@ public class DirectChatRoomRepositoryCustomImpl implements DirectChatRoomReposit
             return true;
         }
         return false;
+    }
+
+    private BooleanExpression isUserOpponent(Long userId, QDirectChatRoom d,QUser u){
+        return d.user1.id.eq(userId).and(d.user2.id.eq(u.id))
+                .or(d.user2.id.eq(userId).and(d.user1.id.eq(u.id)));
     }
 }
