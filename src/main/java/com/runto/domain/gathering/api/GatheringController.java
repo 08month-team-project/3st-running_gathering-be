@@ -23,22 +23,23 @@ public class GatheringController {
 
     private final GatheringService gatheringService;
 
-    // TODO: 회원관련 기능 dev에 머지되면 param 에 UserDetails 추가 & 교체
+
     @PostMapping
     public ResponseEntity<Void> createGathering(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody CreateGatheringRequest request) {
 
-        Long userId = 1L;
-        gatheringService.createGatheringGeneral(userId, request);
+        gatheringService.createGatheringGeneral(userDetails.getUsername(), request);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/event")
-    public ResponseEntity<?> requestEventGatheringHosting(
+    public ResponseEntity<Void> requestEventGatheringHosting(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody CreateGatheringRequest request) {
 
-        gatheringService.requestEventGatheringHosting(userDetails.getUserId(), request);
+        log.info("userId = {}", userDetails.getUserId());
+        gatheringService.requestEventGatheringHosting(userDetails.getUsername(), request);
         return ResponseEntity.ok().build();
     }
 

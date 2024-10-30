@@ -45,16 +45,15 @@ public class GatheringService {
     private final EventGatheringRepository eventGatheringRepository;
 
 
-    // TODO: 회원관련 기능 dev에 머지되면 param 에 UserDetails 추가 & 교체 , user 관련 예외로 수정
     // TODO: 만약 신고기능 구현하는거면 나중에 관련 로직 추가 필요
     // TODO: 날짜 설정 검증 로직 필요 (설정 날짜 관련 서비스 정책? 정하고 추후에 추가)
     // TODO: 그룹 채팅방 생성 로직 추가
     // TODO moveImageProcess 에러 해결되면 주석 풀기
     @Transactional
-    public void createGatheringGeneral(Long userId, CreateGatheringRequest request) {
+    public void createGatheringGeneral(String email, CreateGatheringRequest request) {
 
         validateMaxNumber(request.getGatheringType(), request.getMaxNumber());
-        createGathering(userId, request);
+        createGathering(email, request);
 
         // s3 temp 경로에 있던 이미지파일들을 정식 경로에 옮기기
 //        imageService.moveImageFromTempToPermanent(request.getGatheringImageUrls()
@@ -102,12 +101,12 @@ public class GatheringService {
     // TODO moveImageProcess 에러 해결되면 주석 풀기
     // db를 세번 오가는 상황, 그렇다고 gathering에서 양방향으로 넣기엔 안 어울리는 듯 하다.
     @Transactional
-    public void requestEventGatheringHosting(Long userId,
+    public void requestEventGatheringHosting(String email,
                                              CreateGatheringRequest request) {
 
         validateMaxNumber(request.getGatheringType(), request.getMaxNumber());
 
-        Gathering gathering = createGathering(userId, request);
+        Gathering gathering = createGathering(email, request);
         eventGatheringRepository.save(new EventGathering(gathering));
 
         // s3 temp 경로에 있던 이미지파일들을 정식 경로에 옮기기
@@ -116,8 +115,9 @@ public class GatheringService {
 
     }
 
-    private Gathering createGathering(Long userId, CreateGatheringRequest request) {
-        User user = userRepository.findById(userId)
+    private Gathering createGathering(String email, CreateGatheringRequest request) {
+
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
         validateDate(request.getDeadline(), request.getAppointedAt());
