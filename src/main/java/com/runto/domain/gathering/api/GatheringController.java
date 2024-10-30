@@ -22,13 +22,26 @@ public class GatheringController {
     private final GatheringService gatheringService;
 
     // TODO: 회원관련 기능 dev에 머지되면 param 에 UserDetails 추가 & 교체
+    // TODO: CreateGatheringRequest 를 이벤트모임 api 에 같이 사용하게되면서 별도의 최대인원 검증 로직 필요
     @PostMapping
-    public ResponseEntity<Void> createGathering(@Valid @RequestBody CreateGatheringRequest request) {
+    public ResponseEntity<Void> createGathering(
+            @Valid @RequestBody CreateGatheringRequest request) {
 
-        gatheringService.createGatheringGeneral(request);
+        Long userId = 1L;
+        gatheringService.createGatheringGeneral(userId, request);
         return ResponseEntity.ok().build();
     }
 
+    // TODO: CreateGatheringRequest 의 별도의 최대인원 검증 로직 필요
+    @PostMapping("/event")
+    public ResponseEntity<?> requestEventGatheringHosting(
+            @RequestParam(name = "user_id") Long userId, // before 유저인증 적용
+            @Valid @RequestBody CreateGatheringRequest request) {
+        gatheringService.requestEventGatheringHosting(userId, request);
+        return ResponseEntity.ok().build();
+    }
+
+    // TODO: 상세조회 시엔 DELETED, REPORTED는 노출 X
     @GetMapping("/{gathering_id}")
     public ResponseEntity<GatheringDetailResponse> getGatheringDetail(
             @PathVariable("gathering_id") Long gatheringId) {
@@ -36,7 +49,9 @@ public class GatheringController {
     }
 
 
-    // TODO userId -> userDetails 로 바꿔야함
+    // TODO: 목록 조회시엔 DELETED 외에는 모두 노출 (대신 상세보기는 막는걸로)
+    // TODO: userId -> userDetails 로 바꿔야함
+    // TODO: Gathering 에 type 필드 추가로 인해, 필터링 값 추가, 쿼리문 조건 추가 필요
     @GetMapping
     public ResponseEntity<UserGatheringsResponse> getMyGatherings(
             @RequestParam(name = "user_id") Long userId, // before 유저인증 적용
