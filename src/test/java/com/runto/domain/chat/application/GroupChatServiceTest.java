@@ -49,7 +49,6 @@ class GroupChatServiceTest {
                 .name("홍길동")
                 .gender(Gender.MAN)
                 .nickname("길동이")
-                .phoneNumber("010-1234-1234")
                 .profileImageUrl("xxx.png")
                 .role(UserRole.USER)
                 .build();
@@ -58,7 +57,6 @@ class GroupChatServiceTest {
 
         gathering = Gathering.builder()
                 .id(1L)
-                .host(user1)
                 .title("개모임")
                 .description("개들의 모임")
                 .appointedAt(LocalDateTime.now())
@@ -87,7 +85,6 @@ class GroupChatServiceTest {
                 .name("장보고")
                 .gender(Gender.MAN)
                 .nickname("해신")
-                .phoneNumber("010-1235-1235")
                 .profileImageUrl("xxx123.png")
                 .role(UserRole.USER)
                 .build();

@@ -25,6 +25,4 @@ public class SignupRequest {
             message = "비밀번호는 영문자, 숫자 조합 8자 이상, 20자 이하를 사용하세요.")
     private String password;
 
-    private MultipartFile file;
-
 }

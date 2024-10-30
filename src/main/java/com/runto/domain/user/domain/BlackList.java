@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name="black_list")
 @Entity
-public class BlackList extends BaseTimeEntity {
+public class BlackList{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -22,9 +22,6 @@ public class BlackList extends BaseTimeEntity {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", unique = true, nullable = false)
     private User user;
-
-    @Column(name = "reason", nullable = false, length = 255)
-    private String reason;
 
     @Column(nullable = false)
     private LocalDateTime expiresAt;
@@ -38,7 +35,7 @@ public class BlackList extends BaseTimeEntity {
 
     @PrePersist
     public void prePersist() {
-        expiresAt = getCreatedAt().plusDays(30);
+        expiresAt = LocalDateTime.now().plusDays(30);
     }
 
 }

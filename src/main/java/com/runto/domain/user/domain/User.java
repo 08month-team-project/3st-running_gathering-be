@@ -50,9 +50,6 @@ public class User extends BaseTimeEntity {
     @JoinColumn(name = "local_id")
     private LocalAccount localAccount;
 
-    @Column(name = "report_count")
-    private Long reportCount;
-
     @PrePersist
     public void prePersist() {
         status = UserStatus.ACTIVE;

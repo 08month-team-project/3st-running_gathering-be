@@ -31,7 +31,6 @@ public class UserService {
                 .ifPresent(user->{throw new UserException(ErrorCode.ALREADY_EXIST_USER);});
 
         String encodedPwd = bCryptPasswordEncoder.encode(signupRequest.getPassword());
-        //s3 이미지
         String nickname = signupRequest.getNickname();
         String email = signupRequest.getEmail();
 
