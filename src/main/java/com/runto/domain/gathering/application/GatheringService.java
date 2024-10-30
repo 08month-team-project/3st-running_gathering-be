@@ -50,10 +50,10 @@ public class GatheringService {
     // TODO: 그룹 채팅방 생성 로직 추가
     // TODO moveImageProcess 에러 해결되면 주석 풀기
     @Transactional
-    public void createGatheringGeneral(String email, CreateGatheringRequest request) {
+    public void createGatheringGeneral(Long userId, CreateGatheringRequest request) {
 
         validateMaxNumber(request.getGatheringType(), request.getMaxNumber());
-        createGathering(email, request);
+        createGathering(userId, request);
 
         // s3 temp 경로에 있던 이미지파일들을 정식 경로에 옮기기
 //        imageService.moveImageFromTempToPermanent(request.getGatheringImageUrls()
@@ -101,12 +101,12 @@ public class GatheringService {
     // TODO moveImageProcess 에러 해결되면 주석 풀기
     // db를 세번 오가는 상황, 그렇다고 gathering에서 양방향으로 넣기엔 안 어울리는 듯 하다.
     @Transactional
-    public void requestEventGatheringHosting(String email,
+    public void requestEventGatheringHosting(Long userId,
                                              CreateGatheringRequest request) {
 
         validateMaxNumber(request.getGatheringType(), request.getMaxNumber());
 
-        Gathering gathering = createGathering(email, request);
+        Gathering gathering = createGathering(userId, request);
         eventGatheringRepository.save(new EventGathering(gathering));
 
         // s3 temp 경로에 있던 이미지파일들을 정식 경로에 옮기기
@@ -115,9 +115,9 @@ public class GatheringService {
 
     }
 
-    private Gathering createGathering(String email, CreateGatheringRequest request) {
+    private Gathering createGathering(Long userId, CreateGatheringRequest request) {
 
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
         validateDate(request.getDeadline(), request.getAppointedAt());
