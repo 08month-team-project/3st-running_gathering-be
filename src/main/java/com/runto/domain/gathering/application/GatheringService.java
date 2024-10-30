@@ -116,9 +116,8 @@ public class GatheringService {
 
     }
 
-    // TODO: 인증 적용하면 1L -> userId
     private Gathering createGathering(Long userId, CreateGatheringRequest request) {
-        User user = userRepository.findById(1L)
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
         validateDate(request.getDeadline(), request.getAppointedAt());

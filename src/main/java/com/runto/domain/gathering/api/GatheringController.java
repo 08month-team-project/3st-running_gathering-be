@@ -5,12 +5,14 @@ import com.runto.domain.gathering.dto.CreateGatheringRequest;
 import com.runto.domain.gathering.dto.GatheringDetailResponse;
 import com.runto.domain.gathering.dto.UserGatheringsRequestParams;
 import com.runto.domain.gathering.dto.UserGatheringsResponse;
+import com.runto.global.security.detail.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -33,10 +35,10 @@ public class GatheringController {
 
     @PostMapping("/event")
     public ResponseEntity<?> requestEventGatheringHosting(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody CreateGatheringRequest request) {
 
-        Long userId = 1L;
-        gatheringService.requestEventGatheringHosting(userId, request);
+        gatheringService.requestEventGatheringHosting(userDetails.getUserId(), request);
         return ResponseEntity.ok().build();
     }
 
