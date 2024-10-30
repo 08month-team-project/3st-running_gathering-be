@@ -2,7 +2,9 @@ package com.runto.domain.gathering.dto;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import com.runto.domain.gathering.ValidGatheringMaxNumber;
 import com.runto.domain.gathering.domain.Gathering;
+import com.runto.domain.gathering.type.GatheringType;
 import com.runto.domain.gathering.type.GoalDistance;
 import com.runto.domain.gathering.type.RunningConcept;
 import com.runto.domain.image.dto.ImageRegisterResponse;
@@ -12,7 +14,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import org.hibernate.validator.constraints.Length;
-import org.hibernate.validator.constraints.Range;
 
 import java.time.LocalDateTime;
 
@@ -30,11 +31,10 @@ public class CreateGatheringRequest {
     @NotNull(message = "지원마감날짜는 필수값입니다.")
     private LocalDateTime deadline; // 모집마감 날짜시각
 
-    @Valid
     @NotNull(message = "약속장소는 필수값입니다.")
     private LocationDto location;
 
-    @Range(min = 2, max = 10, message = "모임 최대인원은 2 ~ 10명 이어야합니다.")
+    @ValidGatheringMaxNumber
     private int maxNumber;
 
     @NotBlank(message = "본문 내용은 필수값입니다.")
@@ -47,8 +47,12 @@ public class CreateGatheringRequest {
     @NotNull(message = "목표 km 를 설정해야합니다.")
     private RunningConcept concept;
 
+    @NotNull(message = "모임 타입은 필수값입니다.")
+    private GatheringType gatheringType;
+
     @Valid
     private ImageRegisterResponse imageRegisterResponse;
+
 
     public Gathering toEntity(User organizer) {
 
@@ -63,6 +67,7 @@ public class CreateGatheringRequest {
                 .thumbnailUrl(imageRegisterResponse.getRepresentativeImageUrl())
                 .location(location.toLocation())
                 .maxNumber(maxNumber)
+                .gatheringType(gatheringType)
                 .build();
     }
 }
