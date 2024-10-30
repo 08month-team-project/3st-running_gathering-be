@@ -22,7 +22,6 @@ public class GatheringController {
     private final GatheringService gatheringService;
 
     // TODO: 회원관련 기능 dev에 머지되면 param 에 UserDetails 추가 & 교체
-    // TODO: CreateGatheringRequest 를 이벤트모임 api 에 같이 사용하게되면서 별도의 최대인원 검증 로직 필요
     @PostMapping
     public ResponseEntity<Void> createGathering(
             @Valid @RequestBody CreateGatheringRequest request) {
@@ -32,11 +31,11 @@ public class GatheringController {
         return ResponseEntity.ok().build();
     }
 
-    // TODO: CreateGatheringRequest 의 별도의 최대인원 검증 로직 필요
     @PostMapping("/event")
     public ResponseEntity<?> requestEventGatheringHosting(
-            @RequestParam(name = "user_id") Long userId, // before 유저인증 적용
             @Valid @RequestBody CreateGatheringRequest request) {
+
+        Long userId = 1L;
         gatheringService.requestEventGatheringHosting(userId, request);
         return ResponseEntity.ok().build();
     }
