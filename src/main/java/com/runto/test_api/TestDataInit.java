@@ -3,6 +3,7 @@ package com.runto.test_api;
 import com.runto.domain.gathering.dao.GatheringRepository;
 import com.runto.domain.gathering.domain.Gathering;
 import com.runto.domain.gathering.domain.Location;
+import com.runto.domain.gathering.type.GatheringType;
 import com.runto.domain.gathering.type.GoalDistance;
 import com.runto.domain.gathering.type.RunningConcept;
 import com.runto.domain.user.dao.LocalAccountRepository;
@@ -45,7 +46,7 @@ public class TestDataInit {
 
         for (int i = 0; i < 10; i++) {
             LocalAccount localAccount = LocalAccount.builder()
-                    .password("123456")
+                    .password(password)
                     .build();
 
             users.add(User.builder()
@@ -79,6 +80,7 @@ public class TestDataInit {
                     //.status(NORMAL)
                     .maxNumber(10)
                     .currentNumber(1)
+                    .gatheringType(GatheringType.GENERAL)
                     .build();
 
             gathering.addMember(users.get(i), ORGANIZER);
@@ -109,6 +111,7 @@ public class TestDataInit {
                     //.status(NORMAL)
                     .maxNumber(10)
                     .currentNumber(1)
+                    .gatheringType(GatheringType.GENERAL)
                     .build();
 
             gathering.addMember(users.get(i), ORGANIZER);
