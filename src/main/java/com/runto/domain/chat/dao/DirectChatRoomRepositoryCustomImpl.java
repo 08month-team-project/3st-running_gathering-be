@@ -3,6 +3,7 @@ package com.runto.domain.chat.dao;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.runto.domain.chat.domain.DirectChatRoom;
 import com.runto.domain.chat.domain.QDirectChatRoom;
 import com.runto.domain.chat.dto.DirectChatRoomResponse;
 import com.runto.domain.user.domain.QUser;
@@ -44,17 +45,18 @@ public class DirectChatRoomRepositoryCustomImpl implements DirectChatRoomReposit
                 .where(d.user1.id.eq(userId).or(d.user2.id.eq(userId)))
                 .orderBy(d.createdAt.desc())
                 .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
+                .limit(pageable.getPageSize() + 1)
                 .fetch();
 
-        Long totalCount = jpaQueryFactory
-                .select(d.count())
-                .from(d)
-                .where(d.user1.id.eq(userId).or(d.user2.id.eq(userId)))
-                .fetchOne();
 
-        if (totalCount == null) totalCount = 0L;
+        return new SliceImpl<>(chatRoomList, pageable, hasNextPage(pageable, chatRoomList));
+    }
 
-        return new SliceImpl<>(chatRoomList, pageable,totalCount > pageable.getOffset() + pageable.getPageSize());
+    private boolean hasNextPage(Pageable pageable, List<DirectChatRoomResponse> chatRoomList){
+        if (chatRoomList.size() > pageable.getPageSize()){
+            chatRoomList.remove(chatRoomList.size() - 1);
+            return true;
+        }
+        return false;
     }
 }
