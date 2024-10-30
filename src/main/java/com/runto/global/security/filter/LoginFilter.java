@@ -2,6 +2,7 @@ package com.runto.global.security.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.runto.domain.user.dto.LoginRequest;
+import com.runto.global.security.detail.CustomUserDetails;
 import com.runto.global.security.util.JWTUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
@@ -76,16 +77,17 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     //로그인 성공시 실행하는 메소드 (여기서 JWT를 발급하면 됨)
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,Authentication authentication){
-        //CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-       // String username = userDetails.getUsername();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        String username = userDetails.getUsername();
+        Long userId = userDetails.getUserId();
 
-        String username = authentication.getName();
+
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
         Iterator<? extends GrantedAuthority> iterator = authorities.iterator();
         GrantedAuthority auth = iterator.next();
         String role = auth.getAuthority();
 
-        String access = jwtUtil.createJwt("access",username,role,2*60*60*1000L);
+        String access = jwtUtil.createJwt("access",userId,username,role,2*60*60*1000L);
 //        String refresh = jwtUtil.createJwt("refresh",username,role,24*60*1000L);
 
         //Refresh 토큰 저장
