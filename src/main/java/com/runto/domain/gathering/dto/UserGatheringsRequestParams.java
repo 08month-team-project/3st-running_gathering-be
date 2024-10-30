@@ -25,7 +25,6 @@ public class UserGatheringsRequestParams { // Query Parameter 로 매핑 (ModelA
     @NotNull(message = "sort_direction 은 필수 값입니다.")
     private Sort.Direction sortDirection;
 
-    @NotNull(message = "gathering_type 은 필수 값입니다.")
     private GatheringType gatheringType;
 
 

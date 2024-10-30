@@ -9,6 +9,7 @@ import com.runto.domain.gathering.dto.UserGatheringsRequestParams;
 import com.runto.domain.gathering.type.GatheringMemberRole;
 import com.runto.domain.gathering.type.GatheringOrderField;
 import com.runto.domain.gathering.type.GatheringTimeStatus;
+import com.runto.domain.gathering.type.GatheringType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -43,7 +44,7 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
                 .where(
                         memberRoleCondition(userId, request.getMemberRole()),
                         timeCondition(request.getGatheringTimeStatus()),
-                        gathering.gatheringType.eq(request.getGatheringType())
+                        gatheringTypeCondition(request.getGatheringType())
                 )
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize() + 1) // 다음 페이지에 가져올 컨텐츠가 있는지 확인하기 위함
@@ -51,6 +52,16 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
                 .fetch();
 
         return new SliceImpl<>(gatherings, pageable, hasNextPage(pageable, gatherings));
+    }
+
+    private BooleanExpression gatheringTypeCondition(GatheringType type) {
+
+        if (type != null) {
+            return gathering.gatheringType.eq(type);
+        }
+
+        // 상관없이 전체 조회
+        return null;
     }
 
     private boolean hasNextPage(Pageable pageable, List<Gathering> gatherings) {
@@ -92,7 +103,6 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
                         .from(gatheringMember)
                         .where(gatheringMember.user.id.eq(userId)));
     }
-
 
 
     // PathBuilder 동적 표현식 활용 (이유는 pr에 작성)
