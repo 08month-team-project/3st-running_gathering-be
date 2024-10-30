@@ -35,6 +35,7 @@ public class GatheringResponse { // 다른 목록조회에서도 쓸 예정
     private GatheringStatus status;
     private Integer maxNumber;
     private Integer currentNumber;
+    private GatheringType gatheringType;
 
     private List<String> memberProfileUrls;
 
@@ -59,6 +60,7 @@ public class GatheringResponse { // 다른 목록조회에서도 쓸 예정
                 .maxNumber(gathering.getMaxNumber())
                 .currentNumber(gathering.getCurrentNumber())
                 .memberProfileUrls(memberProfileUrls)
+                .gatheringType(gathering.getGatheringType())
                 .build();
     }
 }
