@@ -92,7 +92,12 @@ public class GatheringService {
                                                     Pageable pageable,
                                                     UserGatheringsRequestParams requestParams) {
 
-        return UserGatheringsResponse.fromGatherings(
+        if(EVENT.equals(requestParams.getGatheringType())){
+            return UserGatheringsResponse.fromEventGatherings(
+                    gatheringRepository.getUserGatherings(userId, pageable, requestParams));
+        }
+
+        return UserGatheringsResponse.fromGeneralGatherings(
                 gatheringRepository.getUserGatherings(userId, pageable, requestParams));
     }
 

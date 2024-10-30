@@ -111,7 +111,7 @@ public class TestDataInit {
                     //.status(NORMAL)
                     .maxNumber(10)
                     .currentNumber(1)
-                    .gatheringType(GatheringType.GENERAL)
+                    .gatheringType(GatheringType.EVENT)
                     .build();
 
             gathering.addMember(users.get(i), ORGANIZER);

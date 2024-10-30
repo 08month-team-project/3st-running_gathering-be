@@ -3,13 +3,11 @@ package com.runto.domain.gathering.dao;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.runto.domain.gathering.domain.Gathering;
 import com.runto.domain.gathering.dto.UserGatheringsRequestParams;
-import com.runto.domain.gathering.type.GatheringMemberRole;
-import com.runto.domain.gathering.type.GatheringOrderField;
-import com.runto.domain.gathering.type.GatheringTimeStatus;
-import com.runto.domain.gathering.type.GatheringType;
+import com.runto.domain.gathering.type.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -24,8 +22,10 @@ import static com.runto.domain.common.SortUtil.getOrderSpecifier;
 import static com.runto.domain.gathering.domain.QGathering.gathering;
 import static com.runto.domain.gathering.dto.QGatheringMember.gatheringMember;
 import static com.runto.domain.gathering.type.GatheringMemberRole.ORGANIZER;
+import static com.runto.domain.gathering.type.GatheringStatus.*;
 import static com.runto.domain.gathering.type.GatheringTimeStatus.ENDED;
 import static com.runto.domain.gathering.type.GatheringTimeStatus.ONGOING;
+import static com.runto.domain.gathering.type.GatheringType.*;
 
 @RequiredArgsConstructor
 @Repository
@@ -39,12 +39,12 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
                                               Pageable pageable,
                                               UserGatheringsRequestParams request) {
 
-        List<Gathering> gatherings = jpaQueryFactory.selectFrom(gathering)
-                .join(gathering.gatheringMembers).fetchJoin()
+        List<Gathering> gatherings = selectFromGathering(request.getGatheringType())
                 .where(
                         memberRoleCondition(userId, request.getMemberRole()),
                         timeCondition(request.getGatheringTimeStatus()),
-                        gatheringTypeCondition(request.getGatheringType())
+                        gatheringTypeCondition(request.getGatheringType()),
+                        gathering.status.ne(DELETED)
                 )
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize() + 1) // 다음 페이지에 가져올 컨텐츠가 있는지 확인하기 위함
@@ -54,14 +54,26 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
         return new SliceImpl<>(gatherings, pageable, hasNextPage(pageable, gatherings));
     }
 
+    /**
+     * 일반모임 목록조회 - 멤버목록 가져오기
+     * 이벤트모임 목록조회 - 멤버목록 X
+     */
+    private JPAQuery<Gathering> selectFromGathering(GatheringType type) {
+
+        if (EVENT.equals(type)) {
+            return jpaQueryFactory.selectFrom(gathering);
+        }
+        return jpaQueryFactory.selectFrom(gathering)
+                .join(gathering.gatheringMembers).fetchJoin();
+    }
+
+
     private BooleanExpression gatheringTypeCondition(GatheringType type) {
 
-        if (type != null) {
-            return gathering.gatheringType.eq(type);
+        if (EVENT.equals(type)) {
+            return gathering.gatheringType.eq(EVENT);
         }
-
-        // 상관없이 전체 조회
-        return null;
+        return gathering.gatheringType.eq(GENERAL);
     }
 
     private boolean hasNextPage(Pageable pageable, List<Gathering> gatherings) {
