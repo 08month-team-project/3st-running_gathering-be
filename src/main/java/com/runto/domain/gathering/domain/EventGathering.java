@@ -19,8 +19,9 @@ public class EventGathering extends BaseTimeEntity {
     @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
-    @JoinColumn(name = "gathering_id")
-    @OneToOne(fetch = FetchType.LAZY)
+    // oneToOne 양방향일 경우 주인이 아닌 쪽을 가져올때, LAZY 가 작동안하지만 EventGathering 를 가져올땐,
+    // 항상 Gathering 을 가져오기해서 join fetch 를 쓸거고, 큰 상관은 없는 듯 하다.
+    @OneToOne(fetch = FetchType.LAZY, mappedBy = "eventGathering")
     private Gathering gathering;
 
     @Enumerated(EnumType.STRING)
