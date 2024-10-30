@@ -52,9 +52,11 @@ public class JwtFilter extends OncePerRequestFilter {
             return;
         }
         String username = jwtUtil.getUsername(accessToken);
+        Long userId= jwtUtil.getId(accessToken);
         String role = jwtUtil.getRole(accessToken);
 
         UserDetailsDTO user = UserDetailsDTO.builder()
+                .userId(userId)
                 .email(username)
                 .role(role)
                 .build();
