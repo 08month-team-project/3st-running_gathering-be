@@ -3,6 +3,7 @@ package com.runto.domain.gathering.dto;
 import com.runto.domain.gathering.type.GatheringMemberRole;
 import com.runto.domain.gathering.type.GatheringOrderField;
 import com.runto.domain.gathering.type.GatheringTimeStatus;
+import com.runto.domain.gathering.type.GatheringType;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,6 +25,9 @@ public class UserGatheringsRequestParams { // Query Parameter 로 매핑 (ModelA
     @NotNull(message = "sort_direction 은 필수 값입니다.")
     private Sort.Direction sortDirection;
 
+    @NotNull(message = "gathering_type 은 필수 값입니다.")
+    private GatheringType gatheringType;
+
 
     // TODO: ModelAttribute를  적용하는 곳이 많아지면 별도의 필터를 구현할 것을 고려
     // snake case를 처리할 수 있는 별도의 Setter 선언
@@ -41,5 +45,8 @@ public class UserGatheringsRequestParams { // Query Parameter 로 매핑 (ModelA
 
     public void setSort_direction(Sort.@NotNull Direction sortDirection) {
         this.sortDirection = sortDirection;
+    }
+    public void setGathering_type(GatheringType gatheringType) {
+        this.gatheringType = gatheringType;
     }
 }

@@ -42,7 +42,9 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
                 .join(gathering.gatheringMembers).fetchJoin()
                 .where(
                         memberRoleCondition(userId, request.getMemberRole()),
-                        timeCondition(request.getGatheringTimeStatus()))
+                        timeCondition(request.getGatheringTimeStatus()),
+                        gathering.gatheringType.eq(request.getGatheringType())
+                )
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize() + 1) // 다음 페이지에 가져올 컨텐츠가 있는지 확인하기 위함
                 .orderBy(orderCondition(request.getOrderBy(), request.getSortDirection()))

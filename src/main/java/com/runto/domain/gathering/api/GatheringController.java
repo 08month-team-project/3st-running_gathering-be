@@ -1,10 +1,7 @@
 package com.runto.domain.gathering.api;
 
 import com.runto.domain.gathering.application.GatheringService;
-import com.runto.domain.gathering.dto.CreateGatheringRequest;
-import com.runto.domain.gathering.dto.GatheringDetailResponse;
-import com.runto.domain.gathering.dto.UserGatheringsRequestParams;
-import com.runto.domain.gathering.dto.UserGatheringsResponse;
+import com.runto.domain.gathering.dto.*;
 import com.runto.global.security.detail.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +30,7 @@ public class GatheringController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/event")
+    @PostMapping("/events")
     public ResponseEntity<Void> requestEventGatheringHosting(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody CreateGatheringRequest request) {
@@ -57,8 +54,7 @@ public class GatheringController {
     public ResponseEntity<UserGatheringsResponse> getMyGatherings(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PageableDefault(size = 8) Pageable pageable,
-            @Valid @ModelAttribute UserGatheringsRequestParams requestParams
-    ) {
+            @Valid @ModelAttribute UserGatheringsRequestParams requestParams) {
 
         return ResponseEntity.ok(gatheringService
                 .getUserGatherings(userDetails.getUserId(), pageable, requestParams));
