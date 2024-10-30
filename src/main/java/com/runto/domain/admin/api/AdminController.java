@@ -1,16 +1,15 @@
 package com.runto.domain.admin.api;
 
 import com.runto.domain.admin.application.AdminService;
+import com.runto.domain.admin.dto.CouponRequest;
 import com.runto.domain.admin.dto.MonthUserResponse;
 import com.runto.domain.admin.dto.UserCountResponse;
 import com.runto.domain.admin.type.AdminStatsCount;
 import com.runto.domain.user.type.UserStatus;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -27,9 +26,15 @@ public class AdminController {
         return ResponseEntity.ok(responses);
     }
 
-    @GetMapping("user/statsCount")
+    @GetMapping("/user/statsCount")
     public ResponseEntity<UserCountResponse> getUserCount(@RequestParam AdminStatsCount statsCount) {
         UserCountResponse response = adminService.getUserCount(statsCount);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/coupons")
+    public ResponseEntity<String> addCoupon(@Valid @RequestBody CouponRequest request) {
+        adminService.addCoupon(request);
+        return ResponseEntity.ok("쿠폰이 성공적으로 등록되었습니다.");
     }
 }
