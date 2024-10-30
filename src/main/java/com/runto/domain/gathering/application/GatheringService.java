@@ -10,6 +10,7 @@ import com.runto.domain.gathering.dto.GatheringDetailResponse;
 import com.runto.domain.gathering.dto.UserGatheringsRequestParams;
 import com.runto.domain.gathering.dto.UserGatheringsResponse;
 import com.runto.domain.gathering.exception.GatheringException;
+import com.runto.domain.gathering.type.GatheringType;
 import com.runto.domain.image.application.ImageService;
 import com.runto.domain.image.domain.GatheringImage;
 import com.runto.domain.image.dto.ImageRegisterResponse;
@@ -27,8 +28,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static com.runto.domain.gathering.type.GatheringMemberRole.ORGANIZER;
+import static com.runto.domain.gathering.type.GatheringType.EVENT;
+import static com.runto.domain.gathering.type.GatheringType.GENERAL;
 import static com.runto.global.exception.ErrorCode.*;
-import static com.runto.global.exception.ErrorCode.GATHERING_NOT_FOUND;
 
 @Slf4j
 @Transactional(readOnly = true)
@@ -51,6 +53,7 @@ public class GatheringService {
     @Transactional
     public void createGatheringGeneral(Long userId, CreateGatheringRequest request) {
 
+        validateMaxNumber(request.getGatheringType(), request.getMaxNumber());
         createGathering(userId, request);
 
         // s3 temp 경로에 있던 이미지파일들을 정식 경로에 옮기기
@@ -98,8 +101,11 @@ public class GatheringService {
     // TODO: 회원관련 기능 dev에 머지되면 param 에 UserDetails 추가 & 교체
     // TODO moveImageProcess 에러 해결되면 주석 풀기
     // db를 세번 오가는 상황, 그렇다고 gathering에서 양방향으로 넣기엔 안 어울리는 듯 하다.
+    @Transactional
     public void requestEventGatheringHosting(Long userId,
                                              CreateGatheringRequest request) {
+
+        validateMaxNumber(request.getGatheringType(), request.getMaxNumber());
 
         Gathering gathering = createGathering(userId, request);
         eventGatheringRepository.save(new EventGathering(gathering));
@@ -123,6 +129,16 @@ public class GatheringService {
 
         gatheringRepository.save(gathering);
         return gathering;
+    }
+
+    // 커스텀 애노테이션 에러 해결되면 삭제
+    private void validateMaxNumber(GatheringType type, int maxNumber) {
+        if (GENERAL.equals(type) && (maxNumber < 2 || maxNumber > 10)) {
+            throw new GatheringException(GENERAL_MAX_NUMBER);
+        }
+        if (EVENT.equals(type) && (maxNumber < 10 || maxNumber > 300)) {
+            throw new GatheringException(EVENT_MAX_NUMBER);
+        }
     }
 
 }
