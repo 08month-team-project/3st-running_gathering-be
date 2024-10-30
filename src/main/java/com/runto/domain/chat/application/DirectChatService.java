@@ -27,14 +27,14 @@ public class DirectChatService {
     private final DirectChatRoomRepository directChatRoomRepository;
 
     @Transactional
-    public DirectChatInfoDTO createAndGetDirectChat(String email,Long otherId){
-        createDirectChat(email, otherId);
-        return getDirectChatInfo(email, otherId);
+    public DirectChatInfoDTO createAndGetDirectChat(Long userId,Long otherId){
+        createDirectChat(userId, otherId);
+        return getDirectChatInfo(userId, otherId);
     }
 
     @Transactional
-    public void createDirectChat(String email, Long otherId){
-        User me = userRepository.findByEmail(email)
+    public void createDirectChat(Long userId, Long otherId){
+        User me = userRepository.findById(userId)
                 .orElseThrow(()->new UserException(ErrorCode.USER_NOT_FOUND));
         User otherUser = userRepository.findById(otherId)
                 .orElseThrow(()->new UserException(ErrorCode.USER_NOT_FOUND));
@@ -58,8 +58,8 @@ public class DirectChatService {
     }
 
     @Transactional
-    public DirectChatInfoDTO getDirectChatInfo(String email, Long otherId){
-        User me = userRepository.findByEmail(email)
+    public DirectChatInfoDTO getDirectChatInfo(Long userId, Long otherId){
+        User me = userRepository.findById(userId)
                 .orElseThrow(()->new UserException(ErrorCode.USER_NOT_FOUND));
         User otherUser = userRepository.findById(otherId)
                 .orElseThrow(()->new UserException(ErrorCode.USER_NOT_FOUND));
@@ -70,8 +70,8 @@ public class DirectChatService {
         return DirectChatInfoDTO.of(directChatRoom.getId(),me.getId(),otherUser.getId());
     }
 
-    public Slice<DirectChatRoomResponse> getDirectChatRoomList(String email,int pageNum,int size){
-        User me = userRepository.findByEmail(email)
+    public Slice<DirectChatRoomResponse> getDirectChatRoomList(Long userId,int pageNum,int size){
+        User me = userRepository.findById(userId)
                 .orElseThrow(()->new UserException(ErrorCode.USER_NOT_FOUND));
 
         Pageable pageable = PageRequest.of(pageNum,size);

@@ -23,8 +23,8 @@ public class DirectChatController {
     @GetMapping
     public ResponseEntity<DirectChatInfoDTO> getDirectChatRoom(@RequestParam(name = "other_id") Long otherId,
                                                   @AuthenticationPrincipal CustomUserDetails userDetails){
-        DirectChatInfoDTO directChatInfoDTO = directChatService.createAndGetDirectChat(userDetails.getUsername(),otherId);
-        //TODO 채팅방 정보를 통한 이전 채팅 메시지 보여주기
+        DirectChatInfoDTO directChatInfoDTO = directChatService.createAndGetDirectChat(userDetails.getUserId(),otherId);
+        //TODO 채팅방 정보를 통한 이전 채팅 메시지 보여주기,
         return ResponseEntity.ok(directChatInfoDTO);
     }
 
@@ -33,7 +33,7 @@ public class DirectChatController {
     public ResponseEntity<Slice<DirectChatRoomResponse>> getDirectChatRoomList(@AuthenticationPrincipal CustomUserDetails userDetails,
                                                                                @RequestParam(name = "page_num") int pageNum,
                                                                                @RequestParam(defaultValue = "7") int size){
-        return ResponseEntity.ok(directChatService.getDirectChatRoomList(userDetails.getUsername(), pageNum,size));
+        return ResponseEntity.ok(directChatService.getDirectChatRoomList(userDetails.getUserId(), pageNum,size));
     }
 
     //TODO 1:1 채팅방 목록에서 눌러서 채팅방 조회
