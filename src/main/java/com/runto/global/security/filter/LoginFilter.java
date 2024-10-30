@@ -1,14 +1,19 @@
 package com.runto.global.security.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.runto.domain.user.dao.RefreshRepository;
+import com.runto.domain.user.domain.Refresh;
 import com.runto.domain.user.dto.LoginRequest;
 import com.runto.global.security.detail.CustomUserDetails;
 import com.runto.global.security.util.JWTUtil;
+import com.runto.global.security.util.RefreshUtil;
 import jakarta.servlet.FilterChain;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -19,6 +24,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -27,10 +33,12 @@ import java.util.regex.Pattern;
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     private final AuthenticationManager authenticationManager;
     private final JWTUtil jwtUtil;
+    private final RefreshUtil refreshUtil;
 
-    public LoginFilter(JWTUtil jwtUtil, AuthenticationManager authenticationManager) {
+    public LoginFilter(JWTUtil jwtUtil, AuthenticationManager authenticationManager, RefreshUtil refreshUtil) {
         this.jwtUtil = jwtUtil;
         this.authenticationManager = authenticationManager;
+        this.refreshUtil = refreshUtil;
         setFilterProcessesUrl("/users/login");
     }
 
@@ -76,11 +84,11 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     }
     //로그인 성공시 실행하는 메소드 (여기서 JWT를 발급하면 됨)
     @Override
-    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,Authentication authentication){
+    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,Authentication authentication) throws IOException {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         String username = userDetails.getUsername();
+        String nickname = userDetails.getNickname();
         Long userId = userDetails.getUserId();
-
 
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
         Iterator<? extends GrantedAuthority> iterator = authorities.iterator();
@@ -88,39 +96,23 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         String role = auth.getAuthority();
 
         String access = jwtUtil.createJwt("access",userId,username,role,2*60*60*1000L);
-//        String refresh = jwtUtil.createJwt("refresh",username,role,24*60*1000L);
+        String refresh = jwtUtil.createJwt("refresh",userId,username,role,3*24*60*60*1000L);
 
         //Refresh 토큰 저장
-//        addRefreshEntity(username, refresh, 86400000L);
+        refreshUtil.addRefreshEntity(username, refresh, 3*24*60*60*1000L);
 
+        response.setContentType("application/json; charset=UTF-8");
+        response.getWriter().write("{" +
+                "\"nickname\":\""+ nickname+"\"" +
+                "}");
         response.addHeader("Authorization","Bearer "+access);
-//        response.addCookie(createCookie("refresh",refresh));
+
+        response.addCookie(refreshUtil.createCookie("refresh",refresh));
         response.setStatus(HttpStatus.OK.value());
     }
-
-//    private Cookie createCookie(String key, String value) {
-//        Cookie cookie = new Cookie(key, value);
-//        cookie.setMaxAge(24*60*1000);
-//        cookie.setSecure(true);
-//        cookie.setHttpOnly(true);
-//
-//        return cookie;
-//    }
-
     //로그인 실패시 실행하는 메소드
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) {
         response.setStatus(401);
     }
-//    private void addRefreshEntity(String username, String refresh, Long expiredMs) {
-//
-//        Date date = new Date(System.currentTimeMillis() + expiredMs);
-//
-//        RefreshEntity refreshEntity = RefreshEntity.builder()
-//                .username(username)
-//                .refresh(refresh)
-//                .expiration(date.toString())
-//                .build();
-//        refreshRepository.save(refreshEntity);
-//    }
 }

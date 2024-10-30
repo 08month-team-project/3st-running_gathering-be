@@ -1,25 +1,23 @@
-package com.runto.domain.gathering.type;
+package com.runto.domain.gathering.dto;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import com.runto.domain.gathering.domain.EventGathering;
 import com.runto.domain.gathering.domain.Gathering;
-import com.runto.domain.gathering.dto.LocationDto;
+import com.runto.domain.gathering.type.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
-@Slf4j
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class GatheringResponse { // 다른 목록조회에서도 쓸 예정
+public class EventGatheringResponse {
 
     private Long id;
     private Long organizerId;
@@ -36,37 +34,13 @@ public class GatheringResponse { // 다른 목록조회에서도 쓸 예정
     private Integer currentNumber;
     private GatheringType gatheringType;
 
-    // 이벤트모임 조회시엔 null 값으로 내보냄
-    private List<String> memberProfileUrls;
+    private EventRequestStatus requestStatus;
 
-    public static GatheringResponse fromGeneralGathering(Gathering gathering) {
+    public static EventGatheringResponse from(EventGathering eventGathering) {
 
-        List<String> memberProfileUrls = gathering.getGatheringMembers().stream()
-                .map(member -> member.getUser().getProfileImageUrl())
-                .toList();
+        Gathering gathering = eventGathering.getGathering();
 
-        return GatheringResponse.builder()
-                .id(gathering.getId())
-                .organizerId(gathering.getOrganizerId())
-                .title(gathering.getTitle())
-                .appointedAt(gathering.getAppointedAt())
-                .deadline(gathering.getDeadline())
-                .concept(gathering.getConcept())
-                .goalDistance(gathering.getGoalDistance())
-                .thumbnailUrl(gathering.getThumbnailUrl())
-                .hits(gathering.getHits())
-                .location(LocationDto.from(gathering.getLocation()))
-                .status(gathering.getStatus())
-                .maxNumber(gathering.getMaxNumber())
-                .currentNumber(gathering.getCurrentNumber())
-                .memberProfileUrls(memberProfileUrls)
-                .gatheringType(gathering.getGatheringType())
-                .build();
-    }
-
-    public static GatheringResponse fromEventGathering(Gathering gathering) {
-
-        return GatheringResponse.builder()
+        return EventGatheringResponse.builder()
                 .id(gathering.getId())
                 .organizerId(gathering.getOrganizerId())
                 .title(gathering.getTitle())
@@ -81,6 +55,7 @@ public class GatheringResponse { // 다른 목록조회에서도 쓸 예정
                 .maxNumber(gathering.getMaxNumber())
                 .currentNumber(gathering.getCurrentNumber())
                 .gatheringType(gathering.getGatheringType())
+                .requestStatus(eventGathering.getStatus())
                 .build();
     }
 }

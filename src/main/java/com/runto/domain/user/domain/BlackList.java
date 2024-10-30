@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name="black_list")
 @Entity
-public class BlackList extends BaseTimeEntity {
+public class BlackList extends BaseTimeEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -38,7 +38,7 @@ public class BlackList extends BaseTimeEntity {
 
     @PrePersist
     public void prePersist() {
-        expiresAt = getCreatedAt().plusDays(30);
+        expiresAt = LocalDateTime.now().plusDays(30);
     }
 
 }
