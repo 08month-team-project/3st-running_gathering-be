@@ -58,4 +58,12 @@ public class GatheringController {
                 .getUserGatherings(userDetails.getUserId(), pageable, requestParams));
     }
 
+    @GetMapping("/events")
+    public ResponseEntity<UserEventGatheringsResponse> getMyEventRequests(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PageableDefault(size = 8) Pageable pageable) {
+
+        return ResponseEntity.ok(gatheringService
+                .getUserEventRequests(userDetails.getUserId(), pageable));
+    }
 }
