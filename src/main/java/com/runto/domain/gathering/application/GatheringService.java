@@ -1,7 +1,9 @@
 package com.runto.domain.gathering.application;
 
 
+import com.runto.domain.gathering.dao.EventGatheringRepository;
 import com.runto.domain.gathering.dao.GatheringRepository;
+import com.runto.domain.gathering.domain.EventGathering;
 import com.runto.domain.gathering.domain.Gathering;
 import com.runto.domain.gathering.dto.CreateGatheringRequest;
 import com.runto.domain.gathering.dto.GatheringDetailResponse;
@@ -14,6 +16,7 @@ import com.runto.domain.image.dto.ImageRegisterResponse;
 import com.runto.domain.image.dto.ImageUrlDto;
 import com.runto.domain.user.dao.UserRepository;
 import com.runto.domain.user.domain.User;
+import com.runto.domain.user.excepction.UserException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -24,6 +27,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static com.runto.domain.gathering.type.GatheringMemberRole.ORGANIZER;
+import static com.runto.global.exception.ErrorCode.*;
 import static com.runto.global.exception.ErrorCode.GATHERING_NOT_FOUND;
 
 @Slf4j
@@ -36,34 +40,30 @@ public class GatheringService {
 
     private final UserRepository userRepository;
     private final GatheringRepository gatheringRepository;
+    private final EventGatheringRepository eventGatheringRepository;
 
 
     // TODO: 회원관련 기능 dev에 머지되면 param 에 UserDetails 추가 & 교체 , user 관련 예외로 수정
     // TODO: 만약 신고기능 구현하는거면 나중에 관련 로직 추가 필요
     // TODO: 날짜 설정 검증 로직 필요 (설정 날짜 관련 서비스 정책? 정하고 추후에 추가)
     // TODO: 그룹 채팅방 생성 로직 추가
+    // TODO moveImageProcess 에러 해결되면 주석 풀기
     @Transactional
-    public void createGatheringGeneral(CreateGatheringRequest request) {
+    public void createGatheringGeneral(Long userId, CreateGatheringRequest request) {
 
-        User user = userRepository.findById(1L)
-                .orElseThrow(() -> new RuntimeException("없는 유저"));
-
-        validateDate(request.getDeadline(), request.getAppointedAt());
-
-        Gathering gathering = request.toEntity(user);
-        gathering.addMember(user, ORGANIZER);
-        addContentImages(request.getImageRegisterResponse(), gathering);
-
-        gatheringRepository.save(gathering);
+        createGathering(userId, request);
 
         // s3 temp 경로에 있던 이미지파일들을 정식 경로에 옮기기
-        // TODO moveImageProcess 에러 해결되면 주석 풀기
 //        imageService.moveImageFromTempToPermanent(request.getGatheringImageUrls()
 //                .getContentImageUrls());
     }
 
     // TODO: 설정 날짜 관련 서비스 정책? 정하고 구현
     private void validateDate(LocalDateTime deadLine, LocalDateTime appointedAt) {
+
+        // 마감날짜 - 적어도 현재기준 X시간 이후
+        // 약속날짜 - 적어도 현재기준 X시간 이후
+        // 마감날짜 vs 약속날짜 는 적어도 X 시간차이가 나야함
         return;
     }
 
@@ -93,4 +93,36 @@ public class GatheringService {
         return UserGatheringsResponse.fromGatherings(
                 gatheringRepository.getUserGatherings(userId, pageable, requestParams));
     }
+
+
+    // TODO: 회원관련 기능 dev에 머지되면 param 에 UserDetails 추가 & 교체
+    // TODO moveImageProcess 에러 해결되면 주석 풀기
+    // db를 세번 오가는 상황, 그렇다고 gathering에서 양방향으로 넣기엔 안 어울리는 듯 하다.
+    public void requestEventGatheringHosting(Long userId,
+                                             CreateGatheringRequest request) {
+
+        Gathering gathering = createGathering(userId, request);
+        eventGatheringRepository.save(new EventGathering(gathering));
+
+        // s3 temp 경로에 있던 이미지파일들을 정식 경로에 옮기기
+//        imageService.moveImageFromTempToPermanent(request.getGatheringImageUrls()
+//                .getContentImageUrls());
+
+    }
+
+    // TODO: 인증 적용하면 1L -> userId
+    private Gathering createGathering(Long userId, CreateGatheringRequest request) {
+        User user = userRepository.findById(1L)
+                .orElseThrow(() -> new UserException(USER_NOT_FOUND));
+
+        validateDate(request.getDeadline(), request.getAppointedAt());
+
+        Gathering gathering = request.toEntity(user);
+        gathering.addMember(user, ORGANIZER);
+        addContentImages(request.getImageRegisterResponse(), gathering);
+
+        gatheringRepository.save(gathering);
+        return gathering;
+    }
+
 }
