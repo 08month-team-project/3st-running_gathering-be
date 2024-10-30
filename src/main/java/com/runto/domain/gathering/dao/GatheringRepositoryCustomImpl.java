@@ -5,6 +5,7 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.runto.domain.gathering.domain.Gathering;
+import com.runto.domain.gathering.dto.GatheringMember;
 import com.runto.domain.gathering.dto.UserGatheringsRequestParams;
 import com.runto.domain.gathering.type.GatheringMemberRole;
 import com.runto.domain.gathering.type.GatheringOrderField;
@@ -18,7 +19,6 @@ import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.runto.domain.common.SortUtil.getOrderSpecifier;
@@ -27,12 +27,14 @@ import static com.runto.domain.gathering.domain.QGathering.gathering;
 import static com.runto.domain.gathering.dto.QGatheringMember.gatheringMember;
 import static com.runto.domain.gathering.type.EventRequestStatus.APPROVED;
 import static com.runto.domain.gathering.type.GatheringMemberRole.ORGANIZER;
-import static com.runto.domain.gathering.type.GatheringOrderField.CREATED_AT;
+import static com.runto.domain.gathering.type.GatheringMemberRole.PARTICIPANT;
+import static com.runto.domain.gathering.type.GatheringOrderField.APPOINTED_AT;
 import static com.runto.domain.gathering.type.GatheringStatus.DELETED;
 import static com.runto.domain.gathering.type.GatheringTimeStatus.ENDED;
 import static com.runto.domain.gathering.type.GatheringTimeStatus.ONGOING;
 import static com.runto.domain.gathering.type.GatheringType.EVENT;
 import static com.runto.domain.gathering.type.GatheringType.GENERAL;
+import static org.springframework.data.domain.Sort.Direction.ASC;
 
 @RequiredArgsConstructor
 @Repository
@@ -91,6 +93,26 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
         return new SliceImpl<>(gatherings, pageable, hasNextPage(pageable, gatherings));
     }
 
+    public List<GatheringMember> getUserMonthlyGatherings(Long userId, int year, int month) {
+
+        // 주최자, 참가자인지 상관없이 유저가 속한 일반모임,이벤트모임 조회
+
+        return jpaQueryFactory.selectFrom(gatheringMember)
+                .join(gatheringMember.gathering, gathering).fetchJoin() // 조인 뒤 별칭을 지어주지않으면 에러발생 SemanticException (참조가 모호)
+                .leftJoin(gathering.eventGathering, eventGathering).fetchJoin()
+                .where(
+                        yearMonthCondition(year, month),
+                        gatheringMember.user.id.eq(userId),
+                        gathering.status.ne(DELETED),
+                        eventGathering.isNull()
+                                .or(eventGathering.isNotNull()
+                                        .and(eventGathering.status.eq(APPROVED)))
+                )
+                .orderBy(orderCondition(APPOINTED_AT, ASC))
+
+                .fetch();
+    }
+
 
     private BooleanExpression gatheringTypeCondition(GatheringType type) {
 
@@ -138,7 +160,17 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
         return gathering.id.in(
                 JPAExpressions.select(gathering.id)
                         .from(gatheringMember)
-                        .where(gatheringMember.user.id.eq(userId)));
+                        .where(gatheringMember.user.id.eq(userId)
+                                .and(gatheringMember.role.eq(PARTICIPANT))));
+    }
+
+    private BooleanExpression yearMonthCondition(int year, int month) {
+
+        LocalDateTime localDateTime
+                = LocalDateTime.of(year, month, 1, 0, 0);
+
+        return gathering.appointedAt.after(localDateTime)
+                .and(gathering.appointedAt.before(localDateTime.plusMonths(1)));
     }
 
 
