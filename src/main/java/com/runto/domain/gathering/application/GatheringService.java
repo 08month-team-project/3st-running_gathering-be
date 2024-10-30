@@ -13,6 +13,7 @@ import com.runto.domain.image.dto.ImageRegisterResponse;
 import com.runto.domain.image.dto.ImageUrlDto;
 import com.runto.domain.user.dao.UserRepository;
 import com.runto.domain.user.domain.User;
+import com.runto.domain.user.dto.UserCalenderResponse;
 import com.runto.domain.user.excepction.UserException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -142,5 +143,13 @@ public class GatheringService {
     public UserEventGatheringsResponse getUserEventRequests(Long userId, Pageable pageable) {
         return UserEventGatheringsResponse
                 .from(eventGatheringRepository.findEventGatheringsByUserId(userId, pageable));
+    }
+
+    public UserCalenderResponse getUserMonthlyGatherings(Long userId, int year, int month) {
+
+        return UserCalenderResponse
+                .fromGatheringMembers(gatheringRepository
+                        .getUserMonthlyGatherings(userId, year, month));
+
     }
 }
