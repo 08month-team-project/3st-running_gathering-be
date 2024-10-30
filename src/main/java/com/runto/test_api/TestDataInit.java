@@ -46,7 +46,7 @@ public class TestDataInit {
 
         for (int i = 0; i < 10; i++) {
             LocalAccount localAccount = LocalAccount.builder()
-                    .password("123456")
+                    .password(password)
                     .build();
 
             users.add(User.builder()
