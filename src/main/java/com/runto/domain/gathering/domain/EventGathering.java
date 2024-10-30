@@ -3,12 +3,14 @@ package com.runto.domain.gathering.domain;
 import com.runto.domain.common.BaseTimeEntity;
 import com.runto.domain.gathering.type.EventRequestStatus;
 import jakarta.persistence.*;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import static com.runto.domain.gathering.type.EventRequestStatus.PENDING;
 import static jakarta.persistence.GenerationType.IDENTITY;
 
 
+@Getter
 @NoArgsConstructor
 @Entity
 public class EventGathering extends BaseTimeEntity {
