@@ -3,10 +3,7 @@ package com.runto.domain.gathering.domain;
 import com.runto.domain.common.BaseTimeEntity;
 import com.runto.domain.gathering.dto.GatheringMember;
 import com.runto.domain.gathering.exception.GatheringException;
-import com.runto.domain.gathering.type.GatheringMemberRole;
-import com.runto.domain.gathering.type.GatheringStatus;
-import com.runto.domain.gathering.type.GoalDistance;
-import com.runto.domain.gathering.type.RunningConcept;
+import com.runto.domain.gathering.type.*;
 import com.runto.domain.image.domain.GatheringImage;
 import com.runto.domain.user.domain.User;
 import com.runto.domain.user.type.UserStatus;
@@ -29,8 +26,6 @@ import static lombok.AccessLevel.PROTECTED;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor(access = PROTECTED)
-@Inheritance(strategy = InheritanceType.JOINED)
-@DiscriminatorColumn(name = "gathering_type")
 @Table(name = "gatherings")
 @Entity
 public class Gathering extends BaseTimeEntity {
@@ -81,6 +76,10 @@ public class Gathering extends BaseTimeEntity {
 
     @Column(name = "current_number", nullable = false)
     private Integer currentNumber;
+
+    @Column(name = "gathering_type", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private GatheringType gatheringType;
 
     @Builder.Default
     @OneToMany(mappedBy = "gathering", cascade = CascadeType.ALL)

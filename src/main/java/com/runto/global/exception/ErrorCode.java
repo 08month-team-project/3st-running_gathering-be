@@ -10,19 +10,22 @@ import static org.springframework.http.HttpStatus.*;
 @AllArgsConstructor
 public enum ErrorCode {
 
-    USER_NOT_FOUND(NOT_FOUND,"존재하지 않는 유저입니다." ),
-    USER_INACTIVE(FORBIDDEN,"사용자가 비활성 상태입니다. 이 작업을 수행할 수 없습니다."),
+    USER_NOT_FOUND(NOT_FOUND, "존재하지 않는 유저입니다."),
+    USER_INACTIVE(FORBIDDEN, "사용자가 비활성 상태입니다. 이 작업을 수행할 수 없습니다."),
 
     // 모임글 & 이벤트 관련
     GATHERING_NOT_FOUND(NOT_FOUND, "존재하지 않는 모임글입니다."),
+    GENERAL_MAX_NUMBER(BAD_REQUEST, "일반 모임의 최대 인원은 2명에서 10명 사이여야 합니다."),
+    EVENT_MAX_NUMBER(BAD_REQUEST, "이벤트 모임의 최대 인원은 10명에서 300명 사이여야 합니다."),
+
 
     // 채팅관련,
-    CHATROOM_ALREADY_EXIST(CONFLICT,"이미 존재하는 채팅방입니다."),
-    CHATROOM_NOT_FOUND(NOT_FOUND,"존재하지 않는 채팅방입니다."),
-    CHATROOM_ALREADY_JOINED(BAD_REQUEST,"이미 참여중인 채팅방입니다."),
-    CHATROOM_FULL(BAD_REQUEST,"채팅방이 최대 인원수에 도달했습니다."),
-    ALREADY_EXIST_USER(CONFLICT,"이미 존재하는 사용자입니다."),
-    CHATROOM_CREATE_FAILED_OWN(INTERNAL_SERVER_ERROR,"나 자신과의 채팅방을 만들 수 없습니다."),
+    CHATROOM_ALREADY_EXIST(CONFLICT, "이미 존재하는 채팅방입니다."),
+    CHATROOM_NOT_FOUND(NOT_FOUND, "존재하지 않는 채팅방입니다."),
+    CHATROOM_ALREADY_JOINED(BAD_REQUEST, "이미 참여중인 채팅방입니다."),
+    CHATROOM_FULL(BAD_REQUEST, "채팅방이 최대 인원수에 도달했습니다."),
+    ALREADY_EXIST_USER(CONFLICT, "이미 존재하는 사용자입니다."),
+    CHATROOM_CREATE_FAILED_OWN(INTERNAL_SERVER_ERROR, "나 자신과의 채팅방을 만들 수 없습니다."),
 
 
     // 이미지 관련
@@ -33,9 +36,7 @@ public enum ErrorCode {
     INVALID_FILE(BAD_REQUEST, "파일이 없거나 이름이 비어 있습니다."),
     IMAGE_CONVERSION_FAILED(INTERNAL_SERVER_ERROR, "이미지 변환에 실패했습니다."),
     IMAGE_ORDER_MISMATCH(BAD_REQUEST, "요청한 이미지 개수와 순서 개수가 일치하지 않습니다."),
-    INVALID_REPRESENTATIVE_IMAGE_INDEX(BAD_REQUEST, "대표 이미지 인덱스가 유효하지 않습니다.")
-
-    ;
+    INVALID_REPRESENTATIVE_IMAGE_INDEX(BAD_REQUEST, "대표 이미지 인덱스가 유효하지 않습니다.");
     private final HttpStatus httpStatus;
     private final String message;
 }
