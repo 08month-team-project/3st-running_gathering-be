@@ -70,6 +70,7 @@ public class SecurityConfig {
         http.httpBasic(AbstractHttpConfigurer::disable);
         http.authorizeHttpRequests(auth-> auth
                 .requestMatchers("/**").permitAll()
+                .requestMatchers("images/**", "gatherings/**").authenticated()
                 .anyRequest().authenticated());
 
 
