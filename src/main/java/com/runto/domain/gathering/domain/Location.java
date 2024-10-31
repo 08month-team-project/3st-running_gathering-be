@@ -1,6 +1,5 @@
 package com.runto.domain.gathering.domain;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.Embedded;
 import lombok.AllArgsConstructor;
@@ -15,16 +14,23 @@ import lombok.NoArgsConstructor;
 @Embeddable
 public class Location {
 
-    @Column(name = "address_name")
-    private String addressName;
+    @Embedded
+    private AddressName addressName;
 
     @Embedded
     private Coordinates coordinates;
 
-    public static Location of(String addressName, double x, double y) {
+    @Embedded
+    private RegionCode regionCode;
+
+    public static Location of(AddressName addressName,
+                              RegionCode regionCode,
+                              Coordinates coordinates) {
+
         return Location.builder()
                 .addressName(addressName)
-                .coordinates(new Coordinates(x, y))
+                .regionCode(regionCode)
+                .coordinates(coordinates)
                 .build();
     }
 }

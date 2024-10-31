@@ -1,8 +1,7 @@
 package com.runto.test_api;
 
 import com.runto.domain.gathering.dao.GatheringRepository;
-import com.runto.domain.gathering.domain.Gathering;
-import com.runto.domain.gathering.domain.Location;
+import com.runto.domain.gathering.domain.*;
 import com.runto.domain.gathering.type.GatheringType;
 import com.runto.domain.gathering.type.GoalDistance;
 import com.runto.domain.gathering.type.RunningConcept;
@@ -63,6 +62,14 @@ public class TestDataInit {
         users = userRepository.saveAll(users);
 
 
+        Location location = Location
+                .of(new AddressName("address_name",
+                                "1depth_name",
+                                "2depth_name",
+                                "3depth_name"),
+                        new RegionCode(0, 0),
+                        new Coordinates(0.0, 0.0));
+
         List<Gathering> gatherings = new ArrayList<>();
 
         for (int i = 0; i < 10; i++) {
@@ -76,7 +83,7 @@ public class TestDataInit {
                     .goalDistance(GoalDistance.FREE)
                     .thumbnailUrl(i + "번 모임 썸네일")
                     //.hits(0)
-                    .location(Location.of("우리집 앞", 0.0, 0.0))
+                    .location(location)
                     //.status(NORMAL)
                     .maxNumber(10)
                     .currentNumber(1)
@@ -107,7 +114,7 @@ public class TestDataInit {
                     .goalDistance(GoalDistance.FREE)
                     .thumbnailUrl(i + "번 모임 썸네일")
                     //.hits(0)
-                    .location(Location.of("우리집 앞", 0.0, 0.0))
+                    .location(location)
                     //.status(NORMAL)
                     .maxNumber(10)
                     .currentNumber(1)

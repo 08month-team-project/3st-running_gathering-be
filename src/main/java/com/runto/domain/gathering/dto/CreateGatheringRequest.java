@@ -2,7 +2,6 @@ package com.runto.domain.gathering.dto;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import com.runto.domain.gathering.ValidGatheringMaxNumber;
 import com.runto.domain.gathering.domain.Gathering;
 import com.runto.domain.gathering.type.GatheringType;
 import com.runto.domain.gathering.type.GoalDistance;
@@ -31,6 +30,7 @@ public class CreateGatheringRequest {
     @NotNull(message = "지원마감날짜는 필수값입니다.")
     private LocalDateTime deadline; // 모집마감 날짜시각
 
+    @Valid
     @NotNull(message = "약속장소는 필수값입니다.")
     private LocationDto location;
 
