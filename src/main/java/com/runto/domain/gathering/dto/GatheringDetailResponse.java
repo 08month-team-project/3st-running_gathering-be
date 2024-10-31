@@ -16,16 +16,16 @@ import static com.fasterxml.jackson.databind.PropertyNamingStrategies.SnakeCaseS
 @NoArgsConstructor
 @JsonNaming(SnakeCaseStrategy.class)
 @Getter
-public class GatheringDetailResponse {
+public class GatheringDetailResponse { // 이벤트 상세조회 시에도 사용될 예정
 
-    private GatheringResponse gatheringResponse;
+    private GatheringDetailContentResponse gatheringContentResponse;
     private List<GatheringMemberResponse> gatheringMembers;
 
-
-    public static GatheringDetailResponse from(Gathering gathering) { // 패치 조인 해온 모임글
+    
+    public static GatheringDetailResponse from(Gathering gathering) {
 
         return GatheringDetailResponse.builder()
-                .gatheringResponse(GatheringResponse.from(gathering))
+                .gatheringContentResponse(GatheringDetailContentResponse.from(gathering))
                 .gatheringMembers(GatheringMemberResponse.from(gathering.getGatheringMembers()))
                 .build();
     }

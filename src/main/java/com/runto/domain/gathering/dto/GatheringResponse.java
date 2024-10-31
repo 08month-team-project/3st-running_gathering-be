@@ -5,65 +5,88 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.runto.domain.gathering.domain.Gathering;
 import com.runto.domain.gathering.type.GatheringStatus;
+import com.runto.domain.gathering.type.GatheringType;
 import com.runto.domain.gathering.type.GoalDistance;
 import com.runto.domain.gathering.type.RunningConcept;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
+@Slf4j
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @Getter
-public class GatheringResponse {
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+public class GatheringResponse { // 다른 목록조회에서도 쓸 예정
 
     private Long id;
-
     private Long organizerId;
-
     private String title;
-
-    private String description;
-
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm")
     private LocalDateTime appointedAt;
-
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm")
     private LocalDateTime deadline;
-
     private RunningConcept concept;
-
     private GoalDistance goalDistance;
-
+    private String thumbnailUrl;
     private Long hits;
-
     private LocationDto location;
-
     private GatheringStatus status;
-
     private Integer maxNumber;
-
     private Integer currentNumber;
+    private GatheringType gatheringType;
 
-    public static GatheringResponse from(Gathering gathering) {
+    // 이벤트모임 조회시엔 null 값으로 내보냄
+    private List<String> memberProfileUrls;
+
+    public static GatheringResponse fromGeneralGathering(Gathering gathering) {
+
+        List<String> memberProfileUrls = gathering.getGatheringMembers().stream()
+                .map(member -> member.getUser().getProfileImageUrl())
+                .toList();
+
         return GatheringResponse.builder()
                 .id(gathering.getId())
                 .organizerId(gathering.getOrganizerId())
                 .title(gathering.getTitle())
-                .description(gathering.getDescription())
                 .appointedAt(gathering.getAppointedAt())
                 .deadline(gathering.getDeadline())
                 .concept(gathering.getConcept())
                 .goalDistance(gathering.getGoalDistance())
+                .thumbnailUrl(gathering.getThumbnailUrl())
                 .hits(gathering.getHits())
                 .location(LocationDto.from(gathering.getLocation()))
                 .status(gathering.getStatus())
                 .maxNumber(gathering.getMaxNumber())
                 .currentNumber(gathering.getCurrentNumber())
+                .memberProfileUrls(memberProfileUrls)
+                .gatheringType(gathering.getGatheringType())
+                .build();
+    }
+
+    public static GatheringResponse fromEventGathering(Gathering gathering) {
+
+        return GatheringResponse.builder()
+                .id(gathering.getId())
+                .organizerId(gathering.getOrganizerId())
+                .title(gathering.getTitle())
+                .appointedAt(gathering.getAppointedAt())
+                .deadline(gathering.getDeadline())
+                .concept(gathering.getConcept())
+                .goalDistance(gathering.getGoalDistance())
+                .thumbnailUrl(gathering.getThumbnailUrl())
+                .hits(gathering.getHits())
+                .location(LocationDto.from(gathering.getLocation()))
+                .status(gathering.getStatus())
+                .maxNumber(gathering.getMaxNumber())
+                .currentNumber(gathering.getCurrentNumber())
+                .gatheringType(gathering.getGatheringType())
                 .build();
     }
 }
