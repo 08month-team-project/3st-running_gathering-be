@@ -1,8 +1,10 @@
 package com.runto.domain.user.api;
 
+import com.runto.domain.gathering.application.GatheringService;
 import com.runto.domain.user.application.UserService;
 import com.runto.domain.user.dto.CheckEmailRequest;
 import com.runto.domain.user.dto.SignupRequest;
+import com.runto.domain.user.dto.UserCalenderResponse;
 import com.runto.global.security.detail.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -18,6 +20,8 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 public class UserController {
     private final UserService userService;
+    private final GatheringService gatheringService;
+
 
     @PostMapping("/signup")
     @Operation(summary = "회원가입")
@@ -31,5 +35,16 @@ public class UserController {
     public ResponseEntity<Void> checkEmail(@Valid @RequestBody CheckEmailRequest checkEmailRequest) {
         userService.checkEmailDuplicate(checkEmailRequest);
         return ResponseEntity.ok().build();
+    }
+
+
+    @GetMapping("/calender")
+    public ResponseEntity<UserCalenderResponse> getMyMonthlyGatherings(
+            @RequestParam("year") int year,
+            @RequestParam("month") int month,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        return ResponseEntity.ok(gatheringService
+                .getUserMonthlyGatherings(userDetails.getUserId(), year, month));
     }
 }

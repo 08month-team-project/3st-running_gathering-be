@@ -77,7 +77,7 @@ public class SecurityConfig {
         http.httpBasic(AbstractHttpConfigurer::disable);
         http.authorizeHttpRequests(auth-> auth
                 .requestMatchers("/**").permitAll()
-                .requestMatchers("images/**", "gatherings/**").authenticated()
+                .requestMatchers("images/**", "gatherings/**", "users/calender/**").authenticated()
                 .anyRequest().authenticated());
         http.oauth2Login((oauth2)->oauth2.userInfoEndpoint((userInfoEndpointConfig) -> userInfoEndpointConfig
                         .userService(customOAuth2UserService))
