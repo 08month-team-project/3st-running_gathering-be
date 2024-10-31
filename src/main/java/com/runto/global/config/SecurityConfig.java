@@ -1,10 +1,12 @@
 package com.runto.global.config;
 
 import com.runto.domain.user.dao.RefreshRepository;
+import com.runto.global.security.detail.CustomOAuth2UserService;
 import com.runto.global.security.filter.CustomLogoutFilter;
 import com.runto.global.security.filter.JwtFilter;
 import com.runto.global.security.filter.LoginFilter;
 import com.runto.global.security.filter.ReissueFilter;
+import com.runto.global.security.oauth2.CustomSuccessHandler;
 import com.runto.global.security.util.JWTUtil;
 import com.runto.global.security.util.RefreshUtil;
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,6 +36,8 @@ public class SecurityConfig {
     private final JWTUtil jwtUtil;
     private final RefreshUtil refreshUtil;
     private final RefreshRepository refreshRepository;
+    private final CustomOAuth2UserService customOAuth2UserService;
+    private final CustomSuccessHandler customSuccessHandler;
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
@@ -75,7 +79,9 @@ public class SecurityConfig {
                 .requestMatchers("/**").permitAll()
                 .requestMatchers("images/**", "gatherings/**").authenticated()
                 .anyRequest().authenticated());
-
+        http.oauth2Login((oauth2)->oauth2.userInfoEndpoint((userInfoEndpointConfig) -> userInfoEndpointConfig
+                        .userService(customOAuth2UserService))
+                        .successHandler(customSuccessHandler));
         http.addFilterBefore(new ReissueFilter(jwtUtil,refreshUtil,refreshRepository),UsernamePasswordAuthenticationFilter.class);
         http.addFilterAt(new LoginFilter(jwtUtil,authenticationManager(authenticationConfiguration),refreshUtil),
                 UsernamePasswordAuthenticationFilter.class);
