@@ -4,9 +4,7 @@ import com.runto.domain.chat.dao.GroupChatRoomRepository;
 import com.runto.domain.chat.dao.GroupChatRoomUserRepository;
 import com.runto.domain.chat.domain.GroupChatRoom;
 import com.runto.domain.chat.domain.GroupChatRoomUser;
-import com.runto.domain.gathering.domain.Coordinates;
-import com.runto.domain.gathering.domain.Gathering;
-import com.runto.domain.gathering.domain.Location;
+import com.runto.domain.gathering.domain.*;
 import com.runto.domain.gathering.type.GoalDistance;
 import com.runto.domain.gathering.type.RunningConcept;
 import com.runto.domain.user.domain.User;
@@ -42,7 +40,7 @@ class GroupChatServiceTest {
     private Gathering gathering;
 
     @BeforeEach
-    void setUp(){
+    void setUp() {
         User user1 = User.builder()
                 .id(1L)
                 .email("email@gmail.com")
@@ -54,7 +52,6 @@ class GroupChatServiceTest {
                 .build();
 
 
-
         gathering = Gathering.builder()
                 .id(1L)
                 .title("개모임")
@@ -64,12 +61,13 @@ class GroupChatServiceTest {
                 .concept(RunningConcept.MARATHON)
                 .goalDistance(GoalDistance.HALF_MARATHON)
                 .thumbnailUrl("testImage.png")
-                .location(Location.builder()
-                        .addressName("서울시 중랑구")
-                        .coordinates(Coordinates.builder()
-                                .x(123.456)
-                                .y(15.123).build())
-                        .build())
+                .location(Location
+                        .of(new AddressName("address_name",
+                                        "1depth_name",
+                                        "2depth_name",
+                                        "3depth_name"),
+                                new RegionCode(0, 0),
+                                new Coordinates(0.0, 0.0)))
                 .maxNumber(10)
                 .build();
     }
@@ -91,22 +89,23 @@ class GroupChatServiceTest {
         Long roomId = 1L;
 
         GroupChatRoom groupChatRoom = GroupChatRoom.createRoom(gathering);
-        GroupChatRoomUser groupChatRoomUser = GroupChatRoomUser.createGroupChatRoomUser(groupChatRoom,user2);
+        GroupChatRoomUser groupChatRoomUser = GroupChatRoomUser.createGroupChatRoomUser(groupChatRoom, user2);
 
         //when
         when(groupChatRoomRepository.findById(1L)).thenReturn(Optional.of(groupChatRoom));
-        when(groupChatRoomUserRepository.existsByGroupChatRoomAndUser(any(GroupChatRoom.class),any(User.class))).thenReturn(false);
+        when(groupChatRoomUserRepository.existsByGroupChatRoomAndUser(any(GroupChatRoom.class), any(User.class))).thenReturn(false);
         when(groupChatRoomUserRepository.findById(any(Long.class))).thenReturn(Optional.of(groupChatRoomUser));
 
-        groupChatService.joinGroupChatRoom(user2,groupChatRoom);
+        groupChatService.joinGroupChatRoom(user2, groupChatRoom);
 
         //then
         verify(groupChatRoomRepository).findById(any(Long.class));
         verify(groupChatRoomUserRepository).existsByGroupChatRoomAndUser(any(GroupChatRoom.class), any(User.class));
         Optional<GroupChatRoomUser> savedGroupChatUser = groupChatRoomUserRepository.findById(user2.getId());
         assertTrue(savedGroupChatUser.isPresent());
-        assertEquals(groupChatRoomUser.getId(),savedGroupChatUser.get().getId());
+        assertEquals(groupChatRoomUser.getId(), savedGroupChatUser.get().getId());
     }
+
     //존재 x , 이미 참여중인 채팅방, 채팅방 인원 초과
     @DisplayName("그룹 채팅방 참여 실패 테스트 - 존재하지 않는 채팅방")
     @Test

@@ -35,6 +35,24 @@ spring:
   jwt:
     secret: ${SECRET_KEY}
 
+  security:
+    oauth2:
+      client:
+        registration:
+          kakao:
+            client-id: ${SERVICE_ID}
+            client-secret: ${SERVICE_SECRET}
+            redirect-uri: ${SERVICE_REDIRECT_URL}
+            authorization-grant-type: ${SERVICE_AUTH_GRANT_TYPE}
+            client-authentication-method: client_secret_post
+            client-name: Kakao
+            scope: ${SERVICE_SCOPE}
+        provider:
+          kakao:
+            authorization-uri: ${SERVICE_AUTH_URL}
+            token-uri: ${SERVICE_TOKEN_URL}
+            user-info-uri: ${SERVICE_USER_INFO_URL}
+            user-name-attribute: ${SERVICE_USER_ATTRIBUTE}
 logging:
   level:
     org.hibernate.SQL: debug
