@@ -1,39 +1,42 @@
 package com.runto.domain.gathering.dao;
 
+import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.runto.domain.gathering.domain.Gathering;
-import com.runto.domain.gathering.dto.GatheringMember;
-import com.runto.domain.gathering.dto.UserGatheringsRequestParams;
-import com.runto.domain.gathering.type.GatheringMemberRole;
-import com.runto.domain.gathering.type.GatheringOrderField;
-import com.runto.domain.gathering.type.GatheringTimeStatus;
-import com.runto.domain.gathering.type.GatheringType;
+import com.runto.domain.gathering.domain.QCoordinates;
+import com.runto.domain.gathering.dto.*;
+import com.runto.domain.gathering.type.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static com.querydsl.core.types.ConstantImpl.create;
+import static com.querydsl.core.types.dsl.MathExpressions.*;
 import static com.runto.domain.common.SortUtil.getOrderSpecifier;
 import static com.runto.domain.gathering.domain.QEventGathering.eventGathering;
 import static com.runto.domain.gathering.domain.QGathering.gathering;
 import static com.runto.domain.gathering.dto.QGatheringMember.gatheringMember;
-import static com.runto.domain.gathering.type.EventRequestStatus.APPROVED;
+import static com.runto.domain.gathering.type.EventRequestStatus.*;
 import static com.runto.domain.gathering.type.GatheringMemberRole.ORGANIZER;
 import static com.runto.domain.gathering.type.GatheringMemberRole.PARTICIPANT;
 import static com.runto.domain.gathering.type.GatheringOrderField.APPOINTED_AT;
-import static com.runto.domain.gathering.type.GatheringStatus.DELETED;
+import static com.runto.domain.gathering.type.GatheringStatus.*;
 import static com.runto.domain.gathering.type.GatheringTimeStatus.ENDED;
 import static com.runto.domain.gathering.type.GatheringTimeStatus.ONGOING;
 import static com.runto.domain.gathering.type.GatheringType.EVENT;
 import static com.runto.domain.gathering.type.GatheringType.GENERAL;
+import static com.runto.domain.gathering.type.ParticipationEligibility.AVAILABLE;
+import static com.runto.domain.gathering.type.ParticipationEligibility.NOT_AVAILABLE;
 import static org.springframework.data.domain.Sort.Direction.ASC;
 
 @RequiredArgsConstructor
@@ -42,7 +45,8 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
 
     private final JPAQueryFactory jpaQueryFactory;
 
-
+    
+    // TODO: 모든 모임글조회쿼리에 user 까지 패치조인 필요
     @Override
     public Slice<Gathering> getUserGeneralGatherings(Long userId,
                                                      Pageable pageable,
@@ -54,7 +58,7 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
                         memberRoleCondition(userId, request.getMemberRole()),
                         timeCondition(request.getGatheringTimeStatus()),
                         gatheringTypeCondition(GENERAL),
-                        gathering.status.ne(DELETED)
+                        statusCondition(null)
                 )
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize() + 1) // 다음 페이지에 가져올 컨텐츠가 있는지 확인하기 위함
@@ -82,8 +86,8 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
                         memberRoleCondition(userId, request.getMemberRole()),
                         timeCondition(request.getGatheringTimeStatus()),
                         gatheringTypeCondition(EVENT),
-                        gathering.status.ne(DELETED),
-                        eventGathering.status.eq(APPROVED) // 메서드를 합칠까말까 고민됐던 부분
+                        statusCondition(null),
+                        eventStatusCondition(APPROVED)
                 )
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize() + 1)
@@ -113,13 +117,38 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
                 .fetch();
     }
 
+    @Override
+    public Slice<Gathering> getGeneralGatherings(Pageable pageable,
+                                                 GatheringsRequestParams request) {
+
+
+        List<Gathering> gatherings = jpaQueryFactory.selectFrom(gathering)
+                .join(gathering.gatheringMembers).fetchJoin()
+                .where(
+                        gatheringTypeCondition(GENERAL),
+                        participationCondition(request.getParticipationEligibility()), // 참가가능상태
+                        searchTitleCondition(request.getSearchTitle()), // 제목검색
+                        statusCondition(null), // 모임글 상태
+                        goalDistanceCondition(request.getGoalDistance()), // 목표거리
+                        runningConceptCondition(request.getRunningConcept()), // 러닝컨셉
+                        radiusDistanceCondition(request.getGeoRadius()) // 좌표 기준 X km 반경
+                )
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize() + 1) // 다음 페이지에 가져올 컨텐츠가 있는지 확인하기 위함
+                .orderBy(orderCondition(request.getOrderBy(), request.getSortDirection()))
+                .fetch();
+
+        return new SliceImpl<>(gatherings, pageable, hasNextPage(pageable, gatherings));
+    }
+
 
     private BooleanExpression gatheringTypeCondition(GatheringType type) {
 
-        if (EVENT.equals(type)) {
-            return gathering.gatheringType.eq(EVENT);
+        if (type != null) {
+            return gathering.gatheringType.eq(type);
         }
-        return gathering.gatheringType.eq(GENERAL);
+
+        return null;
     }
 
     private boolean hasNextPage(Pageable pageable, List<Gathering> gatherings) {
@@ -179,6 +208,103 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
 
         return gathering.appointedAt.after(localDateTime)
                 .and(gathering.appointedAt.before(localDateTime.plusMonths(1)));
+    }
+
+    // 참가 가능여부 조건
+    private BooleanExpression participationCondition(ParticipationEligibility participation) {
+
+        // 참가 가능
+        if (AVAILABLE.equals(participation)) {
+            gathering.deadline.after(LocalDateTime.now())
+                    .and(gathering.currentNumber.lt(gathering.maxNumber));
+        }
+
+        // 참가 불가
+        if (NOT_AVAILABLE.equals(participation)) {
+            gathering.deadline.before(LocalDateTime.now())
+                    .or(gathering.currentNumber.goe(gathering.maxNumber));
+        }
+
+        // 상관없이 모두 노출
+        return null;
+    }
+
+    private BooleanExpression statusCondition(GatheringStatus status) {
+
+        if (status != null) {
+            return gathering.status.eq(status);
+        }
+
+        // 디폴트 값 (삭제상태 외 모두 노출)
+        return gathering.status.ne(DELETED);
+    }
+
+    // 이벤트모임의 상태
+    private BooleanExpression eventStatusCondition(EventRequestStatus status) {
+
+        if (status != null) {
+            return gathering.eventGathering
+                    .status.eq(status);
+        }
+
+        return null; // 모두 노출
+    }
+
+    // es 적용 못할 경우를 대비해서 적용
+    private BooleanExpression searchTitleCondition(String searchTitle) {
+
+        if (StringUtils.hasText(searchTitle)) return null;
+
+        return gathering.title.contains(searchTitle);
+    }
+
+
+    private BooleanExpression radiusDistanceCondition(GeoRadiusDto geoRadius) {
+
+
+        if (geoRadius != null) {
+            CoordinatesDto coordinates = geoRadius.getCoordinates();
+
+
+            // 좌표를 Expression<Double>로 변환
+            Expression<Double> latitude = create(coordinates.getY()); // 경도(longitude)는 x 좌표
+            Expression<Double> longitude = create(coordinates.getX()); // 위도(latitude)는 y 좌표
+
+
+            // 지구 반지름: km 단위로 설정 (6371km)
+            final double EARTH_RADIUS_KM = 6371.0;
+
+            QCoordinates coordinate = gathering.location.coordinates;
+
+            return acos(
+                    sin(radians(latitude))
+                            .multiply(sin(radians(coordinate.y)))
+                            .add(
+                                    cos(radians(latitude))
+                                            .multiply(cos(radians(coordinate.y)))
+                                            .multiply(cos(radians(coordinate.x)
+                                                    .subtract(radians(longitude))))
+                            )
+            ).multiply(EARTH_RADIUS_KM).loe(geoRadius.getRadiusDistance());
+        }
+
+        return null;
+    }
+
+    private BooleanExpression goalDistanceCondition(GoalDistance goalDistance) {
+
+        if (goalDistance != null) {
+            return gathering.goalDistance.eq(goalDistance);
+        }
+        return null;
+    }
+
+    private BooleanExpression runningConceptCondition(RunningConcept concept) {
+
+        if (concept != null) {
+            return gathering.concept.eq(concept);
+        }
+        return null;
     }
 
 
