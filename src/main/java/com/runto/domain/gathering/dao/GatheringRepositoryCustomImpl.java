@@ -119,28 +119,27 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
 
     @Override
     public Slice<Gathering> getGeneralGatherings(Pageable pageable,
-                                                 GatheringsRequestParams request) {
+                                                 GatheringsRequestParams param) {
 
 
         List<Gathering> gatherings = jpaQueryFactory.selectFrom(gathering)
                 .join(gathering.gatheringMembers).fetchJoin()
                 .where(
                         gatheringTypeCondition(GENERAL),
-                        participationCondition(request.getParticipationEligibility()), // 참가가능상태
-                        searchTitleCondition(request.getSearchTitle()), // 제목검색
+                        participationCondition(param.getParticipationEligibility()), // 참가가능상태
+                        searchTitleCondition(param.getSearchTitle()), // 제목검색
                         statusCondition(null), // 모임글 상태
-                        goalDistanceCondition(request.getGoalDistance()), // 목표거리
-                        runningConceptCondition(request.getRunningConcept()), // 러닝컨셉
-                        radiusDistanceCondition(request.getGeoRadius()) // 좌표 기준 X km 반경
+                        goalDistanceCondition(param.getGoalDistance()), // 목표거리
+                        runningConceptCondition(param.getRunningConcept()), // 러닝컨셉
+                        radiusDistanceCondition(param.getRadiusDistance(), param.getX(), param.getY()) // 좌표 기준 X km 반경
                 )
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize() + 1) // 다음 페이지에 가져올 컨텐츠가 있는지 확인하기 위함
-                .orderBy(orderCondition(request.getOrderBy(), request.getSortDirection()))
+                .orderBy(orderCondition(param.getOrderBy(), param.getSortDirection()))
                 .fetch();
 
         return new SliceImpl<>(gatherings, pageable, hasNextPage(pageable, gatherings));
     }
-
 
     private BooleanExpression gatheringTypeCondition(GatheringType type) {
 
@@ -160,7 +159,6 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
         return hasNext;
     }
 
-
     // TODO 출석체크 api 구현 후 조건 추가될 수도 있음
     private BooleanExpression timeCondition(GatheringTimeStatus gatheringTimeStatus) {
 
@@ -176,7 +174,6 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
         // 전체 노출
         return null;
     }
-
 
     private BooleanExpression memberRoleCondition(Long userId, GatheringMemberRole memberRole) {
 
@@ -258,17 +255,13 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
         return gathering.title.contains(searchTitle);
     }
 
+    private BooleanExpression radiusDistanceCondition(Double radiusDistance, Double x, Double y) {
 
-    private BooleanExpression radiusDistanceCondition(GeoRadiusDto geoRadius) {
-
-
-        if (geoRadius != null) {
-            CoordinatesDto coordinates = geoRadius.getCoordinates();
-
+        if (isGeoRadiusValid(radiusDistance, x, y)) {
 
             // 좌표를 Expression<Double>로 변환
-            Expression<Double> latitude = create(coordinates.getY()); // 경도(longitude)는 x 좌표
-            Expression<Double> longitude = create(coordinates.getX()); // 위도(latitude)는 y 좌표
+            Expression<Double> latitude = create(y); // 경도(longitude)는 x 좌표
+            Expression<Double> longitude = create(x); // 위도(latitude)는 y 좌표
 
 
             // 지구 반지름: km 단위로 설정 (6371km)
@@ -285,7 +278,7 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
                                             .multiply(cos(radians(coordinate.x)
                                                     .subtract(radians(longitude))))
                             )
-            ).multiply(EARTH_RADIUS_KM).loe(geoRadius.getRadiusDistance());
+            ).multiply(EARTH_RADIUS_KM).loe(radiusDistance);
         }
 
         return null;
@@ -305,6 +298,10 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
             return gathering.concept.eq(concept);
         }
         return null;
+    }
+
+    private boolean isGeoRadiusValid(Double radiusDistance, Double x, Double y) {
+        return radiusDistance != null && (x != null && y != null);
     }
 
 
