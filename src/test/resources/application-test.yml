@@ -1,0 +1,97 @@
+spring:
+  profiles:
+    group:
+      local: test
+  # .env import
+  config:
+    import: optional:file:.env[.properties]
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+  datasource:
+    driver-class-name: ${DB_DRIVER}
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+  servlet:
+    multipart:
+      max-file-size: 5MB # 최대 파일 사이즈
+      max-request-size: 5MB # 최대 요청 사이즈
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: false
+    defer-datasource-initialization: true
+
+  cloud:
+    aws:
+      credentials:
+        access_key: ${AWS_ACCESS_KEY}
+        secret_key: ${AWS_SECRET_KEY}
+      s3:
+        bucket: ${BUCKET}
+      region:
+        static: ${STATIC_REGION}
+
+  jwt:
+    secret: ${SECRET_KEY}
+
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+    mongodb:
+      uri: ${MONGO_DB_URI}
+
+  rabbitmq:
+    host: ${RABBIT_HOST}
+    username: ${RABBIT_USERNAME}
+    password: ${RABBIT_PASSWORD}
+    port: ${RABBIT_PORT}
+
+  security:
+    oauth2:
+      client:
+        registration:
+          kakao:
+            client-id: ${SERVICE_ID}
+            client-secret: ${SERVICE_SECRET}
+            redirect-uri: ${SERVICE_REDIRECT_URL}
+            authorization-grant-type: ${SERVICE_AUTH_GRANT_TYPE}
+            client-authentication-method: client_secret_post
+            client-name: Kakao
+            scope: ${SERVICE_SCOPE}
+        provider:
+          kakao:
+            authorization-uri: ${SERVICE_AUTH_URL}
+            token-uri: ${SERVICE_TOKEN_URL}
+            user-info-uri: ${SERVICE_USER_INFO_URL}
+            user-name-attribute: ${SERVICE_USER_ATTRIBUTE}
+logging:
+  level:
+    org.hibernate.SQL: debug
+    org.hibernate.orm.jdbc.bind: trace
+
+rabbit:
+  exchange: ${RABBIT_EXCHANGE}
+  direct:
+    queue: ${DIRECT_QUEUE_NAME}
+    routing: ${DIRECT_ROUTING_KEY}
+  group:
+    queue: ${GROUP_QUEUE_NAME}
+    routing: ${GROUP_ROUTING_KEY}
+  dl:
+    exchange: ${RABBIT_DL_EXCHANGE}
+    queue: ${DEAD_LETTER_QUEUE}
+    routing: ${DEAD_LETTER_ROUTING_KEY}
+
+servername: ${BACKEND_SERVER}

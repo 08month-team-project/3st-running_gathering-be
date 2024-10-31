@@ -49,4 +49,22 @@ public class CouponService {
         userCouponsRepository.save(userCoupons);
     }
 
+    @Transactional
+    public void requestCouponV1(Long couponId) {
+
+        Coupon coupon = couponRepository.findByIdWithPessimisticLock(couponId)
+                .orElseThrow(() -> new RuntimeException("해당 쿠폰을 찾을수 없습니다."));
+
+        coupon.decreaseQuantity(1L);
+    }
+
+    @Transactional
+    public void requestCouponV2(Long couponId) {
+
+        Coupon coupon = couponRepository.findByIdWithOptimisticLock(couponId)
+                .orElseThrow(() -> new RuntimeException("해당 쿠폰을 찾을수 없습니다."));
+
+        coupon.decreaseQuantity(1L);
+
+    }
 }
