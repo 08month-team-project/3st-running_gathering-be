@@ -35,6 +35,9 @@ public class GatheringMember extends BaseTimeEntity {
     @Column(name = "gathering_member_role")
     private GatheringMemberRole role;
 
+    @Column(name = "real_distance")
+    private Double realDistance;
+
     public static GatheringMember of(Gathering gathering, User user, GatheringMemberRole role) {
         return GatheringMember.builder()
                 .gathering(gathering)
@@ -46,6 +49,7 @@ public class GatheringMember extends BaseTimeEntity {
     @PrePersist
     public void prePersist() {
         attendanceStatus = AttendanceStatus.PENDING;
+        realDistance = 0.0;
     }
 
 }

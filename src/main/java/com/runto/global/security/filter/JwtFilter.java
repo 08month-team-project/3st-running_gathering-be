@@ -6,6 +6,7 @@ import com.runto.global.security.util.JWTUtil;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +17,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
@@ -23,7 +25,14 @@ public class JwtFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String accessToken = jwtUtil.extractAccessToken(request);
+        String requestUri = request.getRequestURI();
+        if (requestUri.matches("^/(login|oauth2|auth)(/.*)?$")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        String accessToken = Optional.ofNullable(jwtUtil.extractAccessToken(request))
+                .orElse(jwtUtil.oauthAccessToken(request));
 
         if(accessToken == null) {
             System.out.println("Authorization header is missing");
@@ -31,6 +40,7 @@ public class JwtFilter extends OncePerRequestFilter {
             return;
         }
         //토큰 만료 여부 확인, 만료시 다음 필터로 넘기지 않음
+        //TODO 소셜로그인 토큰만료시 재로그인을 시켜야될텐데
         try {
             jwtUtil.isExpired(accessToken);
         }catch (ExpiredJwtException e){
@@ -52,7 +62,7 @@ public class JwtFilter extends OncePerRequestFilter {
             return;
         }
         String username = jwtUtil.getUsername(accessToken);
-        Long userId= jwtUtil.getId(accessToken);
+        Long userId = jwtUtil.getId(accessToken);
         String role = jwtUtil.getRole(accessToken);
 
         UserDetailsDTO user = UserDetailsDTO.builder()

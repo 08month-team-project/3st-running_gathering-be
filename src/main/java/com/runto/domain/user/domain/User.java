@@ -50,6 +50,10 @@ public class User extends BaseTimeEntity {
     @JoinColumn(name = "local_id")
     private LocalAccount localAccount;
 
+    @OneToOne(cascade = CascadeType.ALL,fetch = FetchType.LAZY)
+    @JoinColumn(name = "oauth2_id")
+    private OAuth2 oAuth2;
+
     @Column(name = "report_count")
     private Long reportCount;
 
@@ -58,7 +62,7 @@ public class User extends BaseTimeEntity {
         status = UserStatus.ACTIVE;
     }
 
-    public static User of(String email,String nickname,String password) {
+    public static User of(String email,String nickname,String password,String oAuth2Key) {
          User user = User.builder()
                 .nickname(nickname)
                 .email(email)
@@ -68,6 +72,9 @@ public class User extends BaseTimeEntity {
                 .build();
          user.localAccount = LocalAccount.builder()
                  .password(password)
+                 .build();
+         user.oAuth2 = OAuth2.builder()
+                 .oAuth2Key(oAuth2Key)
                  .build();
         return user;
     }

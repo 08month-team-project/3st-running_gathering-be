@@ -75,6 +75,28 @@ jobs:
           -e "AWS_SECRET_KEY=${{ secrets.AWS_SECRET_KEY }}" \
           -e "BUCKET=${{ secrets.BUCKET }}" \
           -e "STATIC_REGION=${{ secrets.STATIC_REGION }}" \
+          -e "SERVICE_ID=${{ secrets.SERVICE_ID }}" \
+          -e "SERVICE_SECRET=${{ secrets.SERVICE_SECRET }}" \
+          -e "SERVICE_REDIRECT_URL=${{ secrets.SERVICE_REDIRECT_URL }}" \
+          -e "SERVICE_AUTH_GRANT_TYPE=${{ secrets.SERVICE_AUTH_GRANT_TYPE }}" \
+          -e "SERVICE_SCOPE=${{ secrets.SERVICE_SCOPE }}" \
+          -e "SERVICE_AUTH_URL=${{ secrets.SERVICE_AUTH_URL }}" \
+          -e "SERVICE_TOKEN_URL=${{ secrets.SERVICE_TOKEN_URL }}" \
+          -e "SERVICE_USER_INFO_URL=${{ secrets.SERVICE_USER_INFO_URL }}" \
+          -e "SERVICE_USER_ATTRIBUTE=${{ secrets.SERVICE_USER_ATTRIBUTE }}" \
+          -e "MONGO_DB_URI=${{ secrets.MONGO_DB_URI }}" \
+          -e "RABBIT_HOST=${{ secrets.RABBIT_HOST }}" \
+          -e "RABBIT_USERNAME=${{ secrets.RABBIT_USERNAME }}" \
+          -e "RABBIT_PASSWORD=${{ secrets.RABBIT_PASSWORD }}" \
+          -e "RABBIT_PORT=${{ secrets.RABBIT_PORT }}" \
+          -e "RABBIT_EXCHANGE=${{ secrets.RABBIT_EXCHANGE }}" \
+          -e "RABBIT_DL_EXCHANGE=${{ secrets.RABBIT_DL_EXCHANGE }}" \
+          -e "DEAD_LETTER_QUEUE=${{ secrets.DEAD_LETTER_QUEUE }}" \
+          -e "DEAD_LETTER_ROUTING_KEY=${{ secrets.DEAD_LETTER_ROUTING_KEY }}" \
+          -e "DIRECT_QUEUE_NAME=${{ secrets.DIRECT_QUEUE_NAME }}" \
+          -e "DIRECT_ROUTING_KEY=${{ secrets.DIRECT_ROUTING_KEY }}" \
+          -e "GROUP_QUEUE_NAME=${{ secrets.GROUP_QUEUE_NAME }}" \
+          -e "GROUP_ROUTING_KEY=${{ secrets.GROUP_ROUTING_KEY }}" \
           ${{ secrets.DOCKERHUB_USERNAME }}/runto-cicd:latest
 
       - name: delete old docker image
