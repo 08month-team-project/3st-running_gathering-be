@@ -26,7 +26,7 @@ public class CoordinatesDto {
                 .build();
     }
 
-    public Coordinates toCoordinates() {
+    public Coordinates toEntity() {
         return new Coordinates(x, y);
     }
 }
