@@ -3,7 +3,6 @@ package com.runto.domain.gathering.application;
 
 import com.runto.domain.gathering.dao.EventGatheringRepository;
 import com.runto.domain.gathering.dao.GatheringRepository;
-import com.runto.domain.gathering.domain.EventGathering;
 import com.runto.domain.gathering.domain.Gathering;
 import com.runto.domain.gathering.dto.*;
 import com.runto.domain.gathering.exception.GatheringException;
@@ -14,6 +13,7 @@ import com.runto.domain.image.dto.ImageRegisterResponse;
 import com.runto.domain.image.dto.ImageUrlDto;
 import com.runto.domain.user.dao.UserRepository;
 import com.runto.domain.user.domain.User;
+import com.runto.domain.user.dto.UserCalenderResponse;
 import com.runto.domain.user.excepction.UserException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,11 +50,52 @@ public class GatheringService {
     public void createGatheringGeneral(Long userId, CreateGatheringRequest request) {
 
         validateMaxNumber(request.getGatheringType(), request.getMaxNumber());
-        createGathering(userId, request);
+        gatheringRepository.save(createGathering(userId, request));
 
         // s3 temp 경로에 있던 이미지파일들을 정식 경로에 옮기기
 //        imageService.moveImageFromTempToPermanent(request.getGatheringImageUrls()
 //                .getContentImageUrls());
+    }
+
+    // TODO moveImageProcess 에러 해결되면 주석 풀기
+    @Transactional
+    public void requestEventGatheringHosting(Long userId,
+                                             CreateGatheringRequest request) {
+
+        validateMaxNumber(request.getGatheringType(), request.getMaxNumber());
+
+        Gathering gathering = createGathering(userId, request);
+        gathering.applyForEvent(); // 해당 모임을 이벤트모임으로 신청
+        gatheringRepository.save(gathering);
+
+        // s3 temp 경로에 있던 이미지파일들을 정식 경로에 옮기기
+//        imageService.moveImageFromTempToPermanent(request.getGatheringImageUrls()
+//                .getContentImageUrls());
+
+    }
+
+    private Gathering createGathering(Long userId, CreateGatheringRequest request) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserException(USER_NOT_FOUND));
+
+        validateDate(request.getDeadline(), request.getAppointedAt());
+
+        Gathering gathering = request.toEntity(user);
+        gathering.addMember(user, ORGANIZER);
+        addContentImages(request.getImageRegisterResponse(), gathering);
+
+        return gathering;
+    }
+
+    // 커스텀 애노테이션 에러 해결되면 삭제
+    private void validateMaxNumber(GatheringType type, int maxNumber) {
+        if (GENERAL.equals(type) && (maxNumber < 2 || maxNumber > 10)) {
+            throw new GatheringException(GENERAL_MAX_NUMBER);
+        }
+        if (EVENT.equals(type) && (maxNumber < 10 || maxNumber > 300)) {
+            throw new GatheringException(EVENT_MAX_NUMBER);
+        }
     }
 
     // TODO: 설정 날짜 관련 서비스 정책? 정하고 구현
@@ -99,51 +140,16 @@ public class GatheringService {
     }
 
 
-    // TODO: 회원관련 기능 dev에 머지되면 param 에 UserDetails 추가 & 교체
-    // TODO moveImageProcess 에러 해결되면 주석 풀기
-    // db를 세번 오가는 상황, 그렇다고 gathering에서 양방향으로 넣기엔 안 어울리는 듯 하다.
-    @Transactional
-    public void requestEventGatheringHosting(Long userId,
-                                             CreateGatheringRequest request) {
-
-        validateMaxNumber(request.getGatheringType(), request.getMaxNumber());
-
-        Gathering gathering = createGathering(userId, request);
-        eventGatheringRepository.save(new EventGathering(gathering));
-
-        // s3 temp 경로에 있던 이미지파일들을 정식 경로에 옮기기
-//        imageService.moveImageFromTempToPermanent(request.getGatheringImageUrls()
-//                .getContentImageUrls());
-
-    }
-
-    private Gathering createGathering(Long userId, CreateGatheringRequest request) {
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserException(USER_NOT_FOUND));
-
-        validateDate(request.getDeadline(), request.getAppointedAt());
-
-        Gathering gathering = request.toEntity(user);
-        gathering.addMember(user, ORGANIZER);
-        addContentImages(request.getImageRegisterResponse(), gathering);
-
-        gatheringRepository.save(gathering);
-        return gathering;
-    }
-
-    // 커스텀 애노테이션 에러 해결되면 삭제
-    private void validateMaxNumber(GatheringType type, int maxNumber) {
-        if (GENERAL.equals(type) && (maxNumber < 2 || maxNumber > 10)) {
-            throw new GatheringException(GENERAL_MAX_NUMBER);
-        }
-        if (EVENT.equals(type) && (maxNumber < 10 || maxNumber > 300)) {
-            throw new GatheringException(EVENT_MAX_NUMBER);
-        }
-    }
-
     public UserEventGatheringsResponse getUserEventRequests(Long userId, Pageable pageable) {
         return UserEventGatheringsResponse
                 .from(eventGatheringRepository.findEventGatheringsByUserId(userId, pageable));
+    }
+
+    public UserCalenderResponse getUserMonthlyGatherings(Long userId, int year, int month) {
+
+        return UserCalenderResponse
+                .fromGatheringMembers(gatheringRepository
+                        .getUserMonthlyGatherings(userId, year, month));
+
     }
 }
