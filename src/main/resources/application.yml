@@ -49,6 +49,15 @@ spring:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
       password: ${REDIS_PASSWORD}
+    mongodb:
+      uri: ${MONGO_DB_URI}
+
+  rabbitmq:
+    host: ${RABBIT_HOST}
+    username: ${RABBIT_USERNAME}
+    password: ${RABBIT_PASSWORD}
+    port: ${RABBIT_PORT}
+
   security:
     oauth2:
       client:
@@ -71,3 +80,16 @@ logging:
   level:
     org.hibernate.SQL: debug
     org.hibernate.orm.jdbc.bind: trace
+
+rabbit:
+  exchange: ${RABBIT_EXCHANGE}
+  direct:
+    queue: ${DIRECT_QUEUE_NAME}
+    routing: ${DIRECT_ROUTING_KEY}
+  group:
+    queue: ${GROUP_QUEUE_NAME}
+    routing: ${GROUP_ROUTING_KEY}
+  dl:
+    exchange: ${RABBIT_DL_EXCHANGE}
+    queue: ${DEAD_LETTER_QUEUE}
+    routing: ${DEAD_LETTER_ROUTING_KEY}
