@@ -250,7 +250,7 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
     // es 적용 못할 경우를 대비해서 적용
     private BooleanExpression searchTitleCondition(String searchTitle) {
 
-        if (StringUtils.hasText(searchTitle)) return null;
+        if (!StringUtils.hasText(searchTitle)) return null;
 
         return gathering.title.contains(searchTitle);
     }
