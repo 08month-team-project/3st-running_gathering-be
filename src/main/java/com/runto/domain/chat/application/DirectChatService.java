@@ -1,9 +1,12 @@
 package com.runto.domain.chat.application;
 
 import com.runto.domain.chat.dao.DirectChatRoomRepository;
+import com.runto.domain.chat.dao.DirectMessageRepository;
+import com.runto.domain.chat.domain.DirectChatContent;
 import com.runto.domain.chat.domain.DirectChatRoom;
 import com.runto.domain.chat.dto.DirectChatInfoDTO;
 import com.runto.domain.chat.dto.DirectChatRoomResponse;
+import com.runto.domain.chat.dto.MessageQueueDTO;
 import com.runto.domain.chat.exception.ChatException;
 import com.runto.domain.user.dao.UserRepository;
 import com.runto.domain.user.domain.User;
@@ -25,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DirectChatService {
     private final UserRepository userRepository;
     private final DirectChatRoomRepository directChatRoomRepository;
+    private final DirectMessageRepository directMessageRepository;
 
     @Transactional
     public DirectChatInfoDTO createAndGetDirectChat(Long userId,Long otherId){
@@ -77,6 +81,15 @@ public class DirectChatService {
         Pageable pageable = PageRequest.of(pageNum,size);
 
         return directChatRoomRepository.getChatRooms(me.getId(), pageable);
+    }
+
+    @Transactional
+    public void saveDirectChatContent(MessageQueueDTO messageQueueDTO, boolean messageSent){
+        DirectChatContent directChatContent = DirectChatContent.of(messageQueueDTO);
+        if (!messageSent){
+            directChatContent.changeStatusToFailed();
+        }
+        directMessageRepository.save(directChatContent);
     }
 
 }
