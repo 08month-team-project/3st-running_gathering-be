@@ -38,7 +38,7 @@ public class GatheringsRequestParams { // Query Parameter 로 매핑 (ModelAttri
 
     private Double y;
 
-    @DecimalMin(value = "1.0", inclusive = true, message = "반경 거리값은 1km 이상이어야 합니다.")
+    @DecimalMin(value = "0.5", inclusive = true, message = "반경 거리값은 0.5km 이상이어야 합니다.")
     @DecimalMax(value = "10.0", inclusive = true, message = "반경 거리값은 10km 이하이어야 합니다.")
     private Double radiusDistance;
 
