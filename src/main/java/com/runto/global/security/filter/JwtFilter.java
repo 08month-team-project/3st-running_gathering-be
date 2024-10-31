@@ -25,6 +25,14 @@ public class JwtFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        String requestUri = request.getRequestURI();
+        if (requestUri.matches("^\\/login(?:\\/.*)?$")
+                ||requestUri.matches("^\\/oauth2(?:\\/.*)?$")
+                ||requestUri.matches("^\\/auth(?:\\/.*)?$")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String accessToken = Optional.ofNullable(jwtUtil.extractAccessToken(request))
                 .orElse(jwtUtil.oauthAccessToken(request));
 
