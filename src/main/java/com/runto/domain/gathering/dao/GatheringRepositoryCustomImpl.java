@@ -255,6 +255,8 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
         return gathering.title.contains(searchTitle);
     }
 
+    
+    // TODO: 계산 쿼리 수정필요
     private BooleanExpression radiusDistanceCondition(Double radiusDistance, Double x, Double y) {
 
         if (isGeoRadiusValid(radiusDistance, x, y)) {
