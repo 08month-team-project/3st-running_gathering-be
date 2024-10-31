@@ -1,6 +1,8 @@
 package com.runto.domain.gathering.dto;
 
 import com.runto.domain.gathering.type.*;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -31,8 +33,14 @@ public class GatheringsRequestParams { // Query Parameter 로 매핑 (ModelAttri
     @NotNull(message = "sort_direction 은 필수 값입니다.")
     private Sort.Direction sortDirection;
 
-    // CoordinatesDto 자체는 안 받아도 되는데, 받게되면 안의 값이 모두 있어야함
-    private GeoRadiusDto geoRadius;
+
+    private Double x;
+
+    private Double y;
+
+    @DecimalMin(value = "1.0", inclusive = true, message = "반경 거리값은 1km 이상이어야 합니다.")
+    @DecimalMax(value = "10.0", inclusive = true, message = "반경 거리값은 10km 이하이어야 합니다.")
+    private Double radiusDistance;
 
 
     // TODO: ModelAttribute를  적용하는 곳이 많아지면 별도의 필터를 구현할 것을 고려
@@ -65,7 +73,15 @@ public class GatheringsRequestParams { // Query Parameter 로 매핑 (ModelAttri
         this.sortDirection = sortDirection;
     }
 
-    public void setGeo_radius(GeoRadiusDto geoRadius) {
-        this.geoRadius = geoRadius;
+    public void setX(Double x) {
+        this.x = x;
+    }
+
+    public void setY(Double y) {
+        this.y = y;
+    }
+
+    public void setRadius_distance(Double radiusDistance) {
+        this.radiusDistance = radiusDistance;
     }
 }
