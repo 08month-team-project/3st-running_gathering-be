@@ -34,7 +34,7 @@ public class UserService {
         String nickname = signupRequest.getNickname();
         String email = signupRequest.getEmail();
 
-        User user = User.of(email,nickname,encodedPwd);
+        User user = User.of(email,nickname,encodedPwd,null);
 
         userRepository.save(user);
     }

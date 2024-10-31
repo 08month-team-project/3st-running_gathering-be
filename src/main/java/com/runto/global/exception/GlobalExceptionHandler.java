@@ -3,6 +3,7 @@ package com.runto.global.exception;
 import com.runto.domain.chat.exception.ChatException;
 import com.runto.domain.gathering.exception.GatheringException;
 import com.runto.domain.image.exception.ImageException;
+import com.runto.domain.user.excepction.UserException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -39,6 +40,10 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ChatException.class)
     public ResponseEntity<ErrorResult> handleChatException(ChatException e) {
+        return makeErrorResult(e.getErrorCode());
+    }
+    @ExceptionHandler(UserException.class)
+    public ResponseEntity<ErrorResult> handleUserException(UserException e) {
         return makeErrorResult(e.getErrorCode());
     }
 
