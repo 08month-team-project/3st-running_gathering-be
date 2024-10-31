@@ -1,6 +1,7 @@
 package com.runto.global.security.util;
 
 import io.jsonwebtoken.Jwts;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -49,6 +50,16 @@ public class JWTUtil {
         String authorization = request.getHeader("Authorization");
         if (authorization != null && authorization.startsWith("Bearer ")) {
             return authorization.split(" ")[1];
+        }
+        return null;
+    }
+    public String oauthAccessToken(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        for (Cookie cookie : cookies) {
+            System.out.println(cookie.getName());
+            if (cookie.getName().equals("Authorization")) {
+                return cookie.getValue();
+            }
         }
         return null;
     }
