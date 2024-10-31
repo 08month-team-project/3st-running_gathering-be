@@ -30,6 +30,9 @@ public class Coupon {
     @Column(nullable = false, name = "expired_at")
     private LocalDateTime expiredAt;
 
+    @Version
+    private Long version;
+
     @OneToMany(mappedBy = "coupon")
     private Set<UserCoupons> userCoupons = new HashSet<>();
 

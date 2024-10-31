@@ -24,5 +24,19 @@ public class CouponController {
         return ResponseEntity.ok("쿠폰 요청이 성공적으로 처리되었습니다.");
     }
 
+    // 비관 간편 테스트용
+    @PatchMapping("v1/coupons/{coupon-id}/request")
+    public ResponseEntity<String> requestCouponV1(@PathVariable("coupon-id") Long couponId) {
+        couponService.requestCouponV1(couponId);
+        return ResponseEntity.ok("쿠폰 요청이 성공적으로 처리되었습니다.");
+    }
+
+    // 낙관 간편 테스트용
+    @PatchMapping("v2/coupons/{coupon-id}/request")
+    public ResponseEntity<String> requestCouponV2(@PathVariable("coupon-id") Long couponId) {
+        couponService.requestCouponV2(couponId);
+        return ResponseEntity.ok("쿠폰 요청이 성공적으로 처리되었습니다.");
+    }
+
 
 }
