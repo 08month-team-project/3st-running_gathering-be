@@ -80,3 +80,5 @@ rabbit:
     exchange: ${RABBIT_DL_EXCHANGE}
     queue: ${DEAD_LETTER_QUEUE}
     routing: ${DEAD_LETTER_ROUTING_KEY}
+
+servername: ${BACKEND_SERVER}

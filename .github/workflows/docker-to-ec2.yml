@@ -97,6 +97,7 @@ jobs:
           -e "DIRECT_ROUTING_KEY=${{ secrets.DIRECT_ROUTING_KEY }}" \
           -e "GROUP_QUEUE_NAME=${{ secrets.GROUP_QUEUE_NAME }}" \
           -e "GROUP_ROUTING_KEY=${{ secrets.GROUP_ROUTING_KEY }}" \
+          -e "BACKEND_SERVER=${{ secrets.BACKEND_SERVER }}" \
           ${{ secrets.DOCKERHUB_USERNAME }}/runto-cicd:latest
 
       - name: delete old docker image
