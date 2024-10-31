@@ -18,8 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.runto.domain.gathering.type.GatheringStatus.NORMAL;
-import static com.runto.global.exception.ErrorCode.IMAGE_SAVE_LIMIT_EXCEEDED;
-import static com.runto.global.exception.ErrorCode.USER_INACTIVE;
+import static com.runto.global.exception.ErrorCode.*;
 import static lombok.AccessLevel.PROTECTED;
 
 @Builder
@@ -81,6 +80,10 @@ public class Gathering extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private GatheringType gatheringType;
 
+    @JoinColumn(name = "event_gathering_id")
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private EventGathering eventGathering;
+
     @Builder.Default
     @OneToMany(mappedBy = "gathering", cascade = CascadeType.ALL)
     private List<GatheringImage> contentImages = new ArrayList<>();
@@ -111,6 +114,14 @@ public class Gathering extends BaseTimeEntity {
             throw new GatheringException(USER_INACTIVE);
         }
         gatheringMembers.add(GatheringMember.of(this, user, role));
+    }
+
+    // 해당 모임을 이벤트모임으로 신청
+    public void applyForEvent() {
+        if (maxNumber < 10 || maxNumber > 300) {
+            throw new GatheringException(EVENT_MAX_NUMBER);
+        }
+        this.eventGathering = new EventGathering(this);
     }
 
 

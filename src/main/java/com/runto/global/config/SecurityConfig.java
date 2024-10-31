@@ -73,7 +73,7 @@ public class SecurityConfig {
         http.httpBasic(AbstractHttpConfigurer::disable);
         http.authorizeHttpRequests(auth-> auth
                 .requestMatchers("/**").permitAll()
-                .requestMatchers("images/**", "gatherings/**").authenticated()
+                .requestMatchers("images/**", "gatherings/**", "users/calender/**").authenticated()
                 .anyRequest().authenticated());
 
         http.addFilterBefore(new ReissueFilter(jwtUtil,refreshUtil,refreshRepository),UsernamePasswordAuthenticationFilter.class);

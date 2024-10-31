@@ -113,6 +113,7 @@ public class TestDataInit {
                     .currentNumber(1)
                     .gatheringType(GatheringType.EVENT)
                     .build();
+            gathering.applyForEvent();
 
             gathering.addMember(users.get(i), ORGANIZER);
 

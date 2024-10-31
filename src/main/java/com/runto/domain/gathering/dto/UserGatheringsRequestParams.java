@@ -14,7 +14,6 @@ import org.springframework.data.domain.Sort;
 @Getter
 public class UserGatheringsRequestParams { // Query Parameter 로 매핑 (ModelAttribute 적용)
 
-    @NotNull(message = "member_role 은 필수 값입니다.")
     private GatheringMemberRole memberRole;
 
     private GatheringTimeStatus gatheringTimeStatus;
@@ -46,6 +45,7 @@ public class UserGatheringsRequestParams { // Query Parameter 로 매핑 (ModelA
     public void setSort_direction(Sort.@NotNull Direction sortDirection) {
         this.sortDirection = sortDirection;
     }
+
     public void setGathering_type(GatheringType gatheringType) {
         this.gatheringType = gatheringType;
     }
