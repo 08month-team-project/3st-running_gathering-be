@@ -8,6 +8,8 @@ import com.runto.domain.user.domain.User;
 import jakarta.persistence.*;
 import lombok.*;
 
+import static com.runto.domain.gathering.type.AttendanceStatus.ATTENDING;
+
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -44,6 +46,20 @@ public class GatheringMember extends BaseTimeEntity {
                 .user(user)
                 .role(role)
                 .build();
+    }
+
+    public void checkAttendance(AttendanceStatus status, double realDistance) {
+
+        if (status != null) {
+            this.attendanceStatus = status;
+        } else {
+            return;
+        }
+
+        if (ATTENDING.equals(status)) {
+            this.realDistance = realDistance;
+        }
+
     }
 
     @PrePersist
