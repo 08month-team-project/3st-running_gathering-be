@@ -33,7 +33,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.runto.domain.gathering.type.AttendanceStatus.PENDING;
+import static com.runto.domain.gathering.type.AttendanceStatus.*;
 import static com.runto.domain.gathering.type.EventRequestStatus.APPROVED;
 import static com.runto.domain.gathering.type.GatheringMemberRole.ORGANIZER;
 import static com.runto.domain.gathering.type.GatheringStatus.*;
@@ -240,7 +240,7 @@ public class GatheringService {
 
         // 요청값이 해당 gathering 에 속하지 않는 memberId일 경우 무시
         for (MemberAttendanceStatusDto request : requestList) {
-            
+
             Optional.ofNullable(memberMap.get(request.getMemberId()))
                     .ifPresent(member -> member.checkAttendance(request.getStatus(), request.getRealDistance()));
         }
@@ -306,5 +306,35 @@ public class GatheringService {
         if (gathering.getAppointedAt().plusDays(7).isBefore(LocalDateTime.now())) {
             throw new GatheringException(INVALID_COMPLETE_AFTER_ONE_WEEK);
         }
+    }
+
+    @Transactional
+    public AttendanceEventGatheringResponse checkAttendanceEventGatheringMembers(Long userId,
+                                                                                 Long gatheringId,
+                                                                                 AttendanceEventGatheringRequest request) {
+
+        Gathering gathering = gatheringRepository.findById(gatheringId)
+                .orElseThrow(() -> new GatheringException(GATHERING_NOT_FOUND));
+
+        if (!Objects.equals(userId, gathering.getOrganizerId())) {
+            throw new GatheringException(INVALID_ATTENDANCE_CHECK_NOT_ORGANIZER);
+        }
+
+        if (!EVENT.equals(gathering.getGatheringType())) {
+            throw new GatheringException(INVALID_REQUEST_GATHERING_TYPE);
+        }
+
+        // 요청한 멤버를 정상출석, 뛴 거리 체크 후 개수 반환
+        long updatedAttendingCount = gatheringMemberRepository.updateAttendanceAndDistance(
+                gatheringId, ATTENDING, request.getRealDistance(), request.getMemberIdList());
+
+
+        // 참석하지 않은 멤버들을 NOT_ATTENDING 처리 후 개수 반환
+        long notAttendingMemberCount = gatheringMemberRepository.updateAttendanceAndDistance(
+                gatheringId, NOT_ATTENDING, 0.0, null);
+
+        return new AttendanceEventGatheringResponse(request.getRealDistance(),
+                request.getMemberIdList().size(), updatedAttendingCount, notAttendingMemberCount);
+
     }
 }

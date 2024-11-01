@@ -78,7 +78,7 @@ public class GatheringController {
 
     @Operation(summary = "구성원 출석체크 [일반모임]")
     @PostMapping("/{gathering_id}/members/attendance")
-    public ResponseEntity<List<MemberAttendanceStatusDto>> checkAttendanceMembers(
+    public ResponseEntity<List<MemberAttendanceStatusDto>> checkAttendanceGeneralGatheringMembers(
             @PathVariable("gathering_id") Long gatheringId,
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody List<MemberAttendanceStatusDto> requestList) {
@@ -87,6 +87,19 @@ public class GatheringController {
                 gatheringService.checkAttendanceGeneralGatheringMembers(
                         userDetails.getUserId(), gatheringId, requestList));
     }
+
+    @Operation(summary = "구성원 출석체크 [이벤트 모임]")
+    @PostMapping("/{gathering_id}/event/members/attendance")
+    public ResponseEntity<AttendanceEventGatheringResponse> checkAttendanceEventGatheringMembers(
+            @PathVariable("gathering_id") Long gatheringId,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Valid @RequestBody AttendanceEventGatheringRequest request) {
+
+        return ResponseEntity.ok(gatheringService.
+                checkAttendanceEventGatheringMembers(
+                        userDetails.getUserId(), gatheringId, request));
+    }
+
 
     @Operation(summary = " 모임 정상완료 체크 [일반모임]") // TODO: 이벤트 모임 정상완료 체크는 관리자가 하는 걸로 생각 중
     @PostMapping("/{gathering_id}/completion")
