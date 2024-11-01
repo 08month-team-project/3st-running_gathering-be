@@ -11,14 +11,12 @@ import com.runto.domain.admin.dto.MonthUserResponse;
 import com.runto.domain.admin.dto.PenaltyDetailsResponse;
 import com.runto.domain.admin.dto.UserCountResponse;
 import com.runto.domain.admin.type.AdminStatsCount;
-import com.runto.domain.user.domain.report.QBlackList;
-import com.runto.domain.user.domain.report.QReport;
+import com.runto.domain.user.domain.QUser;
 import com.runto.domain.user.type.UserStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-
 
 import static com.runto.domain.user.domain.QUser.user;
 import static com.runto.domain.user.domain.report.QBlackList.blackList;
@@ -64,22 +62,15 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
 
     @Override
     public List<PenaltyDetailsResponse> findAllByPenalties(UserStatus status) {
-        QReport reportAlias = QReport.report; // Q타입을 사용하여 report를 alias로 생성
-        QBlackList blackListAlias = QBlackList.blackList; // Q타입을 사용하여 blackList를 alias로 생성
-
-        // 집계 표현식 및 조인 테이블 결정
-        Expression<Long> countExpression = (status == REPORTED) ? reportAlias.id.count() : blackListAlias.cumulativeNumber;
-        EntityPath<?> joinTable = (status == REPORTED) ? reportAlias : blackListAlias; // 조인 테이블 타입
-        BooleanExpression joinCondition = (status == REPORTED) ? reportAlias.user.id.eq(user.id) : blackListAlias.user.id.eq(user.id);
 
         return queryFactory
                 .select(Projections.constructor(PenaltyDetailsResponse.class,
                         user.nickname,
                         user.email,
-                        countExpression))
+                        countExpression(status)))
                 .from(user)
                 .where(userStateCondition(status))
-                .leftJoin(joinTable).on(joinCondition) // 조인 테이블과 조건 설정
+                .leftJoin(penalty(status)).on(penaltyByUserId(status)) // 조인 테이블과 조건 설정
                 .groupBy(user.nickname, user.email)
                 .fetch();
     }
@@ -101,6 +92,31 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
         return switch (type) {
             case TOTAL -> notDisabled;
             case BLACKLIST -> notDisabled.and(blackList.user.id.isNotNull());
+        };
+    }
+
+    private Expression<Long> countExpression(UserStatus status) {
+        return switch (status) {
+            case ACTIVE, DISABLED -> null;
+            case REPORTED -> report.id.count();
+            case BANNED -> blackList.cumulativeNumber;
+
+        };
+    }
+
+    private EntityPath<?> penalty(UserStatus status) {
+        return switch (status) {
+            case ACTIVE, DISABLED -> null;
+            case REPORTED -> report;
+            case BANNED -> blackList;
+        };
+    }
+
+    private BooleanExpression penaltyByUserId(UserStatus status) {
+        return switch (status) {
+            case ACTIVE, DISABLED -> null;
+            case REPORTED -> report.user.id.eq(QUser.user.id);
+            case BANNED-> blackList.user.id.eq(QUser.user.id);
         };
     }
 

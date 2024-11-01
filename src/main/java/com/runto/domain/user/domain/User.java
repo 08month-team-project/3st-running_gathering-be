@@ -75,4 +75,8 @@ public class User extends BaseTimeEntity {
                  .build();
         return user;
     }
+
+    public void releaseUser(User user){
+        this.status = UserStatus.ACTIVE;
+    }
 }

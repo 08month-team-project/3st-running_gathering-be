@@ -6,6 +6,7 @@ import com.runto.domain.coupon.dto.CouponRequest;
 import com.runto.domain.admin.dto.MonthUserResponse;
 import com.runto.domain.admin.dto.UserCountResponse;
 import com.runto.domain.admin.type.AdminStatsCount;
+import com.runto.domain.user.domain.User;
 import com.runto.domain.user.type.UserStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -50,8 +51,7 @@ public class AdminController {
     @Operation(summary = "블랙리스트 해제")
     @PostMapping("/{user_id}/release")
     public ResponseEntity<Void> releaseUser(@PathVariable("user_id") Long userId) {
+        adminService.releaseUser(userId);
         return ResponseEntity.ok().build();
     }
-
-
 }
