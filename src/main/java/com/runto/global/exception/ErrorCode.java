@@ -16,9 +16,14 @@ public enum ErrorCode {
     // 모임글 & 이벤트 관련
     GATHERING_NOT_FOUND(NOT_FOUND, "존재하지 않는 모임글입니다."),
     GATHERING_REPORTED(FORBIDDEN, "신고당한 모임글입니다."),
-    EVENT_GATHERING_NOT_APPROVED_ONLY_ORGANIZER_CAN_VIEW(FORBIDDEN,"승인상태가 아닌 이벤트모임은 주최자 본인만 볼 수 있습니다."),
+    EVENT_GATHERING_NOT_APPROVED_ONLY_ORGANIZER_CAN_VIEW(FORBIDDEN, "승인상태가 아닌 이벤트모임은 주최자 본인만 볼 수 있습니다."),
     GENERAL_MAX_NUMBER(BAD_REQUEST, "일반 모임의 최대 인원은 2명에서 10명 사이여야 합니다."),
     EVENT_GATHERING_MAX_NUMBER(BAD_REQUEST, "이벤트 모임의 최대 인원은 10명에서 300명 사이여야 합니다."),
+    INVALID_ATTENDANCE_CHECK_NOT_ORGANIZER(FORBIDDEN, "모임의 주최자가 아니면 출석체크 할 수 없습니다."),
+    INVALID_ATTENDANCE_CHECK_NOT_NORMAL_GATHERING(FORBIDDEN,"NORMAL 상태가 아닌 모임은 출석체크 할 수 없습니다."),
+    INVALID_ATTENDANCE_BEFORE_MEETING(FORBIDDEN, "모임 날짜/시간 전에는 출석체크 할 수 없습니다."),
+    INVALID_ATTENDANCE_AFTER_ONE_WEEK(FORBIDDEN, "모임 날짜로부터 일주일이 지난 후에는 출석체크 할 수 없습니다."),
+    INVALID_ATTENDANCE_EVENT_GATHERING(BAD_REQUEST, "이벤트 모임은 출석체크를 할 수 없습니다."),
 
 
     // 채팅관련,
