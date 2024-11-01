@@ -88,7 +88,7 @@ public class GatheringController {
                         userDetails.getUserId(), gatheringId, requestList));
     }
 
-    @Operation(summary = " 모임 정상완료 체크 [일반모임]")
+    @Operation(summary = " 모임 정상완료 체크 [일반모임]") // TODO: 이벤트 모임 정상완료 체크는 관리자가 하는 걸로 생각 중
     @PostMapping("/{gathering_id}/completion")
     public ResponseEntity<Void> checkCompleteGathering(
             @PathVariable("gathering_id") Long gatheringId,
