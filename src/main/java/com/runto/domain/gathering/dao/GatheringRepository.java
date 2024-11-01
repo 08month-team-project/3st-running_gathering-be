@@ -13,8 +13,7 @@ import java.util.Optional;
 public interface GatheringRepository extends JpaRepository<Gathering, Long>, GatheringRepositoryCustom {
 
     @Query("select g from Gathering g " +
-            " join fetch g.gatheringMembers gm " +
-            " join fetch gm.user " +
+            " left join fetch g.eventGathering " +
             " where g.id= :gathering_id ")
-    Optional<Gathering> findGatheringDetailById(@Param("gathering_id") Long gatheringId);
+    Optional<Gathering> findGatheringById(@Param("gathering_id") Long gatheringId);
 }
