@@ -23,13 +23,11 @@ public enum ErrorCode {
     INVALID_ATTENDANCE_CHECK_NOT_NORMAL_GATHERING(FORBIDDEN,"NORMAL 상태가 아닌 모임은 출석체크 할 수 없습니다."),
     INVALID_ATTENDANCE_BEFORE_MEETING(FORBIDDEN, "모임 날짜/시간 전에는 출석체크 할 수 없습니다."),
     INVALID_ATTENDANCE_AFTER_ONE_WEEK(FORBIDDEN, "모임 날짜로부터 일주일이 지난 후에는 출석체크 할 수 없습니다."),
-    INVALID_ATTENDANCE_EVENT_GATHERING(BAD_REQUEST, "이벤트 모임은 출석체크를 할 수 없습니다."),
     INVALID_COMPLETE_GATHERING_NOT_ORGANIZER(FORBIDDEN, "모임의 주최자가 아니면 완료시킬 수 없습니다."),
     INVALID_COMPLETE_GATHERING_NOT_NORMAL_GATHERING(FORBIDDEN, "NORMAL 상태가 아닌 모임은 정상완료 할 수 없습니다."),
     INVALID_COMPLETE_GATHERING_BEFORE_MEETING(FORBIDDEN, "모임 날짜/시간 전에는 정상완료할 수 없습니다."),
     INVALID_COMPLETE_AFTER_ONE_WEEK(FORBIDDEN, "모임 날짜로부터 일주일이 지난 후에는 정상완료 할 수 없습니다."),
     INVALID_COMPLETE_UNCHECKED_MEMBERS(FORBIDDEN,"출석체크하지 않은 멤버가 있으면 정상완료를 할 수 없습니다."),
-    INVALID_COMPLETE_EVENT_GENERAL_USER(FORBIDDEN,"이벤트 모임은 일반회원이 정상완료시킬 수 없습니다."),
     INVALID_REQUEST_GATHERING_TYPE(BAD_REQUEST,"해당 모임에 맞지 않는 요청입니다."),
     ALREADY_NORMAL_COMPLETE_GATHERING(FORBIDDEN, "이미 정상완료한 모임입니다."),
 

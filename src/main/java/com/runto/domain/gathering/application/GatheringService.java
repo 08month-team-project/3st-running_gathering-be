@@ -256,7 +256,7 @@ public class GatheringService {
             throw new GatheringException(INVALID_ATTENDANCE_CHECK_NOT_ORGANIZER);
         }
         if (EVENT.equals(gathering.getGatheringType())) {
-            throw new GatheringException(INVALID_ATTENDANCE_EVENT_GATHERING);
+            throw new GatheringException(INVALID_REQUEST_GATHERING_TYPE);
         }
         if (!NORMAL.equals(gathering.getStatus())) {
             throw new GatheringException(INVALID_ATTENDANCE_CHECK_NOT_NORMAL_GATHERING);
