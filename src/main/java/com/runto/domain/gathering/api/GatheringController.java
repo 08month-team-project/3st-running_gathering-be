@@ -1,7 +1,10 @@
 package com.runto.domain.gathering.api;
 
 import com.runto.domain.gathering.application.GatheringService;
-import com.runto.domain.gathering.dto.*;
+import com.runto.domain.gathering.dto.CreateGatheringRequest;
+import com.runto.domain.gathering.dto.GatheringDetailResponse;
+import com.runto.domain.gathering.dto.GatheringsRequestParams;
+import com.runto.domain.gathering.dto.GatheringsResponse;
 import com.runto.global.security.detail.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -43,12 +46,14 @@ public class GatheringController {
         return ResponseEntity.ok().build();
     }
 
-    // TODO: 상세조회 시엔 DELETED, REPORTED는 노출 X
-    @Operation(summary = "모임 상세조회 [일반모임,  이벤트모임(아직 미적용)]")
+    @Operation(summary = "모임 상세조회 [일반모임,  이벤트모임]") // 같이 쓰게 된 이유는 pr 참조
     @GetMapping("/{gathering_id}")
     public ResponseEntity<GatheringDetailResponse> getGatheringDetail(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable("gathering_id") Long gatheringId) {
-        return ResponseEntity.ok(gatheringService.getGatheringDetail(gatheringId));
+
+        return ResponseEntity.ok(gatheringService
+                .getGatheringDetail(userDetails.getUserId(), gatheringId));
     }
 
     @Operation(summary = "모임목록 조회 [일반모임,  이벤트모임(아직 미적용)]")
