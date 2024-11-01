@@ -12,13 +12,13 @@ import org.springframework.data.domain.Sort;
 // 참고: @ModelAttribute는 요청 데이터 바인딩 과정에서 ObjectMapper를 사용하지 않음 -> setter 필요, @JsonNaming 미작동
 @NoArgsConstructor
 @Getter
-public class UserGatheringsRequestParams { // Query Parameter 로 매핑 (ModelAttribute 적용)
+public class UserGatheringsRequestParams {
 
     private GatheringMemberRole memberRole;
 
     private GatheringTimeStatus gatheringTimeStatus;
 
-    @NotNull(message = "order_field 는 필수 값입니다.")
+    @NotNull(message = "order_by 는 필수 값입니다.")
     private GatheringOrderField orderBy;
 
     @NotNull(message = "sort_direction 은 필수 값입니다.")

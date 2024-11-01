@@ -35,7 +35,7 @@ public class TestDataInit {
 
     private final GatheringRepository gatheringRepository;
 
-    @EventListener(ApplicationReadyEvent.class)
+    //@EventListener(ApplicationReadyEvent.class)
     @Transactional
     public void init() {
 

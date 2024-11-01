@@ -152,4 +152,12 @@ public class GatheringService {
                         .getUserMonthlyGatherings(userId, year, month));
 
     }
+
+    // 이벤트 목록 조회 조건 추가 예정
+    public GatheringsResponse getGatherings(GatheringsRequestParams requestParams, Pageable pageable) {
+
+        // 일반 모임인 경우
+        return GatheringsResponse.fromGeneralGatherings(gatheringRepository
+                .getGeneralGatherings(pageable, requestParams), requestParams);
+    }
 }
