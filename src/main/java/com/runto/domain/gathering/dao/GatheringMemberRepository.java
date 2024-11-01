@@ -8,12 +8,16 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface GatheringMemberRepository extends JpaRepository<GatheringMember, Long> {
 
     @Query("select gm from GatheringMember gm " +
             " join fetch gm.user " +
             " where gm.gathering.id = :gathering_id")
-    Slice<GatheringMember> findGatheringMembersByGatheringId(
+    Slice<GatheringMember> findGatheringMembersWithUserByGatheringId(
             @Param("gathering_id") Long gatheringId, Pageable pageable);
+
+    List<GatheringMember> findGatheringMembersByGatheringId(Long gatheringId);
 }
