@@ -31,6 +31,7 @@ public enum ErrorCode {
     INVALID_COMPLETE_UNCHECKED_MEMBERS(FORBIDDEN,"출석체크하지 않은 멤버가 있으면 정상완료를 할 수 없습니다."),
     INVALID_COMPLETE_EVENT_GENERAL_USER(FORBIDDEN,"이벤트 모임은 일반회원이 정상완료시킬 수 없습니다."),
     INVALID_REQUEST_GATHERING_TYPE(BAD_REQUEST,"해당 모임에 맞지 않는 요청입니다."),
+    ALREADY_NORMAL_COMPLETE_GATHERING(FORBIDDEN, "이미 정상완료한 모임입니다."),
 
     // 채팅관련,
     CHATROOM_ALREADY_EXIST(CONFLICT, "이미 존재하는 채팅방입니다."),
