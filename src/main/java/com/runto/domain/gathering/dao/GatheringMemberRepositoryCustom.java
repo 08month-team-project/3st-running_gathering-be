@@ -13,4 +13,6 @@ public interface GatheringMemberRepositoryCustom {
                                      AttendanceStatus status,
                                      Double realDistance,
                                      List<Long> memberIds);
+
+    Long countMembers(Long gatheringId, AttendanceStatus status);
 }
