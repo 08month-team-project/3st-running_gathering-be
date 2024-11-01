@@ -56,7 +56,7 @@ public class GatheringController {
                 .getGatheringDetail(userDetails.getUserId(), gatheringId));
     }
 
-    @Operation(summary = "모임목록 조회 [일반모임,  이벤트모임(아직 미적용)]")
+    @Operation(summary = "모임목록 조회 [일반모임,  이벤트모임]")
     @GetMapping
     public ResponseEntity<GatheringsResponse> getGatherings(
             @Valid @ModelAttribute GatheringsRequestParams requestParams,

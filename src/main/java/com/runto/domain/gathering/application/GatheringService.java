@@ -136,25 +136,25 @@ public class GatheringService {
         boolean isOrganizer = Objects.equals(gathering.getOrganizerId(), userId);
         GatheringStatus status = gathering.getStatus();
 
-        if(DELETED.equals(status)){
+        if (DELETED.equals(status)) {
             throw new GatheringException(GATHERING_NOT_FOUND);
         }
 
         // 신고당한 모임글 상세조회는 작성자만 볼 수 있음
-        if(!isOrganizer && REPORTED.equals(status)){
+        if (!isOrganizer && REPORTED.equals(status)) {
             throw new GatheringException(GATHERING_REPORTED);
         }
 
         // 승인되지 않은 이벤트모임은 주최자가 아니면 볼 수 없음
-        if(EVENT.equals(gathering.getGatheringType()) && // 이벤트인지 검증하는 조건이 무조건 먼저 들어가야함
-                !isApprovedEventForNonOrganizer(gathering.getEventGathering(), isOrganizer)){
+        if (EVENT.equals(gathering.getGatheringType()) && // 이벤트인지 검증하는 조건이 무조건 먼저 들어가야함
+                !isApprovedEventForNonOrganizer(gathering.getEventGathering(), isOrganizer)) {
             throw new GatheringException(EVENT_GATHERING_NOT_APPROVED_ONLY_ORGANIZER_CAN_VIEW);
         }
     }
 
     private boolean isApprovedEventForNonOrganizer(EventGathering eventGathering, boolean isOrganizer) {
 
-        if(!isOrganizer){
+        if (!isOrganizer) {
             return APPROVED.equals(eventGathering.getStatus());
         }
         return true;
@@ -189,11 +189,16 @@ public class GatheringService {
 
     }
 
-    // 이벤트 목록 조회 조건 추가 예정
-    public GatheringsResponse getGatherings(GatheringsRequestParams requestParams, Pageable pageable) {
+    public GatheringsResponse getGatherings(GatheringsRequestParams params, Pageable pageable) {
 
         // 일반 모임인 경우
-        return GatheringsResponse.fromGeneralGatherings(gatheringRepository
-                .getGeneralGatherings(pageable, requestParams), requestParams);
+        if (GENERAL.equals(params.getGatheringType())) {
+            return GatheringsResponse.fromGeneralGatherings(gatheringRepository
+                    .getGeneralGatherings(pageable, params), params);
+        }
+
+        // 이벤트 모임인 경우
+        return GatheringsResponse.fromEventGatherings(gatheringRepository
+                .getEventGatherings(pageable, params), params);
     }
 }
