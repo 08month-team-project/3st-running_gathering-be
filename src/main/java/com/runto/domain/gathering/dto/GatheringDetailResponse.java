@@ -7,8 +7,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 import static com.fasterxml.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy;
 
 @Builder
@@ -16,17 +14,15 @@ import static com.fasterxml.jackson.databind.PropertyNamingStrategies.SnakeCaseS
 @NoArgsConstructor
 @JsonNaming(SnakeCaseStrategy.class)
 @Getter
-public class GatheringDetailResponse { // 이벤트 상세조회 시에도 사용될 예정
+public class GatheringDetailResponse { // 멤버목록 가져오기는 api 분리로 수정
 
     private GatheringDetailContentResponse gatheringContentResponse;
-    private List<GatheringMemberResponse> gatheringMembers;
 
     
-    public static GatheringDetailResponse from(Gathering gathering) {
+    public static GatheringDetailResponse fromGathering(Gathering gathering) {
 
         return GatheringDetailResponse.builder()
                 .gatheringContentResponse(GatheringDetailContentResponse.from(gathering))
-                .gatheringMembers(GatheringMemberResponse.from(gathering.getGatheringMembers()))
                 .build();
     }
 
