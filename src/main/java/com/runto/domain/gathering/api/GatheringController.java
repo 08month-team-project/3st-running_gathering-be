@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -43,15 +44,17 @@ public class GatheringController {
         return ResponseEntity.ok().build();
     }
 
-    // TODO: 상세조회 시엔 DELETED, REPORTED는 노출 X
-    @Operation(summary = "모임 상세조회 [일반모임,  이벤트모임(아직 미적용)]")
+    @Operation(summary = "모임 상세조회 [일반모임,  이벤트모임]") // 같이 쓰게 된 이유는 pr 참조
     @GetMapping("/{gathering_id}")
     public ResponseEntity<GatheringDetailResponse> getGatheringDetail(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable("gathering_id") Long gatheringId) {
-        return ResponseEntity.ok(gatheringService.getGatheringDetail(gatheringId));
+
+        return ResponseEntity.ok(gatheringService
+                .getGatheringDetail(userDetails.getUserId(), gatheringId));
     }
 
-    @Operation(summary = "모임목록 조회 [일반모임,  이벤트모임(아직 미적용)]")
+    @Operation(summary = "모임목록 조회 [일반모임,  이벤트모임]")
     @GetMapping
     public ResponseEntity<GatheringsResponse> getGatherings(
             @Valid @ModelAttribute GatheringsRequestParams requestParams,
@@ -59,5 +62,15 @@ public class GatheringController {
 
         return ResponseEntity.ok(gatheringService.
                 getGatherings(requestParams, pageable));
+    }
+
+    @Operation(summary = "모임 구성원목록 조회 [일반모임,  이벤트모임]")
+    @GetMapping("/{gathering_id}/members")
+    public ResponseEntity<Slice<GatheringMemberResponse>> getGatheringMembers(
+            @PathVariable("gathering_id") Long gatheringId,
+            @PageableDefault(size = 10) Pageable pageable) {
+
+        return ResponseEntity.ok(gatheringService
+                .getGatheringMembers(gatheringId, pageable));
     }
 }

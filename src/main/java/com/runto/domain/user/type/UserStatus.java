@@ -8,5 +8,6 @@ import lombok.Getter;
 public enum UserStatus {
     ACTIVE,
     DISABLED,
+    REPORTED,
     BANNED
 }

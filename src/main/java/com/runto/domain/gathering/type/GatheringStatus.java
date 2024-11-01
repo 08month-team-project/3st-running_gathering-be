@@ -7,5 +7,5 @@ public enum GatheringStatus {
     NORMAL,   // 정상
     DELETED,  // 삭제
     REPORTED, // 신고
-    COMPLETED // 완료
+
 }

@@ -22,12 +22,12 @@ public class GatheringMemberResponse {
     private String profileImageUrl;
     private GatheringMemberRole role;
 
-    public static List<GatheringMemberResponse> from(List<GatheringMember> gatheringMembers) {
-
-        return gatheringMembers.stream()
-                .map(GatheringMemberResponse::from)
-                .toList();
-    }
+//    public static List<GatheringMemberResponse> from(List<GatheringMember> gatheringMembers) {
+//
+//        return gatheringMembers.stream()
+//                .map(GatheringMemberResponse::from)
+//                .toList();
+//    }
 
     public static GatheringMemberResponse from(GatheringMember gatheringMember) {
 

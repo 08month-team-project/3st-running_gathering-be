@@ -65,7 +65,7 @@ public class UserController {
     }
 
     @Operation(summary = "내 이벤트 신청목록 조회")
-    @GetMapping("/events")
+    @GetMapping("/gatherings/events")
     public ResponseEntity<UserEventGatheringsResponse> getMyEventRequests(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PageableDefault(size = 8) Pageable pageable) {
@@ -73,4 +73,8 @@ public class UserController {
         return ResponseEntity.ok(gatheringService
                 .getUserEventRequests(userDetails.getUserId(), pageable));
     }
+
+    //TODO 회원탈퇴
+    //1) 탈퇴한 회원테이블 따로 만들기 이메일중복방지
+    //2) 탈퇴 시 이메일 더미이메일로 교체? (별로선호하지않으나 쉬울듯.)
 }

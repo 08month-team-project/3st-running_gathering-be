@@ -8,7 +8,6 @@ import lombok.Getter;
 public enum AdminStatsCount {
 
     TOTAL,
-    REPORTED,
     BLACKLIST;
 
 }

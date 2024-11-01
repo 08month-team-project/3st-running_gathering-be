@@ -15,8 +15,7 @@ public class CorsMvcConfig implements WebMvcConfigurer {
         registry.addMapping("/**")
                 .exposedHeaders("Set-Cookie")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                .allowedOrigins("http://localhost:3000")
-                .allowedOrigins(backendServerName)
+                .allowedOrigins("http://localhost:3000",backendServerName)
 //                .allowedOrigins("https://runto.vercel.app/")
                 .allowCredentials(true);
 

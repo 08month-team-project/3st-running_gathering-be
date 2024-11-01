@@ -7,7 +7,9 @@ import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.runto.domain.gathering.domain.Gathering;
 import com.runto.domain.gathering.domain.QCoordinates;
-import com.runto.domain.gathering.dto.*;
+import com.runto.domain.gathering.dto.GatheringMember;
+import com.runto.domain.gathering.dto.GatheringsRequestParams;
+import com.runto.domain.gathering.dto.UserGatheringsRequestParams;
 import com.runto.domain.gathering.type.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -26,17 +28,18 @@ import static com.runto.domain.common.SortUtil.getOrderSpecifier;
 import static com.runto.domain.gathering.domain.QEventGathering.eventGathering;
 import static com.runto.domain.gathering.domain.QGathering.gathering;
 import static com.runto.domain.gathering.dto.QGatheringMember.gatheringMember;
-import static com.runto.domain.gathering.type.EventRequestStatus.*;
+import static com.runto.domain.gathering.type.EventRequestStatus.APPROVED;
 import static com.runto.domain.gathering.type.GatheringMemberRole.ORGANIZER;
 import static com.runto.domain.gathering.type.GatheringMemberRole.PARTICIPANT;
 import static com.runto.domain.gathering.type.GatheringOrderField.APPOINTED_AT;
-import static com.runto.domain.gathering.type.GatheringStatus.*;
+import static com.runto.domain.gathering.type.GatheringStatus.DELETED;
 import static com.runto.domain.gathering.type.GatheringTimeStatus.ENDED;
 import static com.runto.domain.gathering.type.GatheringTimeStatus.ONGOING;
 import static com.runto.domain.gathering.type.GatheringType.EVENT;
 import static com.runto.domain.gathering.type.GatheringType.GENERAL;
 import static com.runto.domain.gathering.type.ParticipationEligibility.AVAILABLE;
 import static com.runto.domain.gathering.type.ParticipationEligibility.NOT_AVAILABLE;
+import static com.runto.domain.user.domain.QUser.user;
 import static org.springframework.data.domain.Sort.Direction.ASC;
 
 @RequiredArgsConstructor
@@ -45,15 +48,15 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
 
     private final JPAQueryFactory jpaQueryFactory;
 
-    
-    // TODO: 모든 모임글조회쿼리에 user 까지 패치조인 필요
+
     @Override
     public Slice<Gathering> getUserGeneralGatherings(Long userId,
                                                      Pageable pageable,
                                                      UserGatheringsRequestParams request) {
 
         List<Gathering> gatherings = jpaQueryFactory.selectFrom(gathering)
-                .join(gathering.gatheringMembers).fetchJoin()
+                .join(gathering.gatheringMembers, gatheringMember).fetchJoin()
+                .join(gatheringMember.user, user).fetchJoin()
                 .where(
                         memberRoleCondition(userId, request.getMemberRole()),
                         timeCondition(request.getGatheringTimeStatus()),
@@ -68,20 +71,13 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
         return new SliceImpl<>(gatherings, pageable, hasNextPage(pageable, gatherings));
     }
 
-    /**
-     * 양방향으로 바꾸면서 getUserGeneralGatherings 과 한개의 조건을 제외하고 완전히 똑같아서,
-     * <p>
-     * eventGathering.status 에 대한 condition을 따로 만들고(일반 모임은 null로 반환하면 되니까)
-     * 두 메서드를 합쳐서 쓸까 했지만
-     * 일반모임 조회일때도 eventGathering.status 에 대한 조건 로직이 들어가는게 뭔가 이상해보여서 그만두었음
-     */
     @Override
     public Slice<Gathering> getUserEventGatherings(Long userId,
                                                    Pageable pageable,
                                                    UserGatheringsRequestParams request) {
 
         List<Gathering> gatherings = jpaQueryFactory.selectFrom(gathering)
-                .join(gathering).fetchJoin()
+                .join(gathering.eventGathering).fetchJoin()
                 .where(
                         memberRoleCondition(userId, request.getMemberRole()),
                         timeCondition(request.getGatheringTimeStatus()),
@@ -117,21 +113,46 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
                 .fetch();
     }
 
+
     @Override
     public Slice<Gathering> getGeneralGatherings(Pageable pageable,
                                                  GatheringsRequestParams param) {
 
-
         List<Gathering> gatherings = jpaQueryFactory.selectFrom(gathering)
-                .join(gathering.gatheringMembers).fetchJoin()
+                .join(gathering.gatheringMembers, gatheringMember).fetchJoin()
+                .join(gatheringMember.user, user).fetchJoin()
                 .where(
                         gatheringTypeCondition(GENERAL),
                         participationCondition(param.getParticipationEligibility()), // 참가가능상태
                         searchTitleCondition(param.getSearchTitle()), // 제목검색
-                        statusCondition(null), // 모임글 상태
+                        statusCondition(null), // 모임글 상태 (목록 조회는 삭제 외 모두 노출)
                         goalDistanceCondition(param.getGoalDistance()), // 목표거리
                         runningConceptCondition(param.getRunningConcept()), // 러닝컨셉
                         radiusDistanceCondition(param.getRadiusDistance(), param.getX(), param.getY()) // 좌표 기준 X km 반경
+                )
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize() + 1) // 다음 페이지에 가져올 컨텐츠가 있는지 확인하기 위함
+                .orderBy(orderCondition(param.getOrderBy(), param.getSortDirection()))
+                .fetch();
+
+        return new SliceImpl<>(gatherings, pageable, hasNextPage(pageable, gatherings));
+    }
+
+    @Override
+    public Slice<Gathering> getEventGatherings(Pageable pageable,
+                                                 GatheringsRequestParams param) {
+
+        List<Gathering> gatherings = jpaQueryFactory.selectFrom(gathering)
+                .join(gathering.eventGathering).fetchJoin()
+                .where(
+                        gatheringTypeCondition(EVENT),
+                        participationCondition(param.getParticipationEligibility()), // 참가가능상태
+                        searchTitleCondition(param.getSearchTitle()), // 제목검색
+                        statusCondition(null), // 모임글 상태 (목록 조회는 삭제 외 모두 노출)
+                        goalDistanceCondition(param.getGoalDistance()), // 목표거리
+                        runningConceptCondition(param.getRunningConcept()), // 러닝컨셉
+                        radiusDistanceCondition(param.getRadiusDistance(), param.getX(), param.getY()), // 좌표 기준 X km 반경
+                        eventStatusCondition(APPROVED)
                 )
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize() + 1) // 다음 페이지에 가져올 컨텐츠가 있는지 확인하기 위함
