@@ -25,4 +25,7 @@ public interface GatheringRepositoryCustom {
 
     Slice<Gathering> getGeneralGatherings(Pageable pageable,
                                           GatheringsRequestParams requestParams);
+
+    Slice<Gathering> getEventGatherings(Pageable pageable,
+                                        GatheringsRequestParams param);
 }
