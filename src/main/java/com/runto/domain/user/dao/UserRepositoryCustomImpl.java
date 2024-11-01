@@ -69,7 +69,7 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
                         countExpression(status)))
                 .from(user)
                 .where(userStateCondition(status))
-                .leftJoin(penalty(status)).on(penaltyByUserId(status)) // 조인 테이블과 조건 설정
+                .leftJoin(penaltyType(status)).on(penaltyByUserId(status)) // 조인 테이블과 조건 설정
                 .groupBy(user.nickname, user.email)
                 .fetch();
     }
@@ -103,7 +103,7 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
         };
     }
 
-    private EntityPath<?> penalty(UserStatus status) {
+    private EntityPath<?> penaltyType(UserStatus status) {
         return switch (status) {
             case ACTIVE, DISABLED -> null;
             case REPORTED -> report;
