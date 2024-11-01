@@ -11,6 +11,9 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 @Builder
 @Getter
 @NoArgsConstructor
@@ -29,17 +32,18 @@ public class DirectChatContent {
 
     private String content;
 
-    private String timestamp;
+    private LocalDateTime timestamp;
 
     @Field("status")
     private MessageStatus messageStatus;
 
     public static DirectChatContent of(MessageQueueDTO messageQueueDTO){
+        LocalDateTime timestamp = LocalDateTime.parse(messageQueueDTO.getTimestamp(),DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         return DirectChatContent.builder()
                 .roomId(messageQueueDTO.getRoomId())
                 .senderId(messageQueueDTO.getSenderId())
                 .content(messageQueueDTO.getContent())
-                .timestamp(messageQueueDTO.getTimestamp())
+                .timestamp(timestamp)
                 .messageStatus(MessageStatus.SENT).build();
     }
 
