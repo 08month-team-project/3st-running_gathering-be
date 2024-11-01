@@ -220,7 +220,6 @@ public class GatheringService {
     }
 
 
-    // 일반모임만 출석체크
     @Transactional
     public List<MemberAttendanceStatusDto> checkAttendanceGeneralGatheringMembers(
             Long userId, Long gatheringId, List<MemberAttendanceStatusDto> requestList) {
@@ -271,31 +270,30 @@ public class GatheringService {
     }
 
     @Transactional
-    public void updateCompleteGeneralGathering(Long userId, Long gatheringId) {
+    public void updateCompleteGathering(Long userId, Long gatheringId) {
 
-        // 일반모임인지, 이벤트 모임인지 확인하고 구성원목록을 가져와야해서 처음부터 패치조인 X
         Gathering gathering = gatheringRepository.findById(gatheringId)
                 .orElseThrow(() -> new GatheringException(GATHERING_NOT_FOUND));
 
-        validateCompleteGeneralGathering(userId, gathering);
+        validateCompleteGathering(userId, gathering);
 
-        // 일반모임의 경우 모든 구성원 출석체크가 완료 됐는지 여부 확인
-        List<GatheringMember> members = gatheringMemberRepository.findGatheringMembersByGatheringId(gatheringId);
-        for (GatheringMember member : members) {
-            if (PENDING.equals(member.getAttendanceStatus())) { // AttendanceStatus.PENDING
-                throw new GatheringException(INVALID_COMPLETE_UNCHECKED_MEMBERS);
-            }
+        Long pendingMemberCount = gatheringMemberRepository.countMembers(gatheringId, PENDING);
+
+        // 출석상태가 pending 인 멤버가 있으면 완료체크 불가
+        if(pendingMemberCount != null && pendingMemberCount > 0){
+            throw new GatheringException(INVALID_COMPLETE_UNCHECKED_MEMBERS);
         }
+
         gathering.checkNormalComplete();
     }
 
-    private void validateCompleteGeneralGathering(Long userId, Gathering gathering) {
+    private void validateCompleteGathering(Long userId, Gathering gathering) {
 
         if (!Objects.equals(userId, gathering.getOrganizerId())) {
             throw new GatheringException(INVALID_COMPLETE_GATHERING_NOT_ORGANIZER);
         }
-        if (EVENT.equals(gathering.getGatheringType())) {
-            throw new GatheringException(INVALID_COMPLETE_EVENT_GENERAL_USER);
+        if(gathering.getIsNormalCompleted()){
+            throw new GatheringException(ALREADY_NORMAL_COMPLETE_GATHERING);
         }
         if (!NORMAL.equals(gathering.getStatus())) {
             throw new GatheringException(INVALID_COMPLETE_GATHERING_NOT_NORMAL_GATHERING);

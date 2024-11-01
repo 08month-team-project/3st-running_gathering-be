@@ -46,7 +46,7 @@ public class GatheringController {
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "모임 상세조회 [일반모임,  이벤트모임]") // 같이 쓰게 된 이유는 pr 참조
+    @Operation(summary = "모임 상세조회 [일반모임, 이벤트모임]") // 같이 쓰게 된 이유는 pr 참조
     @GetMapping("/{gathering_id}")
     public ResponseEntity<GatheringDetailResponse> getGatheringDetail(
             @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -56,7 +56,7 @@ public class GatheringController {
                 getGatheringDetail(userDetails.getUserId(), gatheringId));
     }
 
-    @Operation(summary = "모임목록 조회 [일반모임,  이벤트모임]")
+    @Operation(summary = "모임목록 조회 [일반모임, 이벤트모임]")
     @GetMapping
     public ResponseEntity<GatheringsResponse> getGatherings(
             @Valid @ModelAttribute GatheringsRequestParams requestParams,
@@ -66,7 +66,7 @@ public class GatheringController {
                 getGatherings(requestParams, pageable));
     }
 
-    @Operation(summary = "모임 구성원목록 조회 [일반모임,  이벤트모임]")
+    @Operation(summary = "모임 구성원목록 조회 [일반모임, 이벤트모임]")
     @GetMapping("/{gathering_id}/members")
     public ResponseEntity<Slice<GatheringMemberResponse>> getGatheringMembers(
             @PathVariable("gathering_id") Long gatheringId,
@@ -101,13 +101,13 @@ public class GatheringController {
     }
 
 
-    @Operation(summary = " 모임 정상완료 체크 [일반모임]") // TODO: 이벤트 모임 정상완료 체크는 관리자가 하는 걸로 생각 중
+    @Operation(summary = " 모임 정상완료 체크 [일반모임, 이벤트모임]")
     @PostMapping("/{gathering_id}/completion")
     public ResponseEntity<Void> checkCompleteGathering(
             @PathVariable("gathering_id") Long gatheringId,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        gatheringService.updateCompleteGeneralGathering(userDetails.getUserId(), gatheringId);
+        gatheringService.updateCompleteGathering(userDetails.getUserId(), gatheringId);
 
         return ResponseEntity.ok().build();
     }
