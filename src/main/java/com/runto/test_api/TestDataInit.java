@@ -23,6 +23,7 @@ import java.util.List;
 
 import static com.runto.domain.gathering.type.GatheringMemberRole.ORGANIZER;
 import static com.runto.domain.gathering.type.GatheringMemberRole.PARTICIPANT;
+import static com.runto.domain.user.type.Gender.MAN;
 import static com.runto.domain.user.type.Gender.WOMAN;
 
 @RequiredArgsConstructor
@@ -35,31 +36,37 @@ public class TestDataInit {
 
     private final GatheringRepository gatheringRepository;
 
-    //@EventListener(ApplicationReadyEvent.class)
+    @EventListener(ApplicationReadyEvent.class)
     @Transactional
     public void init() {
 
         String password = bCryptPasswordEncoder.encode("123456");
 
         List<User> users = new ArrayList<>();
+        List<Gathering> gatherings = new ArrayList<>();
 
-        for (int i = 0; i < 10; i++) {
+
+        // 회원 세팅
+        for (int i = 1; i <= 10; i++) {
+
             LocalAccount localAccount = LocalAccount.builder()
                     .password(password)
                     .build();
 
-            users.add(User.builder()
+            User user = User.builder()
                     .email("runto" + i + "@gmail.com")
-                    .name("테스트유저이름" + i + 1)
-                    .nickname("테스트유저닉네임" + i + 1)
-                    .gender(WOMAN)
+                    .name("테스트유저이름" + i)
+                    .nickname("테스트유저닉네임" + i)
+                    .gender(MAN)
                     //.status()
                     .localAccount(localAccount)
                     .role(UserRole.USER)
-                    .profileImageUrl(i + 1 + "번유저 썸네일 url")
-                    .build());
+                    .profileImageUrl(i+ "번유저 썸네일 url")
+                    .build();
+
+            users.add(user);
+            userRepository.saveAll(users);
         }
-        users = userRepository.saveAll(users);
 
 
         Location location = Location
@@ -70,13 +77,12 @@ public class TestDataInit {
                         new RegionCode(0, 0),
                         new Coordinates(0.0, 0.0));
 
-        List<Gathering> gatherings = new ArrayList<>();
 
         for (int i = 0; i < 10; i++) {
             Gathering gathering = Gathering.builder()
                     .organizerId(users.get(i).getId())
-                    .title("(기한 남음) 우리 모두 달립시다 " + i)
-                    .description("재밌게 달려봅시다." + i)
+                    .title("(기한 남음) 우리 모두 달립시다 - runto" + (i+1) + "유저")
+                    .description("재밌게 달려봅시다.")
                     .appointedAt(LocalDateTime.now().plusDays(i + 2))
                     .deadline(LocalDateTime.now().plusDays(i + 1))
                     .concept(RunningConcept.HEALTH)
@@ -89,7 +95,6 @@ public class TestDataInit {
                     .currentNumber(1)
                     .gatheringType(GatheringType.GENERAL)
                     .build();
-
             gathering.addMember(users.get(i), ORGANIZER);
 
             for (int j = 0; j < 10; j++) {
@@ -106,7 +111,7 @@ public class TestDataInit {
         for (int i = 0; i < 10; i++) {
             Gathering gathering = Gathering.builder()
                     .organizerId(users.get(i).getId())
-                    .title("(기한 만료) 우리 모두 달립시다 " + i)
+                    .title("(기한 만료) 우리 모두 달립시다 - runto" + (i+1) + "유저")
                     .description("재밌게 달려봅시다." + i)
                     .appointedAt(LocalDateTime.now().minusDays(i + 2))
                     .deadline(LocalDateTime.now().minusDays(i + 1))
@@ -135,8 +140,6 @@ public class TestDataInit {
             gatherings.add(gathering);
         }
 
-
-        gatherings = gatheringRepository.saveAll(gatherings);
-
+        gatheringRepository.saveAll(gatherings);
     }
 }
