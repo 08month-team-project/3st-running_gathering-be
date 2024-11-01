@@ -65,7 +65,7 @@ public class UserController {
     }
 
     @Operation(summary = "내 이벤트 신청목록 조회")
-    @GetMapping("/events")
+    @GetMapping("/gatherings/events")
     public ResponseEntity<UserEventGatheringsResponse> getMyEventRequests(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PageableDefault(size = 8) Pageable pageable) {
