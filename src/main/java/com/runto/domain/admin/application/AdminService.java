@@ -1,5 +1,6 @@
 package com.runto.domain.admin.application;
 
+import com.runto.domain.admin.dto.PenaltyDetailsResponse;
 import com.runto.domain.coupon.dao.CouponRepository;
 import com.runto.domain.coupon.domain.Coupon;
 import com.runto.domain.coupon.dto.CouponRequest;
@@ -40,4 +41,7 @@ public class AdminService {
 
     }
 
+    public List<PenaltyDetailsResponse> getPenaltiesByUser(UserStatus status) {
+        return userRepository.findAllByPenalties(status);
+    }
 }

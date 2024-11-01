@@ -1,6 +1,7 @@
 package com.runto.domain.user.dao;
 
 import com.runto.domain.admin.dto.MonthUserResponse;
+import com.runto.domain.admin.dto.PenaltyDetailsResponse;
 import com.runto.domain.admin.dto.UserCountResponse;
 import com.runto.domain.admin.type.AdminStatsCount;
 import com.runto.domain.user.type.UserStatus;
@@ -14,4 +15,6 @@ public interface UserRepositoryCustom {
     List<MonthUserResponse>findAllByUserByMonth(UserStatus status);
 
     UserCountResponse countUsersByType(AdminStatsCount statsCount);
+
+    List<PenaltyDetailsResponse> findAllByPenalties(UserStatus status);
 }
