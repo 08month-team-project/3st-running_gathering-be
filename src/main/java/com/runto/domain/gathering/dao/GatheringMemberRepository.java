@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface GatheringMemberRepository extends JpaRepository<GatheringMember, Long> {
+public interface GatheringMemberRepository extends JpaRepository<GatheringMember, Long>, GatheringMemberRepositoryCustom {
 
     @Query("select gm from GatheringMember gm " +
             " join fetch gm.user " +
