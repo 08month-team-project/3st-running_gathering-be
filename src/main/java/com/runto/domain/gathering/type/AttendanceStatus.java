@@ -1,5 +1,8 @@
 package com.runto.domain.gathering.type;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+@JsonFormat(shape = JsonFormat.Shape.STRING)
 public enum AttendanceStatus {
 
     ATTENDING,   // 참석
