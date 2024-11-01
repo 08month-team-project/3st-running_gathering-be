@@ -11,7 +11,6 @@ import com.runto.domain.admin.dto.MonthUserResponse;
 import com.runto.domain.admin.dto.PenaltyDetailsResponse;
 import com.runto.domain.admin.dto.UserCountResponse;
 import com.runto.domain.admin.type.AdminStatsCount;
-import com.runto.domain.user.domain.QUser;
 import com.runto.domain.user.type.UserStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -115,8 +114,8 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
     private BooleanExpression penaltyByUserId(UserStatus status) {
         return switch (status) {
             case ACTIVE, DISABLED -> null;
-            case REPORTED -> report.user.id.eq(QUser.user.id);
-            case BANNED-> blackList.user.id.eq(QUser.user.id);
+            case REPORTED -> report.user.id.eq(user.id);
+            case BANNED-> blackList.user.id.eq(user.id);
         };
     }
 
