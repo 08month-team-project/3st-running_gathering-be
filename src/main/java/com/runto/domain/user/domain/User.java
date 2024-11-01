@@ -53,10 +53,7 @@ public class User extends BaseTimeEntity {
     @OneToOne(cascade = CascadeType.ALL,fetch = FetchType.LAZY)
     @JoinColumn(name = "oauth2_id")
     private OAuth2 oAuth2;
-
-    @Column(name = "report_count")
-    private Long reportCount;
-
+    
     @PrePersist
     public void prePersist() {
         status = UserStatus.ACTIVE;

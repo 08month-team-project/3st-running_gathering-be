@@ -14,8 +14,9 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-import static com.runto.domain.user.domain.QBlackList.blackList;
+
 import static com.runto.domain.user.domain.QUser.user;
+import static com.runto.domain.user.domain.report.QBlackList.blackList;
 import static com.runto.domain.user.type.UserStatus.ACTIVE;
 import static com.runto.domain.user.type.UserStatus.DISABLED;
 
@@ -70,7 +71,6 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
         BooleanExpression notDisabled = user.status.ne(DISABLED);
         return switch (type) {
             case TOTAL -> notDisabled;
-            case REPORTED -> notDisabled.and(user.reportCount.gt(0)).and(user.status.eq(ACTIVE));
             case BLACKLIST -> notDisabled.and(blackList.user.id.isNotNull());
         };
     }
