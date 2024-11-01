@@ -7,7 +7,9 @@ import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.runto.domain.gathering.domain.Gathering;
 import com.runto.domain.gathering.domain.QCoordinates;
-import com.runto.domain.gathering.dto.*;
+import com.runto.domain.gathering.dto.GatheringMember;
+import com.runto.domain.gathering.dto.GatheringsRequestParams;
+import com.runto.domain.gathering.dto.UserGatheringsRequestParams;
 import com.runto.domain.gathering.type.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -26,11 +28,11 @@ import static com.runto.domain.common.SortUtil.getOrderSpecifier;
 import static com.runto.domain.gathering.domain.QEventGathering.eventGathering;
 import static com.runto.domain.gathering.domain.QGathering.gathering;
 import static com.runto.domain.gathering.dto.QGatheringMember.gatheringMember;
-import static com.runto.domain.gathering.type.EventRequestStatus.*;
+import static com.runto.domain.gathering.type.EventRequestStatus.APPROVED;
 import static com.runto.domain.gathering.type.GatheringMemberRole.ORGANIZER;
 import static com.runto.domain.gathering.type.GatheringMemberRole.PARTICIPANT;
 import static com.runto.domain.gathering.type.GatheringOrderField.APPOINTED_AT;
-import static com.runto.domain.gathering.type.GatheringStatus.*;
+import static com.runto.domain.gathering.type.GatheringStatus.DELETED;
 import static com.runto.domain.gathering.type.GatheringTimeStatus.ENDED;
 import static com.runto.domain.gathering.type.GatheringTimeStatus.ONGOING;
 import static com.runto.domain.gathering.type.GatheringType.EVENT;
@@ -46,7 +48,7 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
     private final JPAQueryFactory jpaQueryFactory;
 
     
-    // TODO: 모든 모임글조회쿼리에 user 까지 패치조인 필요
+    // TODO: 일반모임목록 조회쿼리에 user 까지 패치조인 필요
     @Override
     public Slice<Gathering> getUserGeneralGatherings(Long userId,
                                                      Pageable pageable,
@@ -121,14 +123,13 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
     public Slice<Gathering> getGeneralGatherings(Pageable pageable,
                                                  GatheringsRequestParams param) {
 
-
         List<Gathering> gatherings = jpaQueryFactory.selectFrom(gathering)
                 .join(gathering.gatheringMembers).fetchJoin()
                 .where(
                         gatheringTypeCondition(GENERAL),
                         participationCondition(param.getParticipationEligibility()), // 참가가능상태
                         searchTitleCondition(param.getSearchTitle()), // 제목검색
-                        statusCondition(null), // 모임글 상태
+                        statusCondition(null), // 모임글 상태 (목록 조회는 삭제 외 모두 노출)
                         goalDistanceCondition(param.getGoalDistance()), // 목표거리
                         runningConceptCondition(param.getRunningConcept()), // 러닝컨셉
                         radiusDistanceCondition(param.getRadiusDistance(), param.getX(), param.getY()) // 좌표 기준 X km 반경
