@@ -18,6 +18,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 import static com.runto.domain.user.domain.QUser.user;
+
 import static com.runto.domain.user.domain.report.QBlackList.blackList;
 import static com.runto.domain.user.domain.report.QReport.report;
 import static com.runto.domain.user.type.UserStatus.*;
@@ -55,6 +56,8 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
                 .from(user)
                 .leftJoin(blackList)
                 .on(user.id.eq(blackList.user.id))
+                .leftJoin(report)
+                .on(user.id.eq(report.user.id))
                 .where(userTypeCondition(statsCount))
                 .fetchOne();
     }
@@ -81,16 +84,15 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
             case REPORTED -> user.status.eq(REPORTED);
             case BANNED -> user.status.eq(BANNED);
             case DISABLED -> user.status.eq(DISABLED);
-            default -> Expressions.TRUE.isTrue();
         };
 
     }
 
     private BooleanExpression userTypeCondition(AdminStatsCount type) {
-        BooleanExpression notDisabled = user.status.ne(DISABLED);
         return switch (type) {
-            case TOTAL -> notDisabled;
-            case BLACKLIST -> notDisabled.and(blackList.user.id.isNotNull());
+            case TOTAL -> user.status.ne(DISABLED);
+            case REPORTED -> report.user.id.isNotNull();
+            case BLACKLIST -> blackList.user.id.isNotNull();
         };
     }
 
