@@ -2,6 +2,7 @@ package com.runto.domain.gathering.application;
 
 
 import com.runto.domain.gathering.dao.EventGatheringRepository;
+import com.runto.domain.gathering.dao.GatheringMemberRepository;
 import com.runto.domain.gathering.dao.GatheringRepository;
 import com.runto.domain.gathering.domain.EventGathering;
 import com.runto.domain.gathering.domain.Gathering;
@@ -20,6 +21,7 @@ import com.runto.domain.user.excepction.UserException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,6 +47,7 @@ public class GatheringService {
     private final UserRepository userRepository;
     private final GatheringRepository gatheringRepository;
     private final EventGatheringRepository eventGatheringRepository;
+    private final GatheringMemberRepository gatheringMemberRepository;
 
 
     // TODO: 만약 신고기능 구현하는거면 나중에 관련 로직 추가 필요
@@ -200,5 +203,12 @@ public class GatheringService {
         // 이벤트 모임인 경우
         return GatheringsResponse.fromEventGatherings(gatheringRepository
                 .getEventGatherings(pageable, params), params);
+    }
+
+    public Slice<GatheringMemberResponse> getGatheringMembers(Long gatheringId, Pageable pageable) {
+
+        return gatheringMemberRepository
+                .findGatheringMembersByGatheringId(gatheringId, pageable)
+                .map(GatheringMemberResponse::from);
     }
 }

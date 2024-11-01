@@ -1,16 +1,14 @@
 package com.runto.domain.gathering.api;
 
 import com.runto.domain.gathering.application.GatheringService;
-import com.runto.domain.gathering.dto.CreateGatheringRequest;
-import com.runto.domain.gathering.dto.GatheringDetailResponse;
-import com.runto.domain.gathering.dto.GatheringsRequestParams;
-import com.runto.domain.gathering.dto.GatheringsResponse;
+import com.runto.domain.gathering.dto.*;
 import com.runto.global.security.detail.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -64,5 +62,15 @@ public class GatheringController {
 
         return ResponseEntity.ok(gatheringService.
                 getGatherings(requestParams, pageable));
+    }
+
+    @Operation(summary = "모임 구성원목록 조회 [일반모임,  이벤트모임]")
+    @GetMapping("/{gathering_id}/members")
+    public ResponseEntity<Slice<GatheringMemberResponse>> getGatheringMembers(
+            @PathVariable("gathering_id") Long gatheringId,
+            @PageableDefault(size = 10) Pageable pageable) {
+
+        return ResponseEntity.ok(gatheringService
+                .getGatheringMembers(gatheringId, pageable));
     }
 }
