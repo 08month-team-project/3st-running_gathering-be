@@ -17,6 +17,8 @@ import lombok.extern.slf4j.Slf4j;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static com.runto.domain.gathering.type.GatheringStatus.REPORTED;
+
 @Slf4j
 @Builder
 @AllArgsConstructor
@@ -51,6 +53,12 @@ public class GatheringResponse { // 다른 목록조회에서도 쓸 예정
                 .map(member -> member.getUser().getProfileImageUrl())
                 .toList();
 
+        // 신고상태면 썸네일은 내보내지 않음
+        String thumbnailUrl = null;
+        if(!REPORTED.equals(gathering.getStatus())){
+            thumbnailUrl = gathering.getThumbnailUrl();
+        }
+
         return GatheringResponse.builder()
                 .id(gathering.getId())
                 .organizerId(gathering.getOrganizerId())
@@ -59,7 +67,7 @@ public class GatheringResponse { // 다른 목록조회에서도 쓸 예정
                 .deadline(gathering.getDeadline())
                 .concept(gathering.getConcept())
                 .goalDistance(gathering.getGoalDistance())
-                .thumbnailUrl(gathering.getThumbnailUrl())
+                .thumbnailUrl(thumbnailUrl)
                 .hits(gathering.getHits())
                 .location(LocationDto.from(gathering.getLocation()))
                 .status(gathering.getStatus())
@@ -72,6 +80,12 @@ public class GatheringResponse { // 다른 목록조회에서도 쓸 예정
 
     public static GatheringResponse fromEventGathering(Gathering gathering) {
 
+        // 신고상태면 썸네일은 내보내지 않음
+        String thumbnailUrl = null;
+        if(!REPORTED.equals(gathering.getStatus())){
+            thumbnailUrl = gathering.getThumbnailUrl();
+        }
+
         return GatheringResponse.builder()
                 .id(gathering.getId())
                 .organizerId(gathering.getOrganizerId())
@@ -80,7 +94,7 @@ public class GatheringResponse { // 다른 목록조회에서도 쓸 예정
                 .deadline(gathering.getDeadline())
                 .concept(gathering.getConcept())
                 .goalDistance(gathering.getGoalDistance())
-                .thumbnailUrl(gathering.getThumbnailUrl())
+                .thumbnailUrl(thumbnailUrl)
                 .hits(gathering.getHits())
                 .location(LocationDto.from(gathering.getLocation()))
                 .status(gathering.getStatus())
