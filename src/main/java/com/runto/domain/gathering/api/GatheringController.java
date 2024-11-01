@@ -14,6 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Slf4j
 @RequiredArgsConstructor
 @RestController
@@ -50,8 +52,8 @@ public class GatheringController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable("gathering_id") Long gatheringId) {
 
-        return ResponseEntity.ok(gatheringService
-                .getGatheringDetail(userDetails.getUserId(), gatheringId));
+        return ResponseEntity.ok(gatheringService.
+                getGatheringDetail(userDetails.getUserId(), gatheringId));
     }
 
     @Operation(summary = "모임목록 조회 [일반모임,  이벤트모임]")
@@ -70,7 +72,20 @@ public class GatheringController {
             @PathVariable("gathering_id") Long gatheringId,
             @PageableDefault(size = 10) Pageable pageable) {
 
-        return ResponseEntity.ok(gatheringService
-                .getGatheringMembers(gatheringId, pageable));
+        return ResponseEntity.ok(gatheringService.
+                getGatheringMembers(gatheringId, pageable));
     }
+
+    @Operation(summary = "구성원 출석체크 [일반모임]")
+    @PostMapping("/{gathering_id}/members/attendance")
+    public ResponseEntity<List<MemberAttendanceStatusDto>> checkAttendanceMembers(
+            @PathVariable("gathering_id") Long gatheringId,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Valid @RequestBody List<MemberAttendanceStatusDto> requestList) {
+
+        return ResponseEntity.ok(
+                gatheringService.checkAttendanceGeneralGatheringMembers(
+                        userDetails.getUserId(), gatheringId, requestList));
+    }
+
 }
