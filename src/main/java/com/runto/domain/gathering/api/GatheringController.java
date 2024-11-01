@@ -3,6 +3,7 @@ package com.runto.domain.gathering.api;
 import com.runto.domain.gathering.application.GatheringService;
 import com.runto.domain.gathering.dto.*;
 import com.runto.global.security.detail.CustomUserDetails;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,7 @@ public class GatheringController {
     private final GatheringService gatheringService;
 
 
+    @Operation(summary = "일반 모임 등록")
     @PostMapping
     public ResponseEntity<Void> createGathering(
             @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -30,6 +32,7 @@ public class GatheringController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "이벤트 개최신청 (이벤트 모임 등록)")
     @PostMapping("/events")
     public ResponseEntity<Void> requestEventGatheringHosting(
             @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -41,29 +44,20 @@ public class GatheringController {
     }
 
     // TODO: 상세조회 시엔 DELETED, REPORTED는 노출 X
+    @Operation(summary = "모임 상세조회 [일반모임,  이벤트모임(아직 미적용)]")
     @GetMapping("/{gathering_id}")
     public ResponseEntity<GatheringDetailResponse> getGatheringDetail(
             @PathVariable("gathering_id") Long gatheringId) {
         return ResponseEntity.ok(gatheringService.getGatheringDetail(gatheringId));
     }
 
-
+    @Operation(summary = "모임목록 조회 [일반모임,  이벤트모임(아직 미적용)]")
     @GetMapping
-    public ResponseEntity<UserGatheringsResponse> getMyGatherings(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PageableDefault(size = 8) Pageable pageable,
-            @Valid @ModelAttribute UserGatheringsRequestParams requestParams) {
-
-        return ResponseEntity.ok(gatheringService
-                .getUserGatherings(userDetails.getUserId(), pageable, requestParams));
-    }
-
-    @GetMapping("/events")
-    public ResponseEntity<UserEventGatheringsResponse> getMyEventRequests(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
+    public ResponseEntity<GatheringsResponse> getGatherings(
+            @Valid @ModelAttribute GatheringsRequestParams requestParams,
             @PageableDefault(size = 8) Pageable pageable) {
 
-        return ResponseEntity.ok(gatheringService
-                .getUserEventRequests(userDetails.getUserId(), pageable));
+        return ResponseEntity.ok(gatheringService.
+                getGatherings(requestParams, pageable));
     }
 }
