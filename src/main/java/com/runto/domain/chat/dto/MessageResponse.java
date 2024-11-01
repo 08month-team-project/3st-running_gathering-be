@@ -1,5 +1,6 @@
 package com.runto.domain.chat.dto;
 
+import com.runto.domain.chat.domain.DirectChatContent;
 import com.runto.domain.user.domain.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,7 +12,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MessageResponse {
-    //클라이언트에 응답하는 용도
     private Long senderId;
     private String senderName;
     private String senderProfileImageUrl;
@@ -25,6 +25,16 @@ public class MessageResponse {
                 .senderProfileImageUrl(user.getProfileImageUrl())
                 .content(messageQueueDTO.getContent())
                 .timestamp(messageQueueDTO.getTimestamp())
+                .build();
+    }
+
+    public static MessageResponse of(DirectChatContent directChatContent, User user){
+        return MessageResponse.builder()
+                .senderId(directChatContent.getSenderId())
+                .senderName(user.getName())
+                .senderProfileImageUrl(user.getProfileImageUrl())
+                .content(directChatContent.getContent())
+                .timestamp(directChatContent.getTimestamp().toString())
                 .build();
     }
 }

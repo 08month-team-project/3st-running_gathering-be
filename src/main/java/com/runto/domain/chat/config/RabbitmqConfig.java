@@ -18,6 +18,9 @@ import org.springframework.retry.backoff.ExponentialBackOffPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 
+import java.util.HashMap;
+import java.util.Map;
+
 
 @Configuration
 public class RabbitmqConfig {
@@ -148,8 +151,12 @@ public class RabbitmqConfig {
 
     @Bean
     public Queue directChatQueue(){
+        Map<String, Object> args = new HashMap<>();
+        args.put("x-dead-letter-exchange", deadLetterExchange);
+        args.put("x-dead-letter-routing-key", deadLetterRoutingKey);
         return QueueBuilder
                 .durable(directQueueName)
+                .withArguments(args)
                 .ttl(90000)
                 .maxLengthBytes(1024 * 1024 * 5)
                 .build();
@@ -162,7 +169,11 @@ public class RabbitmqConfig {
 
     @Bean
     public Queue groupChatQueue(){
+        Map<String, Object> args = new HashMap<>();
+        args.put("x-dead-letter-exchange", deadLetterExchange);
+        args.put("x-dead-letter-routing-key", deadLetterRoutingKey);
         return QueueBuilder.durable(groupQueueName)
+                .withArguments(args)
                 .ttl(90000)
                 .maxLengthBytes(1024 * 1024 * 5)
                 .build();

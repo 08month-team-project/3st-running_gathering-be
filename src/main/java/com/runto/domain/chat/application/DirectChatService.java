@@ -7,6 +7,7 @@ import com.runto.domain.chat.domain.DirectChatRoom;
 import com.runto.domain.chat.dto.DirectChatInfoDTO;
 import com.runto.domain.chat.dto.DirectChatRoomResponse;
 import com.runto.domain.chat.dto.MessageQueueDTO;
+import com.runto.domain.chat.dto.MessageResponse;
 import com.runto.domain.chat.exception.ChatException;
 import com.runto.domain.user.dao.UserRepository;
 import com.runto.domain.user.domain.User;
@@ -19,8 +20,14 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -90,6 +97,26 @@ public class DirectChatService {
             directChatContent.changeStatusToFailed();
         }
         directMessageRepository.save(directChatContent);
+    }
+
+    public Slice<MessageResponse> getDirectChatMessages(Long roomId, int pageNum, int size){
+        Pageable pageable = PageRequest.of(pageNum,size);
+        LocalDateTime daysAgo = LocalDateTime.now().minusDays(2);
+        Slice<DirectChatContent> directChatContents = directMessageRepository.findDirectChatContent(roomId, daysAgo, pageable);
+
+        List<Long> senderIdList = directChatContents.stream()
+                .map(DirectChatContent::getSenderId).distinct().toList();
+
+        List<User> users = userRepository.findAllById(senderIdList);
+
+        Map<Long, User> userMap = users.stream().collect(Collectors.toMap(User::getId,u->u));
+
+        List<MessageResponse> messageResponses = directChatContents.stream().map(directChatContent->{
+                User user = userMap.get(directChatContent.getSenderId());
+                return MessageResponse.of(directChatContent,user);
+
+                }).toList();
+        return new SliceImpl<>(messageResponses, pageable, directChatContents.hasNext());
     }
 
 }
