@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.runto.domain.gathering.domain.Gathering;
 import com.runto.domain.gathering.type.GatheringStatus;
+import com.runto.domain.gathering.type.GatheringType;
 import com.runto.domain.gathering.type.GoalDistance;
 import com.runto.domain.gathering.type.RunningConcept;
 import lombok.AllArgsConstructor;
@@ -22,6 +23,8 @@ import java.time.LocalDateTime;
 public class GatheringDetailContentResponse { // 이벤트 상세조회 시에도 사용될 예정
 
     private Long id;
+
+    private GatheringType type;
 
     private Long organizerId;
 
@@ -52,6 +55,7 @@ public class GatheringDetailContentResponse { // 이벤트 상세조회 시에�
     public static GatheringDetailContentResponse from(Gathering gathering) {
         return GatheringDetailContentResponse.builder()
                 .id(gathering.getId())
+                .type(gathering.getGatheringType())
                 .organizerId(gathering.getOrganizerId())
                 .title(gathering.getTitle())
                 .description(gathering.getDescription())

@@ -37,7 +37,7 @@ public class RadiusTestDataInit {
 
     private final GatheringRepository gatheringRepository;
 
-    @EventListener(ApplicationReadyEvent.class)
+    //@EventListener(ApplicationReadyEvent.class)
     @Transactional
     public void init() {
 
@@ -124,9 +124,10 @@ public class RadiusTestDataInit {
                     .status(NORMAL)
                     .maxNumber(10)
                     .currentNumber(1)
-                    .gatheringType(GatheringType.GENERAL)
+                    .gatheringType(GatheringType.EVENT)
                     .build();
             gathering.addMember(users.get(0), ORGANIZER);
+            gathering.applyForEvent();
 
             // 0번 유저는 주최자
             for (int j = 1; j < users.size(); j++) {

@@ -119,7 +119,7 @@ public class Gathering extends BaseTimeEntity {
     // 해당 모임을 이벤트모임으로 신청
     public void applyForEvent() {
         if (maxNumber < 10 || maxNumber > 300) {
-            throw new GatheringException(EVENT_MAX_NUMBER);
+            throw new GatheringException(EVENT_GATHERING_MAX_NUMBER);
         }
         this.eventGathering = new EventGathering(this);
     }

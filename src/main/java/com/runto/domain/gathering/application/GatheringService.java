@@ -3,9 +3,11 @@ package com.runto.domain.gathering.application;
 
 import com.runto.domain.gathering.dao.EventGatheringRepository;
 import com.runto.domain.gathering.dao.GatheringRepository;
+import com.runto.domain.gathering.domain.EventGathering;
 import com.runto.domain.gathering.domain.Gathering;
 import com.runto.domain.gathering.dto.*;
 import com.runto.domain.gathering.exception.GatheringException;
+import com.runto.domain.gathering.type.GatheringStatus;
 import com.runto.domain.gathering.type.GatheringType;
 import com.runto.domain.image.application.ImageService;
 import com.runto.domain.image.domain.GatheringImage;
@@ -23,8 +25,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
+import static com.runto.domain.gathering.type.EventRequestStatus.APPROVED;
 import static com.runto.domain.gathering.type.GatheringMemberRole.ORGANIZER;
+import static com.runto.domain.gathering.type.GatheringStatus.*;
 import static com.runto.domain.gathering.type.GatheringType.EVENT;
 import static com.runto.domain.gathering.type.GatheringType.GENERAL;
 import static com.runto.global.exception.ErrorCode.*;
@@ -88,13 +93,13 @@ public class GatheringService {
         return gathering;
     }
 
-    // 커스텀 애노테이션 에러 해결되면 삭제
+    // TODO: 커스텀 애노테이션 에러 해결되면 삭제
     private void validateMaxNumber(GatheringType type, int maxNumber) {
         if (GENERAL.equals(type) && (maxNumber < 2 || maxNumber > 10)) {
             throw new GatheringException(GENERAL_MAX_NUMBER);
         }
         if (EVENT.equals(type) && (maxNumber < 10 || maxNumber > 300)) {
-            throw new GatheringException(EVENT_MAX_NUMBER);
+            throw new GatheringException(EVENT_GATHERING_MAX_NUMBER);
         }
     }
 
@@ -116,12 +121,43 @@ public class GatheringService {
         gathering.addContentImages(gatheringImages);
     }
 
-    public GatheringDetailResponse getGatheringDetail(Long gatheringId) {
+    public GatheringDetailResponse getGatheringDetail(Long userId, Long gatheringId) {
 
-        Gathering gathering = gatheringRepository.findGatheringDetailById(gatheringId)
+        Gathering gathering = gatheringRepository.findGatheringById(gatheringId)
                 .orElseThrow(() -> new GatheringException(GATHERING_NOT_FOUND));
 
-        return GatheringDetailResponse.from(gathering);
+        checkGatheringAccessibility(userId, gathering);
+        return GatheringDetailResponse.fromGathering(gathering);
+
+    }
+
+    private void checkGatheringAccessibility(Long userId, Gathering gathering) {
+
+        boolean isOrganizer = Objects.equals(gathering.getOrganizerId(), userId);
+        GatheringStatus status = gathering.getStatus();
+
+        if (DELETED.equals(status)) {
+            throw new GatheringException(GATHERING_NOT_FOUND);
+        }
+
+        // 신고당한 모임글 상세조회는 작성자만 볼 수 있음
+        if (!isOrganizer && REPORTED.equals(status)) {
+            throw new GatheringException(GATHERING_REPORTED);
+        }
+
+        // 승인되지 않은 이벤트모임은 주최자가 아니면 볼 수 없음
+        if (EVENT.equals(gathering.getGatheringType()) && // 이벤트인지 검증하는 조건이 무조건 먼저 들어가야함
+                !isApprovedEventForNonOrganizer(gathering.getEventGathering(), isOrganizer)) {
+            throw new GatheringException(EVENT_GATHERING_NOT_APPROVED_ONLY_ORGANIZER_CAN_VIEW);
+        }
+    }
+
+    private boolean isApprovedEventForNonOrganizer(EventGathering eventGathering, boolean isOrganizer) {
+
+        if (!isOrganizer) {
+            return APPROVED.equals(eventGathering.getStatus());
+        }
+        return true;
     }
 
 
@@ -153,11 +189,16 @@ public class GatheringService {
 
     }
 
-    // 이벤트 목록 조회 조건 추가 예정
-    public GatheringsResponse getGatherings(GatheringsRequestParams requestParams, Pageable pageable) {
+    public GatheringsResponse getGatherings(GatheringsRequestParams params, Pageable pageable) {
 
         // 일반 모임인 경우
-        return GatheringsResponse.fromGeneralGatherings(gatheringRepository
-                .getGeneralGatherings(pageable, requestParams), requestParams);
+        if (GENERAL.equals(params.getGatheringType())) {
+            return GatheringsResponse.fromGeneralGatherings(gatheringRepository
+                    .getGeneralGatherings(pageable, params), params);
+        }
+
+        // 이벤트 모임인 경우
+        return GatheringsResponse.fromEventGatherings(gatheringRepository
+                .getEventGatherings(pageable, params), params);
     }
 }
