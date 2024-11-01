@@ -88,4 +88,15 @@ public class GatheringController {
                         userDetails.getUserId(), gatheringId, requestList));
     }
 
+    @Operation(summary = " 모임 정상완료 체크 [일반모임]")
+    @PostMapping("/{gathering_id}/completion")
+    public ResponseEntity<Void> checkCompleteGathering(
+            @PathVariable("gathering_id") Long gatheringId,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        gatheringService.updateCompleteGeneralGathering(userDetails.getUserId(), gatheringId);
+
+        return ResponseEntity.ok().build();
+    }
+
 }

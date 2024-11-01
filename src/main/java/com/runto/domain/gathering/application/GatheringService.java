@@ -33,6 +33,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.runto.domain.gathering.type.AttendanceStatus.PENDING;
 import static com.runto.domain.gathering.type.EventRequestStatus.APPROVED;
 import static com.runto.domain.gathering.type.GatheringMemberRole.ORGANIZER;
 import static com.runto.domain.gathering.type.GatheringStatus.*;
@@ -219,7 +220,6 @@ public class GatheringService {
     }
 
 
-
     // 일반모임만 출석체크
     @Transactional
     public List<MemberAttendanceStatusDto> checkAttendanceGeneralGatheringMembers(
@@ -267,6 +267,44 @@ public class GatheringService {
         }
         if (gathering.getAppointedAt().plusDays(7).isBefore(LocalDateTime.now())) {
             throw new GatheringException(INVALID_ATTENDANCE_AFTER_ONE_WEEK);
+        }
+    }
+
+    @Transactional
+    public void updateCompleteGeneralGathering(Long userId, Long gatheringId) {
+
+        // 일반모임인지, 이벤트 모임인지 확인하고 구성원목록을 가져와야해서 처음부터 패치조인 X
+        Gathering gathering = gatheringRepository.findById(gatheringId)
+                .orElseThrow(() -> new GatheringException(GATHERING_NOT_FOUND));
+
+        validateCompleteGeneralGathering(userId, gathering);
+
+        // 일반모임의 경우 모든 구성원 출석체크가 완료 됐는지 여부 확인
+        List<GatheringMember> members = gatheringMemberRepository.findGatheringMembersByGatheringId(gatheringId);
+        for (GatheringMember member : members) {
+            if (PENDING.equals(member.getAttendanceStatus())) { // AttendanceStatus.PENDING
+                throw new GatheringException(INVALID_COMPLETE_UNCHECKED_MEMBERS);
+            }
+        }
+        gathering.checkNormalComplete();
+    }
+
+    private void validateCompleteGeneralGathering(Long userId, Gathering gathering) {
+
+        if (!Objects.equals(userId, gathering.getOrganizerId())) {
+            throw new GatheringException(INVALID_COMPLETE_GATHERING_NOT_ORGANIZER);
+        }
+        if (EVENT.equals(gathering.getGatheringType())) {
+            throw new GatheringException(INVALID_COMPLETE_EVENT_GENERAL_USER);
+        }
+        if (!NORMAL.equals(gathering.getStatus())) {
+            throw new GatheringException(INVALID_COMPLETE_GATHERING_NOT_NORMAL_GATHERING);
+        }
+        if (gathering.getAppointedAt().isAfter(LocalDateTime.now())) {
+            throw new GatheringException(INVALID_COMPLETE_GATHERING_BEFORE_MEETING);
+        }
+        if (gathering.getAppointedAt().plusDays(7).isBefore(LocalDateTime.now())) {
+            throw new GatheringException(INVALID_COMPLETE_AFTER_ONE_WEEK);
         }
     }
 }
