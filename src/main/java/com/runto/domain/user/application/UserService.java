@@ -4,6 +4,7 @@ import com.runto.domain.user.dao.UserRepository;
 import com.runto.domain.user.domain.User;
 import com.runto.domain.user.dto.CheckEmailRequest;
 import com.runto.domain.user.dto.SignupRequest;
+import com.runto.domain.user.dto.UserProfileResponse;
 import com.runto.domain.user.excepction.UserException;
 import com.runto.domain.user.type.UserStatus;
 import com.runto.global.exception.ErrorCode;
@@ -15,6 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+
+import static com.runto.global.exception.ErrorCode.*;
 
 @Service
 @Transactional(readOnly = true)
@@ -28,22 +31,31 @@ public class UserService {
     @Transactional
     public void createUser(SignupRequest signupRequest) {
         userRepository.findByEmail(signupRequest.getEmail())
-                .ifPresent(user->{throw new UserException(ErrorCode.ALREADY_EXIST_USER);});
+                .ifPresent(user -> {
+                    throw new UserException(ALREADY_EXIST_USER);
+                });
 
         String encodedPwd = bCryptPasswordEncoder.encode(signupRequest.getPassword());
         String nickname = signupRequest.getNickname();
         String email = signupRequest.getEmail();
 
-        User user = User.of(email,nickname,encodedPwd,null);
+        User user = User.of(email, nickname, encodedPwd, null);
 
         userRepository.save(user);
     }
-    
-    public void checkEmailDuplicate(CheckEmailRequest checkEmailRequest){
+
+    public void checkEmailDuplicate(CheckEmailRequest checkEmailRequest) {
         Optional<User> findUser = userRepository.findByEmail(checkEmailRequest.getEmail());
 
-        if (findUser.isPresent() && findUser.get().getStatus().equals(UserStatus.ACTIVE)){
-            throw new UserException(ErrorCode.ALREADY_EXIST_USER);
+        if (findUser.isPresent() && findUser.get().getStatus().equals(UserStatus.ACTIVE)) {
+            throw new UserException(ALREADY_EXIST_USER);
         }
+    }
+
+    public UserProfileResponse getUserProfile(Long userId) {
+
+        return UserProfileResponse.from(
+                userRepository.findById(userId)
+                        .orElseThrow(() -> new UserException(USER_NOT_FOUND)));
     }
 }
