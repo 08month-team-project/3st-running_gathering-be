@@ -4,6 +4,7 @@ import com.runto.domain.gathering.application.GatheringService;
 import com.runto.domain.gathering.dto.UserEventGatheringsResponse;
 import com.runto.domain.gathering.dto.UserGatheringsRequestParams;
 import com.runto.domain.gathering.dto.UserGatheringsResponse;
+import com.runto.domain.image.dto.ImageUrlDto;
 import com.runto.domain.user.application.UserService;
 import com.runto.domain.user.dto.*;
 import com.runto.global.security.detail.CustomUserDetails;
@@ -16,6 +17,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/users")
@@ -81,7 +83,7 @@ public class UserController {
     }
 
     @Operation(summary = "내 닉네임 수정")
-    @PatchMapping("/nickname")
+    @PatchMapping("/profile-nickname")
     public ResponseEntity<Void> updateMyNickname(
             @Valid @RequestBody NicknameRequest request,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -90,6 +92,17 @@ public class UserController {
         return ResponseEntity.ok().build();
 
     }
+
+    @Operation(summary = "내 프로필사진 수정")
+    @PatchMapping("/profile-image")
+    public ResponseEntity<ImageUrlDto> updateMyProfileImage(
+            @RequestPart(value = "image", required = false) MultipartFile image,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        return ResponseEntity.ok(userService.
+                updateUserProfile(userDetails.getUserId(), image));
+    }
+
     //TODO 회원탈퇴
     //1) 탈퇴한 회원테이블 따로 만들기 이메일중복방지
     //2) 탈퇴 시 이메일 더미이메일로 교체? (별로선호하지않으나 쉬울듯.)
