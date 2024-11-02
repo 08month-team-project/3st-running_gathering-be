@@ -14,6 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Slf4j
 @RequiredArgsConstructor
 @RestController
@@ -44,17 +46,17 @@ public class GatheringController {
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "모임 상세조회 [일반모임,  이벤트모임]") // 같이 쓰게 된 이유는 pr 참조
+    @Operation(summary = "모임 상세조회 [일반모임, 이벤트모임]") // 같이 쓰게 된 이유는 pr 참조
     @GetMapping("/{gathering_id}")
     public ResponseEntity<GatheringDetailResponse> getGatheringDetail(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable("gathering_id") Long gatheringId) {
 
-        return ResponseEntity.ok(gatheringService
-                .getGatheringDetail(userDetails.getUserId(), gatheringId));
+        return ResponseEntity.ok(gatheringService.
+                getGatheringDetail(userDetails.getUserId(), gatheringId));
     }
 
-    @Operation(summary = "모임목록 조회 [일반모임,  이벤트모임]")
+    @Operation(summary = "모임목록 조회 [일반모임, 이벤트모임]")
     @GetMapping
     public ResponseEntity<GatheringsResponse> getGatherings(
             @Valid @ModelAttribute GatheringsRequestParams requestParams,
@@ -64,13 +66,50 @@ public class GatheringController {
                 getGatherings(requestParams, pageable));
     }
 
-    @Operation(summary = "모임 구성원목록 조회 [일반모임,  이벤트모임]")
+    @Operation(summary = "모임 구성원목록 조회 [일반모임, 이벤트모임]")
     @GetMapping("/{gathering_id}/members")
     public ResponseEntity<Slice<GatheringMemberResponse>> getGatheringMembers(
             @PathVariable("gathering_id") Long gatheringId,
             @PageableDefault(size = 10) Pageable pageable) {
 
-        return ResponseEntity.ok(gatheringService
-                .getGatheringMembers(gatheringId, pageable));
+        return ResponseEntity.ok(gatheringService.
+                getGatheringMembers(gatheringId, pageable));
     }
+
+    @Operation(summary = "구성원 출석체크 [일반모임]")
+    @PutMapping("/{gathering_id}/members/attendance")
+    public ResponseEntity<List<MemberAttendanceStatusDto>> checkAttendanceGeneralGatheringMembers(
+            @PathVariable("gathering_id") Long gatheringId,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Valid @RequestBody List<MemberAttendanceStatusDto> requestList) {
+
+        return ResponseEntity.ok(
+                gatheringService.checkAttendanceGeneralGatheringMembers(
+                        userDetails.getUserId(), gatheringId, requestList));
+    }
+
+    @Operation(summary = "구성원 출석체크 [이벤트 모임]")
+    @PutMapping("/{gathering_id}/event/members/attendance")
+    public ResponseEntity<AttendanceEventGatheringResponse> checkAttendanceEventGatheringMembers(
+            @PathVariable("gathering_id") Long gatheringId,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Valid @RequestBody AttendanceEventGatheringRequest request) {
+
+        return ResponseEntity.ok(gatheringService.
+                checkAttendanceEventGatheringMembers(
+                        userDetails.getUserId(), gatheringId, request));
+    }
+
+
+    @Operation(summary = " 모임 정상완료 체크 [일반모임, 이벤트모임]")
+    @PutMapping("/{gathering_id}/completion")
+    public ResponseEntity<Void> checkCompleteGathering(
+            @PathVariable("gathering_id") Long gatheringId,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        gatheringService.updateCompleteGathering(userDetails.getUserId(), gatheringId);
+
+        return ResponseEntity.ok().build();
+    }
+
 }

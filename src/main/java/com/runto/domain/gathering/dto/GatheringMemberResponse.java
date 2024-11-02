@@ -2,13 +2,12 @@ package com.runto.domain.gathering.dto;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import com.runto.domain.gathering.type.AttendanceStatus;
 import com.runto.domain.gathering.type.GatheringMemberRole;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
 
 @Builder
 @AllArgsConstructor
@@ -17,10 +16,13 @@ import java.util.List;
 @Getter
 public class GatheringMemberResponse {
 
-    private Long gatheringMemberId;
+    private Long memberId;
+    private Long memberAccountId;
     private String nickname;
     private String profileImageUrl;
     private GatheringMemberRole role;
+    private AttendanceStatus attendanceStatus;
+    private Double realDistance;
 
 //    public static List<GatheringMemberResponse> from(List<GatheringMember> gatheringMembers) {
 //
@@ -32,10 +34,13 @@ public class GatheringMemberResponse {
     public static GatheringMemberResponse from(GatheringMember gatheringMember) {
 
         return GatheringMemberResponse.builder()
-                .gatheringMemberId(gatheringMember.getId())
+                .memberId(gatheringMember.getId())
+                .memberAccountId(gatheringMember.getUser().getId())
                 .nickname(gatheringMember.getUser().getNickname())
                 .profileImageUrl(gatheringMember.getUser().getProfileImageUrl())
                 .role(gatheringMember.getRole())
+                .attendanceStatus(gatheringMember.getAttendanceStatus())
+                .realDistance(gatheringMember.getRealDistance())
                 .build();
     }
 

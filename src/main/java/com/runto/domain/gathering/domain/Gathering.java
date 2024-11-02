@@ -80,6 +80,10 @@ public class Gathering extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private GatheringType gatheringType;
 
+    // TODO: 기존에 구현한 조회기능에 해당 필드에 대한 로직 추가
+    @Column(name = "is_normal_completed", nullable = false)
+    private Boolean isNormalCompleted;
+
     @JoinColumn(name = "event_gathering_id")
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private EventGathering eventGathering;
@@ -124,11 +128,16 @@ public class Gathering extends BaseTimeEntity {
         this.eventGathering = new EventGathering(this);
     }
 
+    public void checkNormalComplete() {
+        isNormalCompleted = true;
+    }
+
 
     @PrePersist
     public void prePersist() {
         hits = 0L;
         status = NORMAL;
+        isNormalCompleted = false;
         currentNumber = 1; // 주최자에 대한 수
     }
 
