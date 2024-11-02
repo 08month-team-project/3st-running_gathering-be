@@ -251,7 +251,7 @@ public class GatheringService {
         }
 
         // TODO: Batch Update 적용
-        // 기본설정은 각 엔티티 마다 업데이트 쿼리를 1개씩 날림 (saveAll 을 한다고 쿼리문이 1개인 것이 아님)
+        // 기본설정은 각 엔티티 마다 업데이트 쿼리를 1개씩 날림
         return gatheringMemberRepository.saveAll(members).stream()
                 .map(MemberAttendanceStatusDto::from).toList();
     }
