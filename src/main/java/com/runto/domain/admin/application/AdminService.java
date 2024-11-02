@@ -1,6 +1,6 @@
 package com.runto.domain.admin.application;
 
-import com.runto.domain.admin.dto.MonthlyGatheringCountResponse;
+import com.runto.domain.admin.dto.GatheringCountResponse;
 import com.runto.domain.admin.dto.PenaltyDetailsResponse;
 import com.runto.domain.admin.type.AdminGatherStatsCount;
 import com.runto.domain.coupon.dao.CouponRepository;
@@ -21,7 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -60,7 +59,7 @@ public class AdminService {
         user.releaseUser(user);
     }
 
-    public List<MonthlyGatheringCountResponse> manageGathering(AdminGatherStatsCount statsCount) {
+    public List<GatheringCountResponse> manageGathering(AdminGatherStatsCount statsCount) {
         return gatheringRepository.manageGathering(statsCount);
     }
 }

@@ -3,13 +3,13 @@ package com.runto.domain.admin.dto;
 import lombok.Getter;
 
 @Getter
-public class MonthlyGatheringCountResponse {
+public class GatheringCountResponse {
 
     private String gathering;
 
     private Long count;
 
-    public MonthlyGatheringCountResponse(String gathering, Long count) {
+    public GatheringCountResponse(String gathering, Long count) {
         this.gathering = gathering;
         this.count = count;
     }

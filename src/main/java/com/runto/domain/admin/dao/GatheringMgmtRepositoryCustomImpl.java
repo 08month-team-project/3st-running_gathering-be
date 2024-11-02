@@ -4,7 +4,7 @@ import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.runto.domain.admin.dto.MonthlyGatheringCountResponse;
+import com.runto.domain.admin.dto.GatheringCountResponse;
 import com.runto.domain.admin.type.AdminGatherStatsCount;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -21,11 +21,11 @@ public class GatheringMgmtRepositoryCustomImpl implements GatheringMgmtRepositor
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public List<MonthlyGatheringCountResponse> manageGathering(AdminGatherStatsCount statsCount) {
+    public List<GatheringCountResponse> manageGathering(AdminGatherStatsCount statsCount) {
         Expression<?> selectField = getSelectField(statsCount);
 
         return queryFactory
-                .select(Projections.constructor(MonthlyGatheringCountResponse.class,
+                .select(Projections.constructor(GatheringCountResponse.class,
                         selectField,
                         gathering.count().as("count")))
                 .from(gathering)

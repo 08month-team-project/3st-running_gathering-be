@@ -2,7 +2,7 @@ package com.runto.domain.admin.api;
 
 import com.runto.domain.admin.application.AdminService;
 import com.runto.domain.admin.dto.MonthUserResponse;
-import com.runto.domain.admin.dto.MonthlyGatheringCountResponse;
+import com.runto.domain.admin.dto.GatheringCountResponse;
 import com.runto.domain.admin.dto.PenaltyDetailsResponse;
 import com.runto.domain.admin.dto.UserCountResponse;
 import com.runto.domain.admin.type.AdminGatherStatsCount;
@@ -54,8 +54,8 @@ public class AdminController {
 
     @Operation(summary = "모임관리 ")
     @GetMapping("gathering/")
-    public ResponseEntity<List<MonthlyGatheringCountResponse>> manageGathering(@RequestParam AdminGatherStatsCount statsCount) {
-        List<MonthlyGatheringCountResponse> response = adminService.manageGathering(statsCount);
+    public ResponseEntity<List<GatheringCountResponse>> manageGathering(@RequestParam AdminGatherStatsCount statsCount) {
+        List<GatheringCountResponse> response = adminService.manageGathering(statsCount);
         return ResponseEntity.ok(response);
     }
 
