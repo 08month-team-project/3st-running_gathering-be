@@ -18,6 +18,7 @@ import com.runto.domain.user.dao.UserRepository;
 import com.runto.domain.user.domain.User;
 import com.runto.domain.user.dto.UserCalenderResponse;
 import com.runto.domain.user.excepction.UserException;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -27,8 +28,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
+import static com.runto.domain.gathering.type.AttendanceStatus.*;
 import static com.runto.domain.gathering.type.EventRequestStatus.APPROVED;
 import static com.runto.domain.gathering.type.GatheringMemberRole.ORGANIZER;
 import static com.runto.domain.gathering.type.GatheringStatus.*;
@@ -48,6 +53,8 @@ public class GatheringService {
     private final GatheringRepository gatheringRepository;
     private final EventGatheringRepository eventGatheringRepository;
     private final GatheringMemberRepository gatheringMemberRepository;
+
+    private final EntityManager entityManager;
 
 
     // TODO: 만약 신고기능 구현하는거면 나중에 관련 로직 추가 필요
@@ -208,7 +215,124 @@ public class GatheringService {
     public Slice<GatheringMemberResponse> getGatheringMembers(Long gatheringId, Pageable pageable) {
 
         return gatheringMemberRepository
-                .findGatheringMembersByGatheringId(gatheringId, pageable)
+                .findGatheringMembersWithUserByGatheringId(gatheringId, pageable)
                 .map(GatheringMemberResponse::from);
+    }
+
+
+    @Transactional
+    public List<MemberAttendanceStatusDto> checkAttendanceGeneralGatheringMembers(
+            Long userId, Long gatheringId, List<MemberAttendanceStatusDto> requestList) {
+
+        // 일반모임인지, 이벤트 모임인지 확인하고 구성원목록을 가져와야해서 처음부터 패치조인 X
+        Gathering gathering = gatheringRepository.findById(gatheringId)
+                .orElseThrow(() -> new GatheringException(GATHERING_NOT_FOUND));
+
+        // 해당 출석요청 검증
+        validateAttendanceRequirements(userId, gathering);
+
+        List<GatheringMember> members = gatheringMemberRepository.findGatheringMembersByGatheringId(gatheringId);
+
+        // GatheringMemberId 를 key값으로 O(1) 접근해서  체크하기위해 Map 생성
+        Map<Long, GatheringMember> memberMap = members.stream()
+                .collect(Collectors.toMap(GatheringMember::getId, member -> member));
+
+        // 요청값이 해당 gathering 에 속하지 않는 memberId일 경우 무시
+        for (MemberAttendanceStatusDto request : requestList) {
+
+            Optional.ofNullable(memberMap.get(request.getMemberId()))
+                    .ifPresent(member -> member.checkAttendance(request.getStatus(), request.getRealDistance()));
+        }
+
+        // TODO: Batch Update 적용
+        // 기본설정은 각 엔티티 마다 업데이트 쿼리를 1개씩 날림 (saveAll 을 한다고 쿼리문이 1개인 것이 아님)
+        return gatheringMemberRepository.saveAll(members).stream()
+                .map(MemberAttendanceStatusDto::from).toList();
+    }
+
+    private void validateAttendanceRequirements(Long userId, Gathering gathering) {
+
+        if (!Objects.equals(userId, gathering.getOrganizerId())) {
+            throw new GatheringException(INVALID_ATTENDANCE_CHECK_NOT_ORGANIZER);
+        }
+        if (EVENT.equals(gathering.getGatheringType())) {
+            throw new GatheringException(INVALID_REQUEST_GATHERING_TYPE);
+        }
+        if (!NORMAL.equals(gathering.getStatus())) {
+            throw new GatheringException(INVALID_ATTENDANCE_CHECK_NOT_NORMAL_GATHERING);
+        }
+        if (gathering.getAppointedAt().isAfter(LocalDateTime.now())) {
+            throw new GatheringException(INVALID_ATTENDANCE_BEFORE_MEETING);
+        }
+        if (gathering.getAppointedAt().plusDays(7).isBefore(LocalDateTime.now())) {
+            throw new GatheringException(INVALID_ATTENDANCE_AFTER_ONE_WEEK);
+        }
+    }
+
+    @Transactional
+    public void updateCompleteGathering(Long userId, Long gatheringId) {
+
+        Gathering gathering = gatheringRepository.findById(gatheringId)
+                .orElseThrow(() -> new GatheringException(GATHERING_NOT_FOUND));
+
+        validateCompleteGathering(userId, gathering);
+
+        Long pendingMemberCount = gatheringMemberRepository.countMembers(gatheringId, PENDING);
+
+        // 출석상태가 pending 인 멤버가 있으면 완료체크 불가
+        if(pendingMemberCount != null && pendingMemberCount > 0){
+            throw new GatheringException(INVALID_COMPLETE_UNCHECKED_MEMBERS);
+        }
+
+        gathering.checkNormalComplete();
+    }
+
+    private void validateCompleteGathering(Long userId, Gathering gathering) {
+
+        if (!Objects.equals(userId, gathering.getOrganizerId())) {
+            throw new GatheringException(INVALID_COMPLETE_GATHERING_NOT_ORGANIZER);
+        }
+        if(gathering.getIsNormalCompleted()){
+            throw new GatheringException(ALREADY_NORMAL_COMPLETE_GATHERING);
+        }
+        if (!NORMAL.equals(gathering.getStatus())) {
+            throw new GatheringException(INVALID_COMPLETE_GATHERING_NOT_NORMAL_GATHERING);
+        }
+        if (gathering.getAppointedAt().isAfter(LocalDateTime.now())) {
+            throw new GatheringException(INVALID_COMPLETE_GATHERING_BEFORE_MEETING);
+        }
+        if (gathering.getAppointedAt().plusDays(7).isBefore(LocalDateTime.now())) {
+            throw new GatheringException(INVALID_COMPLETE_AFTER_ONE_WEEK);
+        }
+    }
+
+    @Transactional
+    public AttendanceEventGatheringResponse checkAttendanceEventGatheringMembers(Long userId,
+                                                                                 Long gatheringId,
+                                                                                 AttendanceEventGatheringRequest request) {
+
+        Gathering gathering = gatheringRepository.findById(gatheringId)
+                .orElseThrow(() -> new GatheringException(GATHERING_NOT_FOUND));
+
+        if (!Objects.equals(userId, gathering.getOrganizerId())) {
+            throw new GatheringException(INVALID_ATTENDANCE_CHECK_NOT_ORGANIZER);
+        }
+
+        if (!EVENT.equals(gathering.getGatheringType())) {
+            throw new GatheringException(INVALID_REQUEST_GATHERING_TYPE);
+        }
+
+        // 요청한 멤버를 정상출석, 뛴 거리 체크 후 개수 반환
+        long updatedAttendingCount = gatheringMemberRepository.updateAttendanceAndDistance(
+                gatheringId, ATTENDING, request.getRealDistance(), request.getMemberIdList());
+
+
+        // 참석하지 않은 멤버들을 NOT_ATTENDING 처리 후 개수 반환
+        long notAttendingMemberCount = gatheringMemberRepository.updateAttendanceAndDistance(
+                gatheringId, NOT_ATTENDING, 0.0, null);
+
+        return new AttendanceEventGatheringResponse(request.getRealDistance(),
+                request.getMemberIdList().size(), updatedAttendingCount, notAttendingMemberCount);
+
     }
 }
