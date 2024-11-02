@@ -5,10 +5,11 @@ import lombok.Getter;
 
 @Getter
 @JsonFormat(shape = JsonFormat.Shape.STRING)
-public enum AdminStatsCount {
+public enum AdminGatherStatsCount {
 
-    TOTAL,
-    REPORTED,
-    BLACKLIST;
+    GATHERING_BY_MONTH,
+    GATHERING_BY_REGION,
+    GATHERING_BY_DISTANCE,
+    GATHERING_BY_CONCEPT
 
 }

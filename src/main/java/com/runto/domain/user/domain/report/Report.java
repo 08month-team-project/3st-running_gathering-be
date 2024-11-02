@@ -1,5 +1,6 @@
 package com.runto.domain.user.domain.report;
 
+import com.runto.domain.common.BaseTimeEntity;
 import com.runto.domain.user.domain.User;
 import com.runto.domain.user.type.ReportReason;
 import jakarta.persistence.*;
@@ -12,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Report {
+public class Report extends BaseTimeEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
