@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import static com.runto.global.exception.ErrorCode.*;
@@ -24,14 +25,13 @@ import static com.runto.global.exception.ErrorCode.*;
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class S3GatheringImageService {
+public class S3ImageService {
 
     private static final List<String> SUPPORT_IMAGE_EXTENSION = List.of("jpg", "jpeg", "png", "bmp", "webp");
     private static final String TEMPORARY_STORE_PREFIX = "temp/";
     private static final String FILE_PATH = System.getProperty("user.dir") + "/src/main/resources/temp_images/";
 
     private final S3Client s3Client;
-
     private final ImageOptimizeService imageOptimizeService;
 
 
@@ -42,19 +42,21 @@ public class S3GatheringImageService {
     private String region;
 
 
-    public List<ImageUrlDto> uploadContentImages(List<ImageDto> images) {
+    public List<ImageUrlDto> uploadContentImages(List<ImageDto> images,
+                                                 String imageNamePrefix) {
 
         if (images == null || images.size() < 1) {
             return null;
         }
         List<ImageUrlDto> imageUrls = new ArrayList<>();
-        images.forEach(imageDto -> imageUrls.add(processUploadContentImage(imageDto)));
+        images.forEach(imageDto -> imageUrls
+                .add(uploadImage(imageDto, imageNamePrefix)));
 
         return imageUrls;
     }
 
 
-    private ImageUrlDto processUploadContentImage(ImageDto imageDto) {
+    private ImageUrlDto uploadImage(ImageDto imageDto, String imageNamePrefix) {
 
         File convertedFile = null;
         File optimizedFile = null;
@@ -66,7 +68,7 @@ public class S3GatheringImageService {
             validateImageExtension(requestFile);
 
             // 고유의 이미지 이름 생성
-            String imageName = createUniqueFileName();
+            String imageName = createUniqueFileName(imageNamePrefix);
 
             // 파일 객체로 변환 & 서버에 임시저장
             convertedFile = convertToFile(imageName, requestFile);
@@ -75,15 +77,9 @@ public class S3GatheringImageService {
             optimizedFile = convertToWebp(imageName, convertedFile);
 
 
-            // s3에 업로드하기 위한 객체 생성
-            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-                    .bucket(bucketName)
-                    .key(TEMPORARY_STORE_PREFIX + optimizedFile.getName())
-                    .acl(ObjectCannedACL.PUBLIC_READ)
-                    .build();
-
             // s3에 webp형식으로 최적화한 이미지 업로드
-            s3Client.putObject(putObjectRequest, RequestBody.fromFile(optimizedFile));
+            s3Client.putObject(getPutObjectRequest(optimizedFile),
+                    RequestBody.fromFile(optimizedFile));
 
             // 실제로 업로드가 잘 됐는지 검증
             validateUpload(optimizedFile);
@@ -105,6 +101,14 @@ public class S3GatheringImageService {
         }
     }
 
+    private PutObjectRequest getPutObjectRequest(File file) {
+        return PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(TEMPORARY_STORE_PREFIX + file.getName())
+                .acl(ObjectCannedACL.PUBLIC_READ)
+                .build();
+    }
+
 
     //s3의 temp/ 폴더에 있던 파일을 정식폴더에 복사한 후 삭제
     public void moveImageProcess(String imageUrl) {
@@ -113,21 +117,9 @@ public class S3GatheringImageService {
 
         validateUpload(TEMPORARY_STORE_PREFIX + imageName);
 
-        // TODO 에러 해결
-        CopyObjectRequest copyObjectRequest = CopyObjectRequest.builder()
-                .sourceBucket(bucketName)
-                .sourceKey(TEMPORARY_STORE_PREFIX + imageName)
-                .destinationKey(imageName)
-                .acl(ObjectCannedACL.PUBLIC_READ)
-                .build();
-        s3Client.copyObject(copyObjectRequest);
-
-
-        DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
-                .bucket(bucketName)
-                .key(TEMPORARY_STORE_PREFIX + imageName)
-                .build();
-        s3Client.deleteObject(deleteObjectRequest);
+        // TODO copy 에러 해결
+        copyS3ObjectToNewPath(imageName, TEMPORARY_STORE_PREFIX, "");
+        deleteS3ObjectFromImageName(imageName, TEMPORARY_STORE_PREFIX);
     }
 
 
@@ -141,13 +133,7 @@ public class S3GatheringImageService {
                 bucketName, region, prefix + imageName);
     }
 
-    private String extractImageName(String imageUrl) {
-
-        String[] parts = imageUrl.split("/"); // URL에서 파일명 부분만 추출
-        return parts[parts.length - 1]; // 마지막 부분이 파일 이름
-    }
-
-    private void validateUpload(File pressedFile) {
+    public void validateUpload(File pressedFile) {
 
         // 업로드된 객체 확인 (headObject 사용)
         HeadObjectRequest headRequest = HeadObjectRequest.builder()
@@ -162,25 +148,9 @@ public class S3GatheringImageService {
         }
     }
 
-    private void validateUpload(String imageName) {
-
-        // 업로드된 객체 확인 (headObject 사용)
-        HeadObjectRequest headRequest = HeadObjectRequest.builder()
-                .bucket(bucketName)
-                .key(imageName)
-                .build();
-
-        HeadObjectResponse response = s3Client.headObject(headRequest);
-
-        if (response == null) {
-            throw new ImageException(S3_OBJECT_NOT_FOUND);
-        }
+    public String createUniqueFileName(String imageNamePrefix) {
+        return imageNamePrefix + "-" + UUID.randomUUID();
     }
-
-    private String createUniqueFileName() {
-        return UUID.randomUUID().toString();
-    }
-
 
     private File convertToFile(String uniqueName, MultipartFile multipartFile) throws IOException {
 
@@ -188,7 +158,8 @@ public class S3GatheringImageService {
             throw new ImageException(INVALID_FILE);
         }
 
-        File file = new File(FILE_PATH + uniqueName + "." + extractExtension(multipartFile.getOriginalFilename()));
+        File file = new File(FILE_PATH + uniqueName + "." +
+                extractExtension(Objects.requireNonNull(multipartFile.getOriginalFilename())));
 
         // 해당 경로의 폴더가 존재하지 않는다면 생성
         if (!file.exists()) {
@@ -217,6 +188,77 @@ public class S3GatheringImageService {
     private String extractExtension(String originalFilename) {
         return originalFilename
                 .substring(originalFilename.indexOf(".") + 1);
+    }
+
+    private String extractImageName(String imageUrl) {
+
+        String[] parts = imageUrl.split("/"); // URL에서 파일명 부분만 추출
+
+        if (parts.length == 0) {
+            return "";
+        }
+
+        return parts[parts.length - 1]; // 마지막 부분이 파일 이름
+    }
+
+    public void validateUpload(String imageName) {
+
+        // 업로드된 객체 확인 (headObject 사용)
+        HeadObjectRequest headRequest = HeadObjectRequest.builder()
+                .bucket(bucketName)
+                .key(imageName)
+                .build();
+
+        HeadObjectResponse response = s3Client.headObject(headRequest);
+
+        if (response == null) {
+            throw new ImageException(S3_OBJECT_NOT_FOUND);
+        }
+    }
+
+    public void copyS3ObjectToNewPath(String imageName, String beforePath, String newPath) {
+        // TODO 에러 해결
+        CopyObjectRequest copyObjectRequest = CopyObjectRequest.builder()
+                .sourceBucket(bucketName)
+                .sourceKey(beforePath + imageName)
+                .destinationKey(newPath + imageName)
+                .acl(ObjectCannedACL.PUBLIC_READ)
+                .build();
+        s3Client.copyObject(copyObjectRequest);
+    }
+
+    private void deleteS3ObjectFromImageName(String imageName, String prefixPath) {
+        DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
+                .bucket(bucketName)
+                .key(prefixPath + imageName)
+                .build();
+
+        try {
+            s3Client.deleteObject(deleteObjectRequest);
+        } catch (Exception e) {
+            log.error("S3 이미지 삭제 실패 ={}", imageName);
+        }
+    }
+
+    public void deleteS3Object(String imageUrl, String prefixPath) {
+
+        if (!StringUtils.hasText(imageUrl)) return;
+
+        String imageName = extractImageName(imageUrl);
+        log.info("삭제 요청 이미지 이름={}", imageName);
+
+        if (StringUtils.hasText(imageName)) {
+            DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(prefixPath + imageName)
+                    .build();
+            try {
+                s3Client.deleteObject(deleteObjectRequest);
+            } catch (Exception e) {
+                log.error("S3 이미지 삭제 실패 ={}", imageName);
+            }
+        }
+
     }
 
     private void deleteFile(File file) {
