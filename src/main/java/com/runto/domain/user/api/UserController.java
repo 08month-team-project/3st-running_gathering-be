@@ -8,6 +8,7 @@ import com.runto.domain.user.application.UserService;
 import com.runto.domain.user.dto.CheckEmailRequest;
 import com.runto.domain.user.dto.SignupRequest;
 import com.runto.domain.user.dto.UserCalenderResponse;
+import com.runto.domain.user.dto.UserProfileResponse;
 import com.runto.global.security.detail.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -72,6 +73,13 @@ public class UserController {
 
         return ResponseEntity.ok(gatheringService
                 .getUserEventRequests(userDetails.getUserId(), pageable));
+    }
+
+    @GetMapping("/{user_id}")
+    public ResponseEntity<UserProfileResponse> getUserProfile(
+            @PathVariable("user_id") Long userId) {
+
+        return ResponseEntity.ok(userService.getUserProfile(userId));
     }
 
     //TODO 회원탈퇴
