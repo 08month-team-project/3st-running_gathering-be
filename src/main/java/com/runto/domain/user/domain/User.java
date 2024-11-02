@@ -1,12 +1,15 @@
 package com.runto.domain.user.domain;
 
 import com.runto.domain.common.BaseTimeEntity;
+import com.runto.domain.user.excepction.UserException;
 import com.runto.domain.user.type.Gender;
 import com.runto.domain.user.type.UserRole;
 import com.runto.domain.user.type.UserStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
+import static com.runto.domain.user.type.UserStatus.ACTIVE;
+import static com.runto.global.exception.ErrorCode.INVALID_PROFILE_UPDATE_INACTIVE_USER;
 import static jakarta.persistence.EnumType.STRING;
 import static jakarta.persistence.GenerationType.IDENTITY;
 
@@ -46,37 +49,46 @@ public class User extends BaseTimeEntity {
     @Column(name = "profile_image_url")
     private String profileImageUrl;
 
-    @OneToOne(cascade = CascadeType.ALL,fetch = FetchType.LAZY)
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "local_id")
     private LocalAccount localAccount;
 
-    @OneToOne(cascade = CascadeType.ALL,fetch = FetchType.LAZY)
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "oauth2_id")
     private OAuth2 oAuth2;
-    
-    @PrePersist
-    public void prePersist() {
-        status = UserStatus.ACTIVE;
-    }
 
-    public static User of(String email,String nickname,String password,String oAuth2Key) {
-         User user = User.builder()
+    public static User of(String email, String nickname, String password, String oAuth2Key) {
+        User user = User.builder()
                 .nickname(nickname)
                 .email(email)
                 .gender(Gender.NONE)
                 .status(UserStatus.ACTIVE)
                 .role(UserRole.USER)
                 .build();
-         user.localAccount = LocalAccount.builder()
-                 .password(password)
-                 .build();
-         user.oAuth2 = OAuth2.builder()
-                 .oAuth2Key(oAuth2Key)
-                 .build();
+        user.localAccount = LocalAccount.builder()
+                .password(password)
+                .build();
+        user.oAuth2 = OAuth2.builder()
+                .oAuth2Key(oAuth2Key)
+                .build();
         return user;
     }
 
-    public void releaseUser(User user){
+    @PrePersist
+    public void prePersist() {
+        status = UserStatus.ACTIVE;
+    }
+
+    public void releaseUser(User user) {
         this.status = UserStatus.ACTIVE;
     }
+
+    public void updateNickname(String nickname) {
+
+        if (!ACTIVE.equals(this.status)) {
+            throw new UserException(INVALID_PROFILE_UPDATE_INACTIVE_USER);
+        }
+        this.nickname = nickname;
+    }
+
 }
