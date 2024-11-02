@@ -56,7 +56,7 @@ public class AdminService {
     public void releaseUser(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(
                 ()-> new UserException(ErrorCode.USER_NOT_FOUND));
-        user.releaseUser(user);
+        user.releaseUser();
     }
 
     public List<GatheringCountResponse> manageGathering(AdminGatherStatsCount statsCount) {
