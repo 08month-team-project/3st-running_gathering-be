@@ -16,6 +16,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static com.runto.domain.gathering.type.GatheringStatus.NORMAL;
 import static com.runto.global.exception.ErrorCode.*;
@@ -128,7 +129,7 @@ public class Gathering extends BaseTimeEntity {
         this.eventGathering = new EventGathering(this);
     }
 
-    public void checkNormalComplete() {
+    public void updateNormalComplete(Long userId) {
         isNormalCompleted = true;
     }
 
@@ -142,5 +143,23 @@ public class Gathering extends BaseTimeEntity {
     }
 
 
+    public void validateBeforeCompletion (Long userId) {
+
+        if (!Objects.equals(userId, this.organizerId)) {
+            throw new GatheringException(INVALID_COMPLETE_GATHERING_NOT_ORGANIZER);
+        }
+        if (this.isNormalCompleted) {
+            throw new GatheringException(ALREADY_NORMAL_COMPLETE_GATHERING);
+        }
+        if (!NORMAL.equals(this.status)) {
+            throw new GatheringException(INVALID_COMPLETE_GATHERING_NOT_NORMAL_GATHERING);
+        }
+        if (this.appointedAt.isAfter(LocalDateTime.now())) {
+            throw new GatheringException(INVALID_COMPLETE_GATHERING_BEFORE_MEETING);
+        }
+        if (this.appointedAt.plusDays(7).isBefore(LocalDateTime.now())) {
+            throw new GatheringException(INVALID_COMPLETE_AFTER_ONE_WEEK);
+        }
+    }
 }
 

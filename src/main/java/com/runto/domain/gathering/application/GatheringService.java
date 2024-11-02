@@ -228,10 +228,16 @@ public class GatheringService {
         Gathering gathering = gatheringRepository.findById(gatheringId)
                 .orElseThrow(() -> new GatheringException(GATHERING_NOT_FOUND));
 
+        if (!GENERAL.equals(gathering.getGatheringType())) {
+            throw new GatheringException(INVALID_REQUEST_GATHERING_TYPE);
+        }
+
         // 해당 출석요청 검증
         validateAttendanceRequirements(userId, gathering);
 
-        List<GatheringMember> members = gatheringMemberRepository.findGatheringMembersByGatheringId(gatheringId);
+
+        List<GatheringMember> members = gatheringMemberRepository
+                .findGatheringMembersByGatheringId(gatheringId);
 
         // GatheringMemberId 를 key값으로 O(1) 접근해서  체크하기위해 Map 생성
         Map<Long, GatheringMember> memberMap = members.stream()
@@ -245,18 +251,45 @@ public class GatheringService {
         }
 
         // TODO: Batch Update 적용
-        // 기본설정은 각 엔티티 마다 업데이트 쿼리를 1개씩 날림 (saveAll 을 한다고 쿼리문이 1개인 것이 아님)
+        // 기본설정은 각 엔티티 마다 업데이트 쿼리를 1개씩 날림
         return gatheringMemberRepository.saveAll(members).stream()
                 .map(MemberAttendanceStatusDto::from).toList();
+    }
+
+    @Transactional
+    public AttendanceEventGatheringResponse checkAttendanceEventGatheringMembers(Long userId,
+                                                                                 Long gatheringId,
+                                                                                 AttendanceEventGatheringRequest request) {
+
+        Gathering gathering = gatheringRepository.findById(gatheringId)
+                .orElseThrow(() -> new GatheringException(GATHERING_NOT_FOUND));
+
+        if (!EVENT.equals(gathering.getGatheringType())) {
+            throw new GatheringException(INVALID_REQUEST_GATHERING_TYPE);
+        }
+
+        // 해당 출석요청 검증
+        validateAttendanceRequirements(userId, gathering);
+
+
+        // 요청한 멤버를 정상출석, 뛴 거리 체크 후 개수 반환
+        long updatedAttendingCount = gatheringMemberRepository.updateAttendanceAndDistance(
+                gatheringId, ATTENDING, request.getRealDistance(), request.getMemberIdList());
+
+
+        // 참석하지 않은 멤버들을 NOT_ATTENDING 처리 후 개수 반환
+        long notAttendingMemberCount = gatheringMemberRepository.updateAttendanceAndDistance(
+                gatheringId, NOT_ATTENDING, 0.0, null);
+
+        return new AttendanceEventGatheringResponse(request.getRealDistance(),
+                request.getMemberIdList().size(), updatedAttendingCount, notAttendingMemberCount);
+
     }
 
     private void validateAttendanceRequirements(Long userId, Gathering gathering) {
 
         if (!Objects.equals(userId, gathering.getOrganizerId())) {
             throw new GatheringException(INVALID_ATTENDANCE_CHECK_NOT_ORGANIZER);
-        }
-        if (EVENT.equals(gathering.getGatheringType())) {
-            throw new GatheringException(INVALID_REQUEST_GATHERING_TYPE);
         }
         if (!NORMAL.equals(gathering.getStatus())) {
             throw new GatheringException(INVALID_ATTENDANCE_CHECK_NOT_NORMAL_GATHERING);
@@ -275,64 +308,16 @@ public class GatheringService {
         Gathering gathering = gatheringRepository.findById(gatheringId)
                 .orElseThrow(() -> new GatheringException(GATHERING_NOT_FOUND));
 
-        validateCompleteGathering(userId, gathering);
+        gathering.validateBeforeCompletion(userId);
 
         Long pendingMemberCount = gatheringMemberRepository.countMembers(gatheringId, PENDING);
 
         // 출석상태가 pending 인 멤버가 있으면 완료체크 불가
-        if(pendingMemberCount != null && pendingMemberCount > 0){
+        if (pendingMemberCount != null && pendingMemberCount > 0) {
             throw new GatheringException(INVALID_COMPLETE_UNCHECKED_MEMBERS);
         }
 
-        gathering.checkNormalComplete();
+        gathering.updateNormalComplete(userId);
     }
 
-    private void validateCompleteGathering(Long userId, Gathering gathering) {
-
-        if (!Objects.equals(userId, gathering.getOrganizerId())) {
-            throw new GatheringException(INVALID_COMPLETE_GATHERING_NOT_ORGANIZER);
-        }
-        if(gathering.getIsNormalCompleted()){
-            throw new GatheringException(ALREADY_NORMAL_COMPLETE_GATHERING);
-        }
-        if (!NORMAL.equals(gathering.getStatus())) {
-            throw new GatheringException(INVALID_COMPLETE_GATHERING_NOT_NORMAL_GATHERING);
-        }
-        if (gathering.getAppointedAt().isAfter(LocalDateTime.now())) {
-            throw new GatheringException(INVALID_COMPLETE_GATHERING_BEFORE_MEETING);
-        }
-        if (gathering.getAppointedAt().plusDays(7).isBefore(LocalDateTime.now())) {
-            throw new GatheringException(INVALID_COMPLETE_AFTER_ONE_WEEK);
-        }
-    }
-
-    @Transactional
-    public AttendanceEventGatheringResponse checkAttendanceEventGatheringMembers(Long userId,
-                                                                                 Long gatheringId,
-                                                                                 AttendanceEventGatheringRequest request) {
-
-        Gathering gathering = gatheringRepository.findById(gatheringId)
-                .orElseThrow(() -> new GatheringException(GATHERING_NOT_FOUND));
-
-        if (!Objects.equals(userId, gathering.getOrganizerId())) {
-            throw new GatheringException(INVALID_ATTENDANCE_CHECK_NOT_ORGANIZER);
-        }
-
-        if (!EVENT.equals(gathering.getGatheringType())) {
-            throw new GatheringException(INVALID_REQUEST_GATHERING_TYPE);
-        }
-
-        // 요청한 멤버를 정상출석, 뛴 거리 체크 후 개수 반환
-        long updatedAttendingCount = gatheringMemberRepository.updateAttendanceAndDistance(
-                gatheringId, ATTENDING, request.getRealDistance(), request.getMemberIdList());
-
-
-        // 참석하지 않은 멤버들을 NOT_ATTENDING 처리 후 개수 반환
-        long notAttendingMemberCount = gatheringMemberRepository.updateAttendanceAndDistance(
-                gatheringId, NOT_ATTENDING, 0.0, null);
-
-        return new AttendanceEventGatheringResponse(request.getRealDistance(),
-                request.getMemberIdList().size(), updatedAttendingCount, notAttendingMemberCount);
-
-    }
 }

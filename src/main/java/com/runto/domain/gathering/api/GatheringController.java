@@ -77,7 +77,7 @@ public class GatheringController {
     }
 
     @Operation(summary = "구성원 출석체크 [일반모임]")
-    @PutMapping("/{gathering_id}/members/attendance")
+    @PatchMapping("/{gathering_id}/members/attendance")
     public ResponseEntity<List<MemberAttendanceStatusDto>> checkAttendanceGeneralGatheringMembers(
             @PathVariable("gathering_id") Long gatheringId,
             @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -89,7 +89,7 @@ public class GatheringController {
     }
 
     @Operation(summary = "구성원 출석체크 [이벤트 모임]")
-    @PutMapping("/{gathering_id}/event/members/attendance")
+    @PatchMapping("/{gathering_id}/event/members/attendance")
     public ResponseEntity<AttendanceEventGatheringResponse> checkAttendanceEventGatheringMembers(
             @PathVariable("gathering_id") Long gatheringId,
             @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -102,7 +102,7 @@ public class GatheringController {
 
 
     @Operation(summary = " 모임 정상완료 체크 [일반모임, 이벤트모임]")
-    @PutMapping("/{gathering_id}/completion")
+    @PatchMapping("/{gathering_id}/completion")
     public ResponseEntity<Void> checkCompleteGathering(
             @PathVariable("gathering_id") Long gatheringId,
             @AuthenticationPrincipal CustomUserDetails userDetails) {

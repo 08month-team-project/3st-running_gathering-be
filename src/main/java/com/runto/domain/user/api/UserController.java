@@ -5,10 +5,7 @@ import com.runto.domain.gathering.dto.UserEventGatheringsResponse;
 import com.runto.domain.gathering.dto.UserGatheringsRequestParams;
 import com.runto.domain.gathering.dto.UserGatheringsResponse;
 import com.runto.domain.user.application.UserService;
-import com.runto.domain.user.dto.CheckEmailRequest;
-import com.runto.domain.user.dto.SignupRequest;
-import com.runto.domain.user.dto.UserCalenderResponse;
-import com.runto.domain.user.dto.UserProfileResponse;
+import com.runto.domain.user.dto.*;
 import com.runto.global.security.detail.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -75,6 +72,7 @@ public class UserController {
                 .getUserEventRequests(userDetails.getUserId(), pageable));
     }
 
+    @Operation(summary = "회원 프로필 조회")
     @GetMapping("/{user_id}")
     public ResponseEntity<UserProfileResponse> getUserProfile(
             @PathVariable("user_id") Long userId) {
@@ -82,6 +80,16 @@ public class UserController {
         return ResponseEntity.ok(userService.getUserProfile(userId));
     }
 
+    @Operation(summary = "내 닉네임 수정")
+    @PatchMapping("/nickname")
+    public ResponseEntity<Void> updateMyNickname(
+            @Valid @RequestBody NicknameRequest request,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        userService.updateUserNickname(request.getNickname(), userDetails.getUserId());
+        return ResponseEntity.ok().build();
+
+    }
     //TODO 회원탈퇴
     //1) 탈퇴한 회원테이블 따로 만들기 이메일중복방지
     //2) 탈퇴 시 이메일 더미이메일로 교체? (별로선호하지않으나 쉬울듯.)

@@ -18,7 +18,8 @@ import java.time.LocalDateTime;
 public class UserProfileResponse {
 
     private String email;
-    private String name;
+    //private String name;
+    private String nickname;
     private Gender gender;
     private UserStatus status;
     private LocalDateTime singupAt;
@@ -29,7 +30,7 @@ public class UserProfileResponse {
         return UserProfileResponse
                 .builder()
                 .email(user.getEmail())
-                .name(user.getName())
+                .nickname(user.getNickname())
                 .gender(user.getGender())
                 .status(user.getStatus())
                 .singupAt(user.getCreatedAt())
