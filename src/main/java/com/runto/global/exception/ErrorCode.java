@@ -10,8 +10,15 @@ import static org.springframework.http.HttpStatus.*;
 @AllArgsConstructor
 public enum ErrorCode {
 
+    // 회원 관련
     USER_NOT_FOUND(NOT_FOUND, "존재하지 않는 유저입니다."),
     USER_INACTIVE(FORBIDDEN, "사용자가 비활성 상태입니다. 이 작업을 수행할 수 없습니다."),
+    ALREADY_EXIST_USER(CONFLICT, "이미 존재하는 사용자입니다."),
+    ALREADY_EXIST_NICKNAME(CONFLICT, "이미 사용중인 닉네임입니다."),
+    INVALID_PROFILE_UPDATE_INACTIVE_USER(FORBIDDEN, "ACTIVE 상태가 아닌 회원은 프로필을 수정할 수 없습니다."),
+    INVALID_UPDATE_SAME_NICKNAME(CONFLICT, "기존 닉네임과 동일합니다."),
+
+
 
     // 모임글 & 이벤트 관련
     GATHERING_NOT_FOUND(NOT_FOUND, "존재하지 않는 모임글입니다."),
@@ -36,7 +43,6 @@ public enum ErrorCode {
     CHATROOM_NOT_FOUND(NOT_FOUND, "존재하지 않는 채팅방입니다."),
     CHATROOM_ALREADY_JOINED(BAD_REQUEST, "이미 참여중인 채팅방입니다."),
     CHATROOM_FULL(BAD_REQUEST, "채팅방이 최대 인원수에 도달했습니다."),
-    ALREADY_EXIST_USER(CONFLICT, "이미 존재하는 사용자입니다."),
     CHATROOM_CREATE_FAILED_OWN(INTERNAL_SERVER_ERROR, "나 자신과의 채팅방을 만들 수 없습니다."),
 
 
