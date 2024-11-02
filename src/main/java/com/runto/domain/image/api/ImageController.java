@@ -4,6 +4,7 @@ import com.runto.domain.image.application.ImageService;
 import com.runto.domain.image.dto.ImageRegisterResponse;
 import com.runto.domain.image.dto.ImageUploadRequest;
 import com.runto.domain.image.type.ImageUrlsResponse;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +19,8 @@ public class ImageController {
 
     private final ImageService imageService;
 
-    @PostMapping("/gathering")
+    @Operation(summary = "모임글 이미지 등록 (1~3개 가능)")
+    @PostMapping("/gatherings")
     public ResponseEntity<ImageRegisterResponse> registerGatheringImages(
             @RequestPart(value = "representative_image_index", required = false) Integer representativeImageIndex,
             @RequestPart(value = "images", required = false) List<MultipartFile> images,
@@ -28,6 +30,7 @@ public class ImageController {
                 ImageUploadRequest.of(representativeImageIndex, images, imageOrder)));
     }
 
+    @Operation(summary = "모임글 이미지주소 목록 가져오기 (모임글 상세조회에 사용)")
     @GetMapping
     public ResponseEntity<ImageUrlsResponse> getGatheringImages(
             @RequestParam("gathering_id") Long gatheringId) {
