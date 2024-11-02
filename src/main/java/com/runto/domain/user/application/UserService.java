@@ -1,5 +1,7 @@
 package com.runto.domain.user.application;
 
+import com.runto.domain.image.application.ImageService;
+import com.runto.domain.image.dto.ImageUrlDto;
 import com.runto.domain.user.dao.UserRepository;
 import com.runto.domain.user.domain.User;
 import com.runto.domain.user.dto.CheckEmailRequest;
@@ -11,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Optional;
 
@@ -25,6 +28,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final ImageService imageService;
 
     @Transactional
     public void createUser(SignupRequest signupRequest) {
@@ -68,5 +72,23 @@ public class UserService {
                 .orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
         user.updateNickname(nickname); // 정상회원이 아닐 경우 수정불가
+    }
+
+    @Transactional
+    public ImageUrlDto updateUserProfile(Long userId, MultipartFile multipartFile) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserException(USER_NOT_FOUND));
+
+        // s3에 업로드 시도 전 유저상태 검증 필요
+        if (!ACTIVE.equals(user.getStatus())) {
+            throw new UserException(INVALID_PROFILE_UPDATE_INACTIVE_USER);
+        }
+
+        ImageUrlDto imageUrlDto = imageService
+                .updateUserProfile(userId, multipartFile, user.getProfileImageUrl());
+
+        user.updateProfile(imageUrlDto.getImageUrl());
+        return imageUrlDto;
     }
 }
