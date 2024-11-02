@@ -74,12 +74,7 @@ public class User extends BaseTimeEntity {
         return user;
     }
 
-    @PrePersist
-    public void prePersist() {
-        status = UserStatus.ACTIVE;
-    }
-
-    public void releaseUser(User user) {
+    public void releaseUser() {
         this.status = UserStatus.ACTIVE;
     }
 
@@ -90,5 +85,15 @@ public class User extends BaseTimeEntity {
         }
         this.nickname = nickname;
     }
+
+    public void updateProfile(String profileUrl) {
+        this.profileImageUrl = profileUrl;
+    }
+
+    @PrePersist
+    public void prePersist() {
+        status = UserStatus.ACTIVE;
+    }
+
 
 }
