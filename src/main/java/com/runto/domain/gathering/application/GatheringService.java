@@ -126,7 +126,7 @@ public class GatheringService {
         if (imageUrlDto == null) return;
 
         List<GatheringImage> gatheringImages = imageUrlDto.getContentImageUrls().stream()
-                .map(ImageUrlDto::toEntity)
+                .map(ImageUrlDto::toGathering)
                 .toList();
         gathering.addContentImages(gatheringImages);
     }
