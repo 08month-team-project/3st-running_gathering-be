@@ -25,6 +25,7 @@ import java.util.List;
 
 import static com.querydsl.core.types.ConstantImpl.create;
 import static com.querydsl.core.types.dsl.MathExpressions.*;
+import static com.runto.domain.gathering.type.GatheringStatus.NORMAL;
 import static com.runto.global.utils.SortUtils.getOrderSpecifier;
 import static com.runto.domain.gathering.domain.QEventGathering.eventGathering;
 import static com.runto.domain.gathering.domain.QGathering.gathering;
@@ -141,7 +142,7 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
 
     @Override
     public Slice<Gathering> getEventGatherings(Pageable pageable,
-                                                 GatheringsRequestParams param) {
+                                               GatheringsRequestParams param) {
 
         List<Gathering> gatherings = jpaQueryFactory.selectFrom(gathering)
                 .join(gathering.eventGathering).fetchJoin()
@@ -161,6 +162,19 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
                 .fetch();
 
         return new SliceImpl<>(gatherings, pageable, hasNextPage(pageable, gatherings));
+    }
+
+    @Override
+    public List<Gathering> getGeneralGatheringMap(Double radiusDistance, BigDecimal x, BigDecimal y) {
+
+        return jpaQueryFactory.selectFrom(gathering)
+                .where(
+                        gatheringTypeCondition(GENERAL),
+                        participationCondition(AVAILABLE), // 참가가능상태
+                        statusCondition(NORMAL), // 지도 기반 조회는 정상만
+                        radiusDistanceCondition(radiusDistance, x, y) // 좌표 기준 X km 반경
+                )
+                .fetch();
     }
 
     private BooleanExpression gatheringTypeCondition(GatheringType type) {

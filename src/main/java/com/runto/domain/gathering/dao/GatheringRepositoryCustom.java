@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Repository
@@ -28,4 +29,6 @@ public interface GatheringRepositoryCustom {
 
     Slice<Gathering> getEventGatherings(Pageable pageable,
                                         GatheringsRequestParams param);
+
+    List<Gathering> getGeneralGatheringMap(Double radiusDistance, BigDecimal x, BigDecimal y);
 }
