@@ -9,6 +9,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -17,10 +19,10 @@ import lombok.NoArgsConstructor;
 public class CoordinatesDto {
 
     @NotNull(message = "x값은 필수입니다.")
-    private Double x;
+    private BigDecimal x;
 
     @NotNull(message = "y값은 필수입니다.")
-    private Double y;
+    private BigDecimal y;
 
     public static CoordinatesDto from(Coordinates coordinates) {
         return CoordinatesDto.builder()

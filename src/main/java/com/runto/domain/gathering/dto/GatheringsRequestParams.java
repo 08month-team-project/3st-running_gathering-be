@@ -9,6 +9,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.domain.Sort;
 
+import java.math.BigDecimal;
+
 // 참고: @ModelAttribute는 요청 데이터 바인딩 과정에서 ObjectMapper를 사용하지 않음 -> setter 필요, @JsonNaming 미작동
 @Getter
 @NoArgsConstructor
@@ -34,9 +36,9 @@ public class GatheringsRequestParams { // Query Parameter 로 매핑 (ModelAttri
     private Sort.Direction sortDirection;
 
 
-    private Double x;
+    private BigDecimal x;
 
-    private Double y;
+    private BigDecimal y;
 
     @DecimalMin(value = "0.5", inclusive = true, message = "반경 거리값은 0.5km 이상이어야 합니다.")
     @DecimalMax(value = "10.0", inclusive = true, message = "반경 거리값은 10km 이하이어야 합니다.")
@@ -73,11 +75,11 @@ public class GatheringsRequestParams { // Query Parameter 로 매핑 (ModelAttri
         this.sortDirection = sortDirection;
     }
 
-    public void setX(Double x) {
+    public void setX(BigDecimal x) {
         this.x = x;
     }
 
-    public void setY(Double y) {
+    public void setY(BigDecimal y) {
         this.y = y;
     }
 

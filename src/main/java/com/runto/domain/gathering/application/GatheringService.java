@@ -18,6 +18,7 @@ import com.runto.domain.user.dao.UserRepository;
 import com.runto.domain.user.domain.User;
 import com.runto.domain.user.dto.UserCalenderResponse;
 import com.runto.domain.user.excepction.UserException;
+import com.runto.global.exception.ErrorCode;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +27,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -59,7 +61,6 @@ public class GatheringService {
 
     // TODO: 만약 신고기능 구현하는거면 나중에 관련 로직 추가 필요
     // TODO: 날짜 설정 검증 로직 필요 (설정 날짜 관련 서비스 정책? 정하고 추후에 추가)
-    // TODO: 그룹 채팅방 생성 로직 추가
     // TODO moveImageProcess 에러 해결되면 주석 풀기
     @Transactional
     public void createGatheringGeneral(Long userId, CreateGatheringRequest request) {
@@ -320,4 +321,16 @@ public class GatheringService {
         gathering.updateNormalComplete(userId);
     }
 
+    public GatheringsMapResponse getGeneralGatheringMap(Double radiusDistance,
+                                                        BigDecimal x, BigDecimal y) {
+
+        if (radiusDistance < 0.5 || radiusDistance > 10) {
+            throw new GatheringException(ErrorCode.INVALID_RADIUS_RANGE);
+        }
+
+        List<Gathering> generalGatheringMap = gatheringRepository
+                .getGeneralGatheringMap(radiusDistance, x, y);
+
+        return GatheringsMapResponse.of(radiusDistance, x, y, generalGatheringMap);
+    }
 }
