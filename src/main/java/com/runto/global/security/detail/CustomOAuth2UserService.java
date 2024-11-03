@@ -46,9 +46,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         //회원가입 시켜버리기
         if (existData.isEmpty()) {
             User userEntity = User.of(userEmail,username,null,oAuth2Key);
-            userRepository.save(userEntity);
-            return new CustomOAuth2User(UserDetailsDTO.of(userEntity));
 
+            userRepository.save(userEntity);
+
+            return new CustomOAuth2User(UserDetailsDTO.of(userEntity));
         }else {
             OAuth2Repository.save(existData.get());
             User user = userRepository.findBySocialUsername(oAuth2Key)

@@ -20,31 +20,16 @@ public class UserDetailsDTO {
     private String email;
     private String gender;
     private String role;
-    private String oAuth2Key;
 
     public static UserDetailsDTO of(User user) {
-        if (user.getLocalAccount() != null) {
-            return UserDetailsDTO.builder()
-                    .userId(user.getId())
-                    .name(user.getName())
-                    .nickname(user.getNickname())
-                    .email(user.getEmail())
-                    .gender(user.getGender().name())
-                    .password(user.getLocalAccount().getPassword())
-                    .role(user.getRole().name())
-                    .build();
-        }
-        if (user.getOAuth2() != null) {
-            return UserDetailsDTO.builder()
-                    .userId(user.getId())
-                    .name(user.getName())
-                    .nickname(user.getNickname())
-                    .email(user.getEmail())
-                    .gender(user.getGender().name())
-                    .oAuth2Key(user.getOAuth2().getOAuth2Key())
-                    .role(user.getRole().name())
-                    .build();
-        }
-        return null;
+        return UserDetailsDTO.builder()
+                .userId(user.getId())
+                .name(user.getName())
+                .nickname(user.getNickname())
+                .email(user.getEmail())
+                .gender(user.getGender().name())
+                .password(user.getLocalAccount().getPassword())
+                .role(user.getRole().name())
+                .build();
     }
 }
