@@ -19,11 +19,13 @@ import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
 import static com.querydsl.core.types.ConstantImpl.create;
 import static com.querydsl.core.types.dsl.MathExpressions.*;
+import static com.runto.domain.gathering.type.GatheringStatus.NORMAL;
 import static com.runto.global.utils.SortUtils.getOrderSpecifier;
 import static com.runto.domain.gathering.domain.QEventGathering.eventGathering;
 import static com.runto.domain.gathering.domain.QGathering.gathering;
@@ -140,7 +142,7 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
 
     @Override
     public Slice<Gathering> getEventGatherings(Pageable pageable,
-                                                 GatheringsRequestParams param) {
+                                               GatheringsRequestParams param) {
 
         List<Gathering> gatherings = jpaQueryFactory.selectFrom(gathering)
                 .join(gathering.eventGathering).fetchJoin()
@@ -160,6 +162,19 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
                 .fetch();
 
         return new SliceImpl<>(gatherings, pageable, hasNextPage(pageable, gatherings));
+    }
+
+    @Override
+    public List<Gathering> getGeneralGatheringMap(Double radiusDistance, BigDecimal x, BigDecimal y) {
+
+        return jpaQueryFactory.selectFrom(gathering)
+                .where(
+                        gatheringTypeCondition(GENERAL),
+                        participationCondition(AVAILABLE), // 참가가능상태
+                        statusCondition(NORMAL), // 지도 기반 조회는 정상만
+                        radiusDistanceCondition(radiusDistance, x, y) // 좌표 기준 X km 반경
+                )
+                .fetch();
     }
 
     private BooleanExpression gatheringTypeCondition(GatheringType type) {
@@ -276,15 +291,14 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
         return gathering.title.contains(searchTitle);
     }
 
-    
-    // TODO: 계산 쿼리 수정필요
-    private BooleanExpression radiusDistanceCondition(Double radiusDistance, Double x, Double y) {
+
+    private BooleanExpression radiusDistanceCondition(Double radiusDistance, BigDecimal x, BigDecimal y) {
 
         if (isGeoRadiusValid(radiusDistance, x, y)) {
 
             // 좌표를 Expression<Double>로 변환
-            Expression<Double> latitude = create(y); // 경도(longitude)는 x 좌표
-            Expression<Double> longitude = create(x); // 위도(latitude)는 y 좌표
+            Expression<BigDecimal> latitude = create(y);  // 위도(latitude)는 y 좌표
+            Expression<BigDecimal> longitude = create(x); // 경도(longitude)는 x 좌표
 
 
             // 지구 반지름: km 단위로 설정 (6371km)
@@ -323,7 +337,7 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
         return null;
     }
 
-    private boolean isGeoRadiusValid(Double radiusDistance, Double x, Double y) {
+    private boolean isGeoRadiusValid(Double radiusDistance, BigDecimal x, BigDecimal y) {
         return radiusDistance != null && (x != null && y != null);
     }
 

@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Slf4j
@@ -64,6 +65,17 @@ public class GatheringController {
 
         return ResponseEntity.ok(gatheringService.
                 getGatherings(requestParams, pageable));
+    }
+
+    @Operation(summary = "지도기반 모임 조회 [일반모임]")
+    @GetMapping("/map")
+    public ResponseEntity<GatheringsMapResponse> getGeneralGatheringMap(
+            @RequestParam("radius_distance") Double radiusDistance,
+            @RequestParam("x") BigDecimal x,
+            @RequestParam("y") BigDecimal y) {
+
+        return ResponseEntity.ok(gatheringService.
+                getGeneralGatheringMap(radiusDistance, x, y));
     }
 
     @Operation(summary = "모임 구성원목록 조회 [일반모임, 이벤트모임]")

@@ -7,15 +7,17 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 @Getter
 @Builder
 @AllArgsConstructor
 @Embeddable
 @NoArgsConstructor
 public class Coordinates {
-    @Column(nullable = false)
-    private Double x;
+    @Column(precision = 9, scale = 4, nullable = false)
+    private BigDecimal x;
 
-    @Column(nullable = false)
-    private Double y;
+    @Column(precision = 9, scale = 4, nullable = false)
+    private BigDecimal y;
 }
