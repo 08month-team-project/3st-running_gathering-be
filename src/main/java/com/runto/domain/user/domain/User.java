@@ -54,24 +54,31 @@ public class User extends BaseTimeEntity {
     private LocalAccount localAccount;
 
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name = "oauth2_id")
+    @JoinColumn(name = "o_auth2_id")
     private OAuth2 oAuth2;
 
-    public static User of(String email, String nickname, String password, String oAuth2Key) {
-        User user = User.builder()
+    public static User of(String email, String nickname) {
+        return User.builder()
                 .nickname(nickname)
                 .email(email)
                 .gender(Gender.NONE)
                 .status(UserStatus.ACTIVE)
                 .role(UserRole.USER)
                 .build();
-        user.localAccount = LocalAccount.builder()
+    }
+
+    public User withLocalAccount(String password) {
+        this.localAccount = LocalAccount.builder()
                 .password(password)
                 .build();
-        user.oAuth2 = OAuth2.builder()
+        return this;
+    }
+
+    public User withOAuth2(String oAuth2Key) {
+        this.oAuth2 = OAuth2.builder()
                 .oAuth2Key(oAuth2Key)
                 .build();
-        return user;
+        return this;
     }
 
     public void releaseUser() {
