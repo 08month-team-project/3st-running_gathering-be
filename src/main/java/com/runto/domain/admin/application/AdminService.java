@@ -1,13 +1,11 @@
 package com.runto.domain.admin.application;
 
-import com.runto.domain.admin.dto.GatheringCountResponse;
-import com.runto.domain.admin.dto.PenaltyDetailsResponse;
+import com.runto.domain.admin.dto.*;
+import com.runto.domain.admin.type.AdminEventCount;
 import com.runto.domain.admin.type.AdminGatherStatsCount;
 import com.runto.domain.coupon.dao.CouponRepository;
 import com.runto.domain.coupon.domain.Coupon;
 import com.runto.domain.coupon.dto.CouponRequest;
-import com.runto.domain.admin.dto.MonthUserResponse;
-import com.runto.domain.admin.dto.UserCountResponse;
 import com.runto.domain.admin.type.AdminStatsCount;
 import com.runto.domain.gathering.dao.GatheringRepository;
 import com.runto.domain.user.dao.UserRepository;
@@ -61,5 +59,9 @@ public class AdminService {
 
     public List<GatheringCountResponse> manageGathering(AdminGatherStatsCount statsCount) {
         return gatheringRepository.manageGathering(statsCount);
+    }
+
+    public List<?> getEventsPerMonth(AdminEventCount eventCount) {
+        return gatheringRepository.getEventsPerMonth(eventCount);
     }
 }
