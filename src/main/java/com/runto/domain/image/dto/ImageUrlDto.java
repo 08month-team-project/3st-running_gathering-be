@@ -28,7 +28,7 @@ public class ImageUrlDto {
                 .build();
     }
 
-    public GatheringImage toEntity() {
+    public GatheringImage toGathering() { // Gathering 외에도 쓰게돼서 엔티티이름으로 바꿈
         return GatheringImage.builder()
                 .imageUrl(imageUrl)
                 .imageOrder(order)

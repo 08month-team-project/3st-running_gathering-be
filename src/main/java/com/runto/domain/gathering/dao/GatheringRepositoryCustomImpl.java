@@ -24,7 +24,7 @@ import java.util.List;
 
 import static com.querydsl.core.types.ConstantImpl.create;
 import static com.querydsl.core.types.dsl.MathExpressions.*;
-import static com.runto.domain.common.SortUtil.getOrderSpecifier;
+import static com.runto.global.utils.SortUtils.getOrderSpecifier;
 import static com.runto.domain.gathering.domain.QEventGathering.eventGathering;
 import static com.runto.domain.gathering.domain.QGathering.gathering;
 import static com.runto.domain.gathering.dto.QGatheringMember.gatheringMember;
