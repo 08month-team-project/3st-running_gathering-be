@@ -17,6 +17,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +37,7 @@ public class TestDataInit {
 
     private final GatheringRepository gatheringRepository;
 
-    @EventListener(ApplicationReadyEvent.class)
+    //@EventListener(ApplicationReadyEvent.class)
     @Transactional
     public void init() {
 
@@ -75,7 +76,7 @@ public class TestDataInit {
                                 "2depth_name",
                                 "3depth_name"),
                         new RegionCode(0, 0),
-                        new Coordinates(0.0, 0.0));
+                        new Coordinates(new BigDecimal("0.0"), new BigDecimal("0.0")));
 
 
         for (int i = 0; i < 10; i++) {
@@ -93,7 +94,7 @@ public class TestDataInit {
                     //.status(NORMAL)
                     .maxNumber(10)
                     .currentNumber(1)
-                    .gatheringType(GatheringType.GENERAL)
+                    .gatheringType(GatheringType.EVENT)
                     .build();
             gathering.addMember(users.get(i), ORGANIZER);
 
