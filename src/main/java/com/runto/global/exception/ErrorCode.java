@@ -17,7 +17,7 @@ public enum ErrorCode {
     ALREADY_EXIST_NICKNAME(CONFLICT, "이미 사용중인 닉네임입니다."),
     INVALID_PROFILE_UPDATE_INACTIVE_USER(FORBIDDEN, "ACTIVE 상태가 아닌 회원은 프로필을 수정할 수 없습니다."),
     INVALID_UPDATE_SAME_NICKNAME(CONFLICT, "기존 닉네임과 동일합니다."),
-
+    INVALID_CREATE_GATHERING_INACTIVE_USER(FORBIDDEN, "ACTIVE 상태가 아닌 모임을 등록할 수 없습니다."),
 
 
     // 모임글 & 이벤트 관련
@@ -27,17 +27,20 @@ public enum ErrorCode {
     GENERAL_MAX_NUMBER(BAD_REQUEST, "일반 모임의 최대 인원은 2명에서 10명 사이여야 합니다."),
     EVENT_GATHERING_MAX_NUMBER(BAD_REQUEST, "이벤트 모임의 최대 인원은 10명에서 300명 사이여야 합니다."),
     INVALID_ATTENDANCE_CHECK_NOT_ORGANIZER(FORBIDDEN, "모임의 주최자가 아니면 출석체크 할 수 없습니다."),
-    INVALID_ATTENDANCE_CHECK_NOT_NORMAL_GATHERING(FORBIDDEN,"NORMAL 상태가 아닌 모임은 출석체크 할 수 없습니다."),
+    INVALID_ATTENDANCE_CHECK_NOT_NORMAL_GATHERING(FORBIDDEN, "NORMAL 상태가 아닌 모임은 출석체크 할 수 없습니다."),
     INVALID_ATTENDANCE_BEFORE_MEETING(FORBIDDEN, "모임 날짜/시간 전에는 출석체크 할 수 없습니다."),
     INVALID_ATTENDANCE_AFTER_ONE_WEEK(FORBIDDEN, "모임 날짜로부터 일주일이 지난 후에는 출석체크 할 수 없습니다."),
     INVALID_COMPLETE_GATHERING_NOT_ORGANIZER(FORBIDDEN, "모임의 주최자가 아니면 완료시킬 수 없습니다."),
     INVALID_COMPLETE_GATHERING_NOT_NORMAL_GATHERING(FORBIDDEN, "NORMAL 상태가 아닌 모임은 정상완료 할 수 없습니다."),
     INVALID_COMPLETE_GATHERING_BEFORE_MEETING(FORBIDDEN, "모임 날짜/시간 전에는 정상완료할 수 없습니다."),
     INVALID_COMPLETE_AFTER_ONE_WEEK(FORBIDDEN, "모임 날짜로부터 일주일이 지난 후에는 정상완료 할 수 없습니다."),
-    INVALID_COMPLETE_UNCHECKED_MEMBERS(FORBIDDEN,"출석체크하지 않은 멤버가 있으면 정상완료를 할 수 없습니다."),
-    INVALID_REQUEST_GATHERING_TYPE(BAD_REQUEST,"해당 모임에 맞지 않는 요청입니다."),
+    INVALID_COMPLETE_UNCHECKED_MEMBERS(FORBIDDEN, "출석체크하지 않은 멤버가 있으면 정상완료를 할 수 없습니다."),
+    INVALID_REQUEST_GATHERING_TYPE(BAD_REQUEST, "해당 모임에 맞지 않는 요청입니다."),
     ALREADY_NORMAL_COMPLETE_GATHERING(FORBIDDEN, "이미 정상완료한 모임입니다."),
     INVALID_RADIUS_RANGE(BAD_REQUEST, "반경거리는 최소 500m 에서 최대 10km 입니다."),
+    INVALID_DEADLINE_TOO_SOON(BAD_REQUEST, "마감 날짜는 현재 기준으로 최소 3시간 이후여야 합니다."),
+    INVALID_APPOINTMENT_TOO_SOON(BAD_REQUEST, "약속 날짜는 현재 기준으로 최소 6시간 이후여야 합니다."),
+    INVALID_DEADLINE_APPOINTMENT_INTERVAL(BAD_REQUEST, "약속 날짜는 마감 날짜와 최소 2시간의 차이가 있어야 합니다."),
 
     // 채팅관련,
     CHATROOM_ALREADY_EXIST(CONFLICT, "이미 존재하는 채팅방입니다."),
