@@ -8,7 +8,7 @@ import com.runto.domain.user.domain.User;
 import com.runto.domain.user.excepction.UserException;
 import com.runto.global.security.dto.KakaoResponse;
 import com.runto.global.security.dto.OAuth2Response;
-import com.runto.global.security.dto.OAuthDetailsDTO;
+import com.runto.global.security.dto.OAuth2DetailsDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -51,13 +51,13 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
             userRepository.save(userEntity);
 
-            return new CustomOAuth2User(OAuthDetailsDTO.of(userEntity));
+            return new CustomOAuth2User(OAuth2DetailsDTO.of(userEntity));
         }else {
             OAuth2Repository.save(existData.get());
             User user = userRepository.findBySocialUsername(oAuth2Key)
                     .orElseThrow(()->new UserException(USER_NOT_FOUND));
 
-            return new CustomOAuth2User(OAuthDetailsDTO.of(user));
+            return new CustomOAuth2User(OAuth2DetailsDTO.of(user));
         }
     }
 }

@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class OAuthDetailsDTO {
+public class OAuth2DetailsDTO {
 
     private Long userId;
     private String name;
@@ -20,8 +20,8 @@ public class OAuthDetailsDTO {
     private String gender;
     private String role;
 
-    public static OAuthDetailsDTO of(User user) {
-        return OAuthDetailsDTO.builder()
+    public static OAuth2DetailsDTO of(User user) {
+        return OAuth2DetailsDTO.builder()
                 .userId(user.getId())
                 .name(user.getName())
                 .nickname(user.getNickname())
