@@ -41,6 +41,7 @@ import static com.runto.domain.gathering.type.GatheringMemberRole.ORGANIZER;
 import static com.runto.domain.gathering.type.GatheringStatus.*;
 import static com.runto.domain.gathering.type.GatheringType.EVENT;
 import static com.runto.domain.gathering.type.GatheringType.GENERAL;
+import static com.runto.domain.user.type.UserStatus.ACTIVE;
 import static com.runto.global.exception.ErrorCode.*;
 
 @Slf4j
@@ -57,15 +58,12 @@ public class GatheringService {
     private final GatheringMemberRepository gatheringMemberRepository;
 
 
-
-    // TODO: 만약 신고기능 구현하는거면 나중에 관련 로직 추가 필요
-    // TODO: 날짜 설정 검증 로직 필요 (설정 날짜 관련 서비스 정책? 정하고 추후에 추가)
     // TODO moveImageProcess 에러 해결되면 주석 풀기
     @Transactional
     public void createGatheringGeneral(Long userId, CreateGatheringRequest request) {
 
         validateMaxNumber(GENERAL, request.getMaxNumber());
-        gatheringRepository.save(createGathering(userId, request,GENERAL));
+        gatheringRepository.save(createGathering(userId, request, GENERAL));
 
         // s3 temp 경로에 있던 이미지파일들을 정식 경로에 옮기기
 //        imageService.moveImageFromTempToPermanent(request.getGatheringImageUrls()
@@ -79,7 +77,7 @@ public class GatheringService {
 
         validateMaxNumber(EVENT, request.getMaxNumber());
 
-        Gathering gathering = createGathering(userId, request,EVENT);
+        Gathering gathering = createGathering(userId, request, EVENT);
         gathering.applyForEvent(); // 해당 모임을 이벤트모임으로 신청
         gatheringRepository.save(gathering);
 
@@ -93,6 +91,10 @@ public class GatheringService {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserException(USER_NOT_FOUND));
+
+        if (ACTIVE.equals(user.getStatus())) {
+            throw new UserException(INVALID_CREATE_GATHERING_INACTIVE_USER);
+        }
 
         validateDate(request.getDeadline(), request.getAppointedAt());
 
@@ -112,13 +114,26 @@ public class GatheringService {
         }
     }
 
-    // TODO: 설정 날짜 관련 서비스 정책? 정하고 구현
+    // 나중에 시간 설정은 바뀔 수도 있음
     private void validateDate(LocalDateTime deadLine, LocalDateTime appointedAt) {
 
+        LocalDateTime now = LocalDateTime.now();
+
         // 마감날짜 - 적어도 현재기준 X시간 이후
+        if (now.plusHours(3).isBefore(deadLine)) {
+            throw new GatheringException(INVALID_DEADLINE_TOO_SOON);
+        }
+
         // 약속날짜 - 적어도 현재기준 X시간 이후
+        if (now.plusHours(6).isBefore(appointedAt)) {
+            throw new GatheringException(INVALID_APPOINTMENT_TOO_SOON);
+        }
+
         // 마감날짜 vs 약속날짜 는 적어도 X 시간차이가 나야함
-        return;
+        if (appointedAt.isBefore(deadLine.plusHours(2))) {
+            throw new GatheringException(INVALID_DEADLINE_APPOINTMENT_INTERVAL);
+        }
+
     }
 
     private void addContentImages(ImageRegisterResponse imageUrlDto, Gathering gathering) {
@@ -323,7 +338,7 @@ public class GatheringService {
                                                         BigDecimal x, BigDecimal y) {
 
         if (radiusDistance < 0.5 || radiusDistance > 10) {
-            throw new GatheringException(ErrorCode.INVALID_RADIUS_RANGE);
+            throw new GatheringException(INVALID_RADIUS_RANGE);
         }
 
         List<Gathering> generalGatheringMap = gatheringRepository
