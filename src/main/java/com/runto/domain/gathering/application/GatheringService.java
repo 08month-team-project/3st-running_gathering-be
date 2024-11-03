@@ -56,7 +56,6 @@ public class GatheringService {
     private final EventGatheringRepository eventGatheringRepository;
     private final GatheringMemberRepository gatheringMemberRepository;
 
-    private final EntityManager entityManager;
 
 
     // TODO: 만약 신고기능 구현하는거면 나중에 관련 로직 추가 필요
@@ -65,8 +64,8 @@ public class GatheringService {
     @Transactional
     public void createGatheringGeneral(Long userId, CreateGatheringRequest request) {
 
-        validateMaxNumber(request.getGatheringType(), request.getMaxNumber());
-        gatheringRepository.save(createGathering(userId, request));
+        validateMaxNumber(GENERAL, request.getMaxNumber());
+        gatheringRepository.save(createGathering(userId, request,GENERAL));
 
         // s3 temp 경로에 있던 이미지파일들을 정식 경로에 옮기기
 //        imageService.moveImageFromTempToPermanent(request.getGatheringImageUrls()
@@ -78,9 +77,9 @@ public class GatheringService {
     public void requestEventGatheringHosting(Long userId,
                                              CreateGatheringRequest request) {
 
-        validateMaxNumber(request.getGatheringType(), request.getMaxNumber());
+        validateMaxNumber(EVENT, request.getMaxNumber());
 
-        Gathering gathering = createGathering(userId, request);
+        Gathering gathering = createGathering(userId, request,EVENT);
         gathering.applyForEvent(); // 해당 모임을 이벤트모임으로 신청
         gatheringRepository.save(gathering);
 
@@ -90,21 +89,20 @@ public class GatheringService {
 
     }
 
-    private Gathering createGathering(Long userId, CreateGatheringRequest request) {
+    private Gathering createGathering(Long userId, CreateGatheringRequest request, GatheringType type) {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
         validateDate(request.getDeadline(), request.getAppointedAt());
 
-        Gathering gathering = request.toEntity(user);
+        Gathering gathering = request.toEntity(user, type);
         gathering.addMember(user, ORGANIZER);
         addContentImages(request.getImageRegisterResponse(), gathering);
 
         return gathering;
     }
 
-    // TODO: 커스텀 애노테이션 에러 해결되면 삭제
     private void validateMaxNumber(GatheringType type, int maxNumber) {
         if (GENERAL.equals(type) && (maxNumber < 2 || maxNumber > 10)) {
             throw new GatheringException(GENERAL_MAX_NUMBER);
