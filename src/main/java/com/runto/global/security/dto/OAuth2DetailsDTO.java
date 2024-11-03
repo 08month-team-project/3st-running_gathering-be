@@ -10,24 +10,24 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserDetailsDTO {
+public class OAuth2DetailsDTO {
 
     private Long userId;
     private String name;
-    private String password;
+    private String oauthKey;
     private String nickname;
     private String email;
     private String gender;
     private String role;
 
-    public static UserDetailsDTO of(User user) {
-        return UserDetailsDTO.builder()
+    public static OAuth2DetailsDTO of(User user) {
+        return OAuth2DetailsDTO.builder()
                 .userId(user.getId())
                 .name(user.getName())
                 .nickname(user.getNickname())
                 .email(user.getEmail())
                 .gender(user.getGender().name())
-                .password(user.getLocalAccount().getPassword())
+                .oauthKey(user.getOAuth2().getOAuth2Key())
                 .role(user.getRole().name())
                 .build();
     }

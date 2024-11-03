@@ -1,6 +1,6 @@
 package com.runto.global.security.detail;
 
-import com.runto.global.security.dto.UserDetailsDTO;
+import com.runto.global.security.dto.OAuth2DetailsDTO;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
@@ -11,9 +11,9 @@ import java.util.Map;
 
 public class CustomOAuth2User implements OAuth2User {
 
-    private final UserDetailsDTO userDTO;
+    private final OAuth2DetailsDTO userDTO;
 
-    public CustomOAuth2User(UserDetailsDTO userDTO) {
+    public CustomOAuth2User(OAuth2DetailsDTO userDTO) {
         this.userDTO = userDTO;
     }
 

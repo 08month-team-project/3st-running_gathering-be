@@ -6,10 +6,9 @@ import com.runto.domain.user.dao.UserRepository;
 import com.runto.domain.user.domain.OAuth2;
 import com.runto.domain.user.domain.User;
 import com.runto.domain.user.excepction.UserException;
-import com.runto.global.exception.ErrorCode;
 import com.runto.global.security.dto.KakaoResponse;
 import com.runto.global.security.dto.OAuth2Response;
-import com.runto.global.security.dto.UserDetailsDTO;
+import com.runto.global.security.dto.OAuth2DetailsDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -19,6 +18,8 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+
+import static com.runto.global.exception.ErrorCode.USER_NOT_FOUND;
 
 @Service
 @Slf4j
@@ -45,17 +46,18 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         //회원가입 시켜버리기
         if (existData.isEmpty()) {
-            User userEntity = User.of(userEmail,username,null,oAuth2Key);
+            User userEntity = User.of(userEmail,username)
+                    .withOAuth2(oAuth2Key);
 
             userRepository.save(userEntity);
 
-            return new CustomOAuth2User(UserDetailsDTO.of(userEntity));
+            return new CustomOAuth2User(OAuth2DetailsDTO.of(userEntity));
         }else {
             OAuth2Repository.save(existData.get());
             User user = userRepository.findBySocialUsername(oAuth2Key)
-                    .orElseThrow(()->new UserException(ErrorCode.USER_NOT_FOUND));
+                    .orElseThrow(()->new UserException(USER_NOT_FOUND));
 
-            return new CustomOAuth2User(UserDetailsDTO.of(user));
+            return new CustomOAuth2User(OAuth2DetailsDTO.of(user));
         }
     }
 }

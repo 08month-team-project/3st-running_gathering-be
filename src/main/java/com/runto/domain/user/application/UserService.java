@@ -41,7 +41,8 @@ public class UserService {
         String nickname = signupRequest.getNickname();
         String email = signupRequest.getEmail();
 
-        User user = User.of(email, nickname, encodedPwd, null);
+        User user = User.of(email, nickname)
+                .withLocalAccount(encodedPwd);
 
         userRepository.save(user);
     }
