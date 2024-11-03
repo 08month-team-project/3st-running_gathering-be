@@ -44,7 +44,7 @@ public class GatheringResponse { // 다른 목록조회에서도 쓸 예정
     private Integer currentNumber;
     private GatheringType gatheringType;
 
-    // 이벤트모임 조회시엔 null 값으로 내보냄
+    // 이벤트 모임목록 조회, 지도기반 일반모임목록조회엔 null 값으로 내보냄
     private List<String> memberProfileUrls;
 
     public static GatheringResponse fromGeneralGathering(Gathering gathering) {
@@ -95,6 +95,28 @@ public class GatheringResponse { // 다른 목록조회에서도 쓸 예정
                 .concept(gathering.getConcept())
                 .goalDistance(gathering.getGoalDistance())
                 .thumbnailUrl(thumbnailUrl)
+                .hits(gathering.getHits())
+                .location(LocationDto.from(gathering.getLocation()))
+                .status(gathering.getStatus())
+                .maxNumber(gathering.getMaxNumber())
+                .currentNumber(gathering.getCurrentNumber())
+                .gatheringType(gathering.getGatheringType())
+                .build();
+    }
+
+    public static GatheringResponse fromGatheringMap(Gathering gathering) {
+        
+        // 처음부터 현재 참가 가능한 반경 내 모임만 가져올 것임
+
+        return GatheringResponse.builder()
+                .id(gathering.getId())
+                .organizerId(gathering.getOrganizerId())
+                .title(gathering.getTitle())
+                .appointedAt(gathering.getAppointedAt())
+                .deadline(gathering.getDeadline())
+                .concept(gathering.getConcept())
+                .goalDistance(gathering.getGoalDistance())
+                .thumbnailUrl(gathering.getThumbnailUrl())
                 .hits(gathering.getHits())
                 .location(LocationDto.from(gathering.getLocation()))
                 .status(gathering.getStatus())
