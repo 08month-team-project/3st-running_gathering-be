@@ -19,6 +19,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -67,7 +68,7 @@ class GroupChatServiceTest {
                                         "2depth_name",
                                         "3depth_name"),
                                 new RegionCode(0, 0),
-                                new Coordinates(0.0, 0.0)))
+                                new Coordinates(BigDecimal.ZERO, BigDecimal.ZERO)))
                 .maxNumber(10)
                 .build();
     }
