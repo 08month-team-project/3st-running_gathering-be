@@ -42,7 +42,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         //OAuth2에서는 요청 특성상 응답 헤더로 받을 수 없습니다. 따라서 쿠키 방식으로 받으셔야 합니다.
         log.info(token);
         response.setContentType("application/json");
-        ResponseCookie cookie = ResponseCookie.from("Authorization","Bearer "+token)
+        ResponseCookie cookie = ResponseCookie.from("Authorization",token)
                 .path("/")
                 .sameSite("None")
                 .httpOnly(false)
