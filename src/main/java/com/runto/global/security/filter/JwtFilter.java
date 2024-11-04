@@ -31,8 +31,8 @@ public class JwtFilter extends OncePerRequestFilter {
             return;
         }
 
-        String accessToken = jwtUtil.extractAccessToken(request);
-//                .orElse(jwtUtil.oauthAccessToken(request));
+        String accessToken = Optional.ofNullable(jwtUtil.extractAccessToken(request))
+                .orElse(jwtUtil.oauthAccessToken(request));
 
         if(accessToken == null) {
             System.out.println("Authorization header is missing");
