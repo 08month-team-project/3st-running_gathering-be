@@ -28,7 +28,7 @@ public class RefreshUtil {
         Cookie cookie = new Cookie(key, value);
         cookie.setMaxAge(24*60*60*1000);
         cookie.setSecure(true);
-        cookie.setHttpOnly(true);
+        cookie.setHttpOnly(false);
 
         return cookie;
     }
