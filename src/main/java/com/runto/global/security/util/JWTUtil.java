@@ -53,17 +53,17 @@ public class JWTUtil {
         }
         return null;
     }
-//    public String oauthAccessToken(HttpServletRequest request) {
-//        Cookie[] cookies = request.getCookies();
-//        if (cookies == null) {
-//            return null;
-//        }
-//        for (Cookie cookie : cookies) {
-//            System.out.println(cookie.getName());
-//            if (cookie.getName().equals("Authorization")) {
-//                return cookie.getValue();
-//            }
-//        }
-//        return null;
-//    }
+    public String oauthAccessToken(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            return null;
+        }
+        for (Cookie cookie : cookies) {
+            System.out.println(cookie.getName());
+            if (cookie.getName().equals("Authorization")) {
+                return cookie.getValue();
+            }
+        }
+        return null;
+    }
 }
