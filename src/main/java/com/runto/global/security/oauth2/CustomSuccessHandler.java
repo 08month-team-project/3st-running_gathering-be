@@ -42,10 +42,10 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         //OAuth2에서는 요청 특성상 응답 헤더로 받을 수 없습니다. 따라서 쿠키 방식으로 받으셔야 합니다.
         log.info(token);
         response.setContentType("application/json");
-        ResponseCookie cookie = ResponseCookie.from("Authorization", token)
+        ResponseCookie cookie = ResponseCookie.from("Authorization",token)
                 .path("/")
                 .sameSite("None")
-                .httpOnly(true)
+                .httpOnly(false)
                 .domain("myspringserver.store") // 예시입니다! 서버의 도메인만 적어주면 됨
                 .secure(true) // sameSite를 None으로 지정했다면 필수
                 .build();
