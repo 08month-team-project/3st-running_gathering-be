@@ -13,6 +13,9 @@ import com.runto.domain.admin.dto.UserCountResponse;
 import com.runto.domain.admin.type.AdminStatsCount;
 import com.runto.domain.user.type.UserStatus;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -63,9 +66,9 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
     }
 
     @Override
-    public List<PenaltyDetailsResponse> findAllByPenalties(UserStatus status) {
+    public Page<PenaltyDetailsResponse> findAllByPenalties(UserStatus status, Pageable pageable) {
 
-        return queryFactory
+        List<PenaltyDetailsResponse> content = queryFactory
                 .select(Projections.constructor(PenaltyDetailsResponse.class,
                         user.nickname,
                         user.email,
@@ -74,7 +77,18 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
                 .where(userStateCondition(status))
                 .leftJoin(penaltyType(status)).on(penaltyByUserId(status)) // 조인 테이블과 조건 설정
                 .groupBy(user.nickname, user.email)
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
                 .fetch();
+
+        long total = queryFactory
+                .select(user)
+                .from(user)
+                .leftJoin(penaltyType(status)).on(penaltyByUserId(status))
+                .where(userStateCondition(status))
+                .fetchCount();
+
+        return new PageImpl<>(content, pageable, total);
     }
 
     private BooleanExpression userStateCondition(UserStatus status) {
