@@ -2,14 +2,13 @@ package com.runto.domain.gathering.dao;
 
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.runto.domain.gathering.domain.Gathering;
 import com.runto.domain.gathering.domain.QCoordinates;
-import com.runto.domain.gathering.dto.GatheringMember;
-import com.runto.domain.gathering.dto.GatheringsRequestParams;
-import com.runto.domain.gathering.dto.UserGatheringsRequestParams;
+import com.runto.domain.gathering.dto.*;
 import com.runto.domain.gathering.type.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -25,8 +24,6 @@ import java.util.List;
 
 import static com.querydsl.core.types.ConstantImpl.create;
 import static com.querydsl.core.types.dsl.MathExpressions.*;
-import static com.runto.domain.gathering.type.GatheringStatus.NORMAL;
-import static com.runto.global.utils.SortUtils.getOrderSpecifier;
 import static com.runto.domain.gathering.domain.QEventGathering.eventGathering;
 import static com.runto.domain.gathering.domain.QGathering.gathering;
 import static com.runto.domain.gathering.dto.QGatheringMember.gatheringMember;
@@ -35,6 +32,7 @@ import static com.runto.domain.gathering.type.GatheringMemberRole.ORGANIZER;
 import static com.runto.domain.gathering.type.GatheringMemberRole.PARTICIPANT;
 import static com.runto.domain.gathering.type.GatheringOrderField.APPOINTED_AT;
 import static com.runto.domain.gathering.type.GatheringStatus.DELETED;
+import static com.runto.domain.gathering.type.GatheringStatus.NORMAL;
 import static com.runto.domain.gathering.type.GatheringTimeStatus.ENDED;
 import static com.runto.domain.gathering.type.GatheringTimeStatus.ONGOING;
 import static com.runto.domain.gathering.type.GatheringType.EVENT;
@@ -42,6 +40,7 @@ import static com.runto.domain.gathering.type.GatheringType.GENERAL;
 import static com.runto.domain.gathering.type.ParticipationEligibility.AVAILABLE;
 import static com.runto.domain.gathering.type.ParticipationEligibility.NOT_AVAILABLE;
 import static com.runto.domain.user.domain.QUser.user;
+import static com.runto.global.utils.SortUtils.getOrderSpecifier;
 import static org.springframework.data.domain.Sort.Direction.ASC;
 
 @RequiredArgsConstructor
@@ -50,6 +49,50 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
 
     private final JPAQueryFactory jpaQueryFactory;
 
+    // 왜 dto 로 바로 받는 방식으로 수정했는지는 pr 참고 (관련이슈 #110)
+    public GatheringDetailResponse getGatheringDetailWithUserParticipation(Long gatheringId, Long userId) {
+
+        // 하나의 QGatheringMember 만 사용할 수 없는 상황이기때문에 따로 분리
+        QGatheringMember organizer = new QGatheringMember("organizer");
+        QGatheringMember participant = new QGatheringMember("participant");
+
+        return jpaQueryFactory.select(Projections.fields(GatheringDetailResponse.class,
+
+                        organizer.user.id.as("organizerId"),
+                        organizer.user.nickname.as("organizerNickname"),
+                        organizer.user.profileImageUrl.as("organizerProfileUrl"),
+
+                        participant.isNotNull().as("isParticipation"), // 해당 모임에 대한 참가여부 (이 값 때문에 방식을 수정하기 시작)
+                        Projections.fields(GatheringDetailContentResponse.class,
+                                gathering.id.as("id"),
+                                gathering.gatheringType.as("type"),
+                                gathering.title.as("title"),
+                                gathering.description.as("description"),
+                                gathering.appointedAt.as("appointedAt"),
+                                gathering.deadline.as("deadline"),
+                                gathering.concept.as("concept"),
+                                gathering.goalDistance.as("goalDistance"),
+                                gathering.hits.as("hits"),
+                                gathering.status.as("status"),
+                                gathering.maxNumber.as("maxNumber"),
+                                gathering.currentNumber.as("currentNumber"),
+                                eventGathering.status.as("eventRequestStatus"),// 일반모임이면 null 으로 들어감
+                                gathering.location.addressName.addressName.as("addressFullName"),
+                                Projections.fields(CoordinatesDto.class,
+                                                gathering.location.coordinates.x.as("x"),
+                                                gathering.location.coordinates.y.as("y"))
+                                        .as("coordinates")
+                        ).as("content")
+                ))
+                .from(gathering, gathering)
+                .join(gathering.gatheringMembers, organizer).on(organizer.role.eq(ORGANIZER))
+                .leftJoin(gathering.eventGathering, eventGathering)
+                .leftJoin(gathering.gatheringMembers, participant).on(participant.user.id.eq(userId))
+
+                .where(gathering.id.eq(gatheringId))
+                .fetchOne();
+
+    }
 
     @Override
     public Slice<Gathering> getUserGeneralGatherings(Long userId,
