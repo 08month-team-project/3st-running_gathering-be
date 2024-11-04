@@ -33,7 +33,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
 
         OAuth2User oAuth2User = super.loadUser(userRequest);
-        System.out.println(oAuth2User);
 
         OAuth2Response oAuth2Response = new KakaoResponse(oAuth2User.getAttributes());
 
@@ -44,20 +43,16 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         Optional<OAuth2> existData = OAuth2Repository.findByOAuth2Key(oAuth2Key);
 
+        User userEntity;
         //회원가입 시켜버리기
         if (existData.isEmpty()) {
-            User userEntity = User.of(userEmail,username)
+            userEntity = User.of(userEmail, username)
                     .withOAuth2(oAuth2Key);
-
-            userRepository.save(userEntity);
-
-            return new CustomOAuth2User(OAuth2DetailsDTO.of(userEntity));
         }else {
-            OAuth2Repository.save(existData.get());
-            User user = userRepository.findBySocialUsername(oAuth2Key)
-                    .orElseThrow(()->new UserException(USER_NOT_FOUND));
-
-            return new CustomOAuth2User(OAuth2DetailsDTO.of(user));
+            userEntity = userRepository.findByOAuth2OAuth2Key(oAuth2Key)
+                    .orElseThrow(() -> new UserException(USER_NOT_FOUND));
         }
+        userRepository.save(userEntity);
+        return new CustomOAuth2User(OAuth2DetailsDTO.of(userEntity));
     }
 }
