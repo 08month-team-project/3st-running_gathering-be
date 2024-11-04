@@ -82,7 +82,7 @@ public class ReissueFilter extends OncePerRequestFilter {
         refreshRepository.deleteByRefresh(refresh);
         refreshUtil.addRefreshEntity(username, newRefresh, 3*24*60*60*1000L);
 
-        response.setHeader("Authorization", newAccess);
+        response.setHeader("Authorization", "Bearer "+newAccess);
         response.addCookie(refreshUtil.createCookie("refresh", newRefresh));
     /*
     Rotate 되기 이전의 토큰을 가지고 서버측으로 가도 인증이 되기 때문에 서버측에서 발급했던
