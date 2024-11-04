@@ -124,4 +124,20 @@ public class GatheringController {
         return ResponseEntity.ok().build();
     }
 
+//    @PostMapping("/{gathering_id}/participation")
+//    public ResponseEntity<Void> participateGathering(@PathVariable("gathering_id") Long gatheringId,
+//                                                     @AuthenticationPrincipal CustomUserDetails userDetails) {
+//
+//        gatheringService.participateGathering(userDetails.getUserId(), gatheringId);
+//
+//        return ResponseEntity.ok().build();
+//    }
+//
+//    @DeleteMapping("/{gathering_id}/participation")
+//    public void cancelParticipateGathering(@PathVariable("gathering_id") Long gatheringId,
+//                                           @AuthenticationPrincipal CustomUserDetails userDetails) {
+//
+//
+//    }
+
 }

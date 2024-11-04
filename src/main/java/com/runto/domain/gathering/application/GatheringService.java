@@ -357,4 +357,9 @@ public class GatheringService {
 
         return GatheringsMapResponse.of(radiusDistance, x, y, generalGatheringMap);
     }
+
+//    @Transactional
+//    public void participateGathering(Long userId, Long gatheringId) {
+//
+//    }
 }
