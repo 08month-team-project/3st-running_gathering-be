@@ -7,14 +7,16 @@ import com.querydsl.core.types.dsl.StringExpression;
 import com.querydsl.core.types.dsl.StringTemplate;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.runto.domain.admin.dto.EventListResponse;
 import com.runto.domain.admin.dto.GatheringCountResponse;
 import com.runto.domain.admin.dto.MonthlyEventCountResponse;
 import com.runto.domain.admin.dto.MonthlyParticipantsResponse;
 import com.runto.domain.admin.type.AdminEventCount;
 import com.runto.domain.admin.type.AdminGatherStatsCount;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -24,12 +26,14 @@ import static com.runto.domain.gathering.domain.QEventGathering.eventGathering;
 import static com.runto.domain.gathering.domain.QGathering.gathering;
 import static com.runto.domain.gathering.type.EventRequestStatus.APPROVED;
 import static com.runto.domain.gathering.type.GatheringStatus.NORMAL;
+import static com.runto.domain.gathering.type.GatheringType.EVENT;
+import static com.runto.domain.user.domain.QUser.user;
+import static com.runto.domain.user.domain.report.QReport.report;
 
 @RequiredArgsConstructor
 @Repository
 public class GatheringMgmtRepositoryCustomImpl implements GatheringMgmtRepositoryCustom {
 
-    private static final Logger log = LoggerFactory.getLogger(GatheringMgmtRepositoryCustomImpl.class);
     private final JPAQueryFactory queryFactory;
 
     @Override
@@ -67,6 +71,39 @@ public class GatheringMgmtRepositoryCustomImpl implements GatheringMgmtRepositor
         }
 
         return query.fetch();
+    }
+
+    @Override
+    public Slice<EventListResponse> getPendingApprovalEventList(Pageable pageable) {
+        List<EventListResponse> eventList =
+                queryFactory.select(Projections.constructor(EventListResponse.class,
+                        gathering.title,
+                        gathering.createdAt,
+                        gathering.location.addressName.addressName,
+                        eventGathering.status,
+                        report.reportReason))
+                        .from(gathering)
+                        .join(eventGathering)
+                        .on(gathering.eventGathering.id.eq(eventGathering.id))
+                        .join(user)
+                        .on(user.id.eq(gathering.organizerId))
+                        .leftJoin(report)
+                        .on(report.user.id.eq(gathering.organizerId))
+                        .where(gathering.gatheringType.eq(EVENT))
+                        .orderBy(gathering.createdAt.desc())
+                        .offset(pageable.getOffset())
+                        .limit(pageable.getPageSize() + 1)
+                        .fetch();
+
+        return new SliceImpl<>(eventList, pageable, hasNextPage(pageable, eventList));
+    }
+
+    private boolean hasNextPage(Pageable pageable, List<EventListResponse> eventList){
+        if (eventList.size() > pageable.getPageSize()){
+            eventList.remove(eventList.size() - 1);
+            return true;
+        }
+        return false;
     }
 
     private Expression<?> getSelectDto(AdminEventCount eventCount, StringTemplate formatDate) {
