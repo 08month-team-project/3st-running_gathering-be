@@ -75,13 +75,14 @@ public class GatheringMgmtRepositoryCustomImpl implements GatheringMgmtRepositor
 
     @Override
     public Slice<EventListResponse> getPendingApprovalEventList(Pageable pageable) {
-        List<EventListResponse> eventList =
-                queryFactory.select(Projections.constructor(EventListResponse.class,
+        List<EventListResponse> eventList = queryFactory.select(Projections.constructor(EventListResponse.class,
+                        gathering.eventGathering.id,
                         gathering.title,
                         gathering.createdAt,
                         gathering.location.addressName.addressName,
                         eventGathering.status,
-                        report.reportReason))
+                        report.reportReason,
+                        user.email))
                         .from(gathering)
                         .join(eventGathering)
                         .on(gathering.eventGathering.id.eq(eventGathering.id))
