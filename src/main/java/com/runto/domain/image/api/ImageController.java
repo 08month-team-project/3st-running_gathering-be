@@ -6,12 +6,13 @@ import com.runto.domain.image.dto.ImageUploadRequest;
 import com.runto.domain.image.type.ImageUrlsResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-
+@Slf4j
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/images")
@@ -26,6 +27,7 @@ public class ImageController {
             @RequestPart(value = "images", required = false) List<MultipartFile> images,
             @RequestPart(value = "image_order", required = false) int[] imageOrder) { // 안에 하나하나 null 체크 하는 것보다 0으로 받기로 함
 
+        log.info("모임글 이미지 등록 컨트롤러 진입={}", images.get(0));
         return ResponseEntity.ok(imageService.registerGatheringImages(
                 ImageUploadRequest.of(representativeImageIndex, images, imageOrder)));
     }

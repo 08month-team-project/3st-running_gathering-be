@@ -45,6 +45,7 @@ public class S3ImageService {
     public List<ImageUrlDto> uploadContentImages(List<ImageDto> images,
                                                  String imageNamePrefix) {
 
+        log.info("모임글 이미지 등록 S3서비스 진입");
         if (images == null || images.size() < 1) {
             return null;
         }
