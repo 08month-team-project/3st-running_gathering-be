@@ -7,6 +7,6 @@ import lombok.Getter;
 @Builder
 public class ApprovalStatusResponse {
 
-    String message;
+    private String message;
 
 }

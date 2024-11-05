@@ -5,9 +5,9 @@ import lombok.Getter;
 @Getter
 public class MonthlyParticipantsResponse {
 
-    String month;
-    String title;
-    Integer count;
+    private String month;
+    private String title;
+    private Integer count;
 
     public MonthlyParticipantsResponse(String month, String title, Integer count) {
         this.month = month;

@@ -5,8 +5,8 @@ import lombok.Getter;
 @Getter
 public class MonthlyEventCountResponse {
 
-    String month;
-    Long count;
+    private String month;
+    private Long count;
 
     public MonthlyEventCountResponse(String month, Long count) {
         this.month = month;

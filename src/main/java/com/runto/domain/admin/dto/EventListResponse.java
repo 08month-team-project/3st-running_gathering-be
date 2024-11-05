@@ -13,20 +13,20 @@ public class EventListResponse {
     @JsonProperty("event_gathering_id")
     private Long eventGatheringId;
 
-    String title;
+    private String title;
 
     @JsonProperty("created_at")
-    LocalDateTime createdAt;
+    private LocalDateTime createdAt;
 
     @JsonProperty("address_name")
-    String addressName;
+    private String addressName;
 
-    EventRequestStatus status;
+    private EventRequestStatus status;
 
     @JsonProperty("report_reason")
-    ReportReason reportReason;
+    private ReportReason reportReason;
 
-    String email;
+    private String email;
 
     public EventListResponse(Long eventGatheringId,String title, LocalDateTime createdAt, String addressName, EventRequestStatus status, ReportReason reportReason, String email) {
         this.eventGatheringId = eventGatheringId;
