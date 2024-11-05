@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -107,7 +108,8 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
                 "}");
         response.addHeader("Authorization","Bearer "+access);
 
-        response.addCookie(refreshUtil.createCookie("refresh",refresh));
+        ResponseCookie cookie = refreshUtil.createCookie("refresh", refresh);
+        response.addHeader("Set-Cookie", cookie.toString());
         response.setStatus(HttpStatus.OK.value());
     }
     //로그인 실패시 실행하는 메소드
