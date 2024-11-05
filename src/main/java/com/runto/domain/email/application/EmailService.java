@@ -1,14 +1,19 @@
 package com.runto.domain.email.application;
 
-import com.runto.domain.gathering.type.EventRequestStatus;
+import com.runto.domain.email.exception.EmailException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import org.springframework.mail.MailSendException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
+
 import java.util.Date;
+
+import static com.runto.global.exception.ErrorCode.GENERIC_EMAIL_ERROR;
+import static com.runto.global.exception.ErrorCode.INVALID_RECIPIENT;
 
 @Service
 @RequiredArgsConstructor
@@ -41,8 +46,10 @@ public class EmailService {
             helper.setSentDate(new Date());
 
             mailSender.send(message);
+        } catch (MailSendException e) {
+            throw new EmailException(INVALID_RECIPIENT);
         } catch (Exception e) {
-            throw new RuntimeException("이메일 전송 중 오류 발생: " + e.getMessage(), e);
+            throw new EmailException(GENERIC_EMAIL_ERROR);
         }
     }
 }

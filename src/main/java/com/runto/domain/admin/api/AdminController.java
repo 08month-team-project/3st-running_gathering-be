@@ -2,6 +2,7 @@ package com.runto.domain.admin.api;
 
 import com.runto.domain.admin.application.AdminService;
 import com.runto.domain.admin.dto.*;
+import com.runto.domain.admin.type.AdminEventCount;
 import com.runto.domain.admin.type.AdminGatherStatsCount;
 import com.runto.domain.admin.type.AdminStatsCount;
 import com.runto.domain.coupon.dto.CouponRequest;
