@@ -23,9 +23,9 @@ public class ImageController {
     @Operation(summary = "모임글 이미지 등록 (1~3개 가능)")
     @PostMapping("/gatherings")
     public ResponseEntity<ImageRegisterResponse> registerGatheringImages(
-            @RequestPart(value = "representative_image_index", required = false) Integer representativeImageIndex,
-            @RequestPart(value = "images", required = false) List<MultipartFile> images,
-            @RequestPart(value = "image_order", required = false) int[] imageOrder) { // 안에 하나하나 null 체크 하는 것보다 0으로 받기로 함
+            @RequestPart(value = "representative_image_index") Integer representativeImageIndex,
+            @RequestPart(value = "images") List<MultipartFile> images,
+            @RequestPart(value = "image_order") int[] imageOrder) { // 안에 하나하나 null 체크 하는 것보다 0으로 받기로 함
 
         log.info("모임글 이미지 등록 컨트롤러 진입={}", images);
         return ResponseEntity.ok(imageService.registerGatheringImages(
