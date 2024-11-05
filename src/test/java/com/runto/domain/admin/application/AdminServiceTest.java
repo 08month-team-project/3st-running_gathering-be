@@ -8,6 +8,7 @@ import com.runto.domain.user.type.Gender;
 import com.runto.domain.user.type.UserRole;
 import com.runto.domain.user.type.UserStatus;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springdoc.core.converters.models.Pageable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,7 @@ class AdminServiceTest {
     final private UserStatus userStatus = UserStatus.BANNED;
     final private Integer pageSize = 2;
 
+    @DisplayName("api 동작확인")
     @Test
     void getPenaltiesByUser(){
 
