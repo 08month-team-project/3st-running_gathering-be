@@ -6,6 +6,7 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.StringTemplate;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.runto.domain.admin.dto.MonthUserResponse;
 import com.runto.domain.admin.dto.PenaltyDetailsResponse;
@@ -16,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -81,14 +83,13 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        long total = queryFactory
-                .select(user)
+        JPAQuery<Long> countQuery = queryFactory
+                .select(user.count())
                 .from(user)
                 .leftJoin(penaltyType(status)).on(penaltyByUserId(status))
-                .where(userStateCondition(status))
-                .fetchCount();
+                .where(userStateCondition(status));
 
-        return new PageImpl<>(content, pageable, total);
+        return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
     }
 
     private BooleanExpression userStateCondition(UserStatus status) {
