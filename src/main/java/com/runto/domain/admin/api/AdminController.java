@@ -12,6 +12,7 @@ import com.runto.domain.user.type.UserStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,8 +41,9 @@ public class AdminController {
 
     @Operation(summary = "신고 및 블랙리스트 회원 목록")
     @GetMapping("/users")
-    public ResponseEntity<List<PenaltyDetailsResponse>> getReportedUser(@RequestParam UserStatus status) {
-        List<PenaltyDetailsResponse> penaltyDetails = adminService.getPenaltiesByUser(status);
+    public ResponseEntity<List<PenaltyDetailsResponse>> getReportedUser(@RequestParam UserStatus status,
+                                                                        Pageable pageable) {
+        List<PenaltyDetailsResponse> penaltyDetails = adminService.getPenaltiesByUser(status,pageable);
         return ResponseEntity.ok(penaltyDetails);
     }
 

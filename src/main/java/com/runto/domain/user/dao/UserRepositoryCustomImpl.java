@@ -6,6 +6,7 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.StringTemplate;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.runto.domain.admin.dto.MonthUserResponse;
 import com.runto.domain.admin.dto.PenaltyDetailsResponse;
@@ -13,6 +14,10 @@ import com.runto.domain.admin.dto.UserCountResponse;
 import com.runto.domain.admin.type.AdminStatsCount;
 import com.runto.domain.user.type.UserStatus;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -63,9 +68,9 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
     }
 
     @Override
-    public List<PenaltyDetailsResponse> findAllByPenalties(UserStatus status) {
+    public Page<PenaltyDetailsResponse> findAllByPenalties(UserStatus status, Pageable pageable) {
 
-        return queryFactory
+        List<PenaltyDetailsResponse> content = queryFactory
                 .select(Projections.constructor(PenaltyDetailsResponse.class,
                         user.nickname,
                         user.email,
@@ -74,7 +79,17 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
                 .where(userStateCondition(status))
                 .leftJoin(penaltyType(status)).on(penaltyByUserId(status)) // 조인 테이블과 조건 설정
                 .groupBy(user.nickname, user.email)
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
                 .fetch();
+
+        JPAQuery<Long> countQuery = queryFactory
+                .select(user.count())
+                .from(user)
+                .leftJoin(penaltyType(status)).on(penaltyByUserId(status))
+                .where(userStateCondition(status));
+
+        return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
     }
 
     private BooleanExpression userStateCondition(UserStatus status) {

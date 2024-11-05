@@ -17,6 +17,7 @@ import com.runto.domain.user.type.UserStatus;
 import com.runto.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,8 +49,8 @@ public class AdminService {
 
     }
 
-    public List<PenaltyDetailsResponse> getPenaltiesByUser(UserStatus status) {
-        return userRepository.findAllByPenalties(status);
+    public List<PenaltyDetailsResponse> getPenaltiesByUser(UserStatus status, Pageable pageable) {
+        return userRepository.findAllByPenalties(status,pageable).getContent();
     }
 
     @Transactional
