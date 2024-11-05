@@ -118,17 +118,17 @@ public class GatheringService {
         LocalDateTime now = LocalDateTime.now();
 
         // 마감날짜 - 적어도 현재기준 X시간 이후
-        if (now.plusHours(3).isBefore(deadLine)) {
+        if (!deadLine.isAfter(now.plusHours(3))) {
             throw new GatheringException(INVALID_DEADLINE_TOO_SOON);
         }
 
         // 약속날짜 - 적어도 현재기준 X시간 이후
-        if (now.plusHours(6).isBefore(appointedAt)) {
+        if (!appointedAt.isAfter(now.plusHours(6))) {
             throw new GatheringException(INVALID_APPOINTMENT_TOO_SOON);
         }
 
         // 마감날짜 vs 약속날짜 는 적어도 X 시간차이가 나야함
-        if (appointedAt.isBefore(deadLine.plusHours(2))) {
+        if (!appointedAt.isAfter(deadLine.plusHours(2))) {
             throw new GatheringException(INVALID_DEADLINE_APPOINTMENT_INTERVAL);
         }
 
