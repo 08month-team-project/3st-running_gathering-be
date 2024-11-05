@@ -23,7 +23,7 @@ public class ImageController {
     @Operation(summary = "모임글 이미지 등록 (1~3개 가능)")
     @PostMapping("/gatherings")
     public ResponseEntity<ImageRegisterResponse> registerGatheringImages(
-            @RequestPart(value = "representative_image_index") Integer representativeImageIndex,
+            @RequestPart(value = "representative_image_index") int representativeImageIndex,
             @RequestPart(value = "images") List<MultipartFile> images,
             @RequestPart(value = "image_order") int[] imageOrder) { // 안에 하나하나 null 체크 하는 것보다 0으로 받기로 함
 
