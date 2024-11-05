@@ -18,6 +18,7 @@ public enum ErrorCode {
     INVALID_PROFILE_UPDATE_INACTIVE_USER(FORBIDDEN, "ACTIVE 상태가 아닌 회원은 프로필을 수정할 수 없습니다."),
     INVALID_UPDATE_SAME_NICKNAME(CONFLICT, "기존 닉네임과 동일합니다."),
     INVALID_CREATE_GATHERING_INACTIVE_USER(FORBIDDEN, "ACTIVE 상태가 아닌 모임을 등록할 수 없습니다."),
+    NOT_EVENT_ORGANIZER(BAD_REQUEST,"사용자는 이 이벤트의 주최자가 아닙니다."),
 
 
     // 모임글 & 이벤트 관련
