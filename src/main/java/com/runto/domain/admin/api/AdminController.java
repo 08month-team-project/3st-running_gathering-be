@@ -2,12 +2,10 @@ package com.runto.domain.admin.api;
 
 import com.runto.domain.admin.application.AdminService;
 import com.runto.domain.admin.dto.*;
-import com.runto.domain.admin.type.AdminEventCount;
 import com.runto.domain.admin.type.AdminGatherStatsCount;
 import com.runto.domain.admin.type.AdminStatsCount;
 import com.runto.domain.coupon.dto.CouponRequest;
 import com.runto.domain.user.type.UserStatus;
-import com.sun.jdi.request.EventRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -42,8 +40,9 @@ public class AdminController {
 
     @Operation(summary = "신고 및 블랙리스트 회원 목록")
     @GetMapping("/users")
-    public ResponseEntity<List<PenaltyDetailsResponse>> getReportedUser(@RequestParam UserStatus status) {
-        List<PenaltyDetailsResponse> penaltyDetails = adminService.getPenaltiesByUser(status);
+    public ResponseEntity<List<PenaltyDetailsResponse>> getReportedUser(@RequestParam UserStatus status,
+                                                                        Pageable pageable) {
+        List<PenaltyDetailsResponse> penaltyDetails = adminService.getPenaltiesByUser(status,pageable);
         return ResponseEntity.ok(penaltyDetails);
     }
 

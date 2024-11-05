@@ -2,13 +2,18 @@ package com.runto.domain.image.application;
 
 import com.runto.domain.image.dao.GatheringImageRepository;
 import com.runto.domain.image.dto.*;
+import com.runto.domain.image.exception.ImageException;
 import com.runto.domain.image.type.ImageUrlsResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
+import static com.runto.global.exception.ErrorCode.INVALID_FILE;
+
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class ImageService {
@@ -18,7 +23,11 @@ public class ImageService {
 
     public ImageRegisterResponse registerGatheringImages(ImageUploadRequest uploadRequest) {
 
-        if (uploadRequest == null) return null;
+        log.info("모임글 이미지 등록 서비스 진입");
+
+        if (uploadRequest == null){
+            throw new ImageException(INVALID_FILE);
+        }
 
         List<ImageUrlDto> contentImageUrls = s3ImageService
                 .uploadContentImages(uploadRequest.getImages(), "gathering");

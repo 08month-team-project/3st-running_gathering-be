@@ -2,6 +2,7 @@ package com.runto.domain.admin.application;
 
 import com.runto.domain.admin.dto.*;
 import com.runto.domain.admin.type.AdminEventCount;
+import com.runto.domain.admin.type.AdminEventCount;
 import com.runto.domain.admin.type.AdminGatherStatsCount;
 import com.runto.domain.coupon.dao.CouponRepository;
 import com.runto.domain.coupon.domain.Coupon;
@@ -21,6 +22,7 @@ import com.runto.domain.user.type.UserStatus;
 import com.runto.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
@@ -60,14 +62,14 @@ public class AdminService {
 
     }
 
-    public List<PenaltyDetailsResponse> getPenaltiesByUser(UserStatus status) {
-        return userRepository.findAllByPenalties(status);
+    public List<PenaltyDetailsResponse> getPenaltiesByUser(UserStatus status, Pageable pageable) {
+        return userRepository.findAllByPenalties(status,pageable).getContent();
     }
 
     @Transactional
     public void releaseUser(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(
-                ()-> new UserException(USER_NOT_FOUND));
+                ()-> new UserException(ErrorCode.USER_NOT_FOUND));
         user.releaseUser();
     }
 

@@ -19,10 +19,10 @@ public interface UserRepository extends JpaRepository<User, Long>, UserRepositor
 
 
     @Query("SELECT u " +
-            "FROM User u " +
-            "JOIN FETCH u.oAuth2 s " +
+            " FROM User u " +
+            " JOIN FETCH u.oAuth2 s " +
             "WHERE s.oAuth2Key = :oauth2_key")
-    Optional<User> findBySocialUsername(@Param("oauth2_key") String oauth2_key);
+    Optional<User> findByOAuth2OAuth2Key(@Param("oauth2_key") String oauth2_key);
 
     boolean existsByNickname(String nickname);
 }

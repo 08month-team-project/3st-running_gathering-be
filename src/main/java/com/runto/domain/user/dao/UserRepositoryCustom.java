@@ -5,6 +5,8 @@ import com.runto.domain.admin.dto.PenaltyDetailsResponse;
 import com.runto.domain.admin.dto.UserCountResponse;
 import com.runto.domain.admin.type.AdminStatsCount;
 import com.runto.domain.user.type.UserStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -16,5 +18,5 @@ public interface UserRepositoryCustom {
 
     UserCountResponse countUsersByType(AdminStatsCount statsCount);
 
-    List<PenaltyDetailsResponse> findAllByPenalties(UserStatus status);
+    Page<PenaltyDetailsResponse> findAllByPenalties(UserStatus status, Pageable pageable);
 }

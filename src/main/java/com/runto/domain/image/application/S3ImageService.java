@@ -45,9 +45,11 @@ public class S3ImageService {
     public List<ImageUrlDto> uploadContentImages(List<ImageDto> images,
                                                  String imageNamePrefix) {
 
+        log.info("모임글 이미지 등록 S3서비스 진입");
         if (images == null || images.size() < 1) {
-            return null;
+            throw new ImageException(INVALID_FILE);
         }
+
         List<ImageUrlDto> imageUrls = new ArrayList<>();
         images.forEach(imageDto -> imageUrls
                 .add(uploadImage(imageDto, imageNamePrefix)));
@@ -63,6 +65,10 @@ public class S3ImageService {
 
         try {
             MultipartFile requestFile = imageDto.getMultipartFile();
+
+            if (requestFile == null || !StringUtils.hasText(requestFile.getOriginalFilename())) {
+                throw new ImageException(INVALID_FILE);
+            }
 
             // 지원하는 이미지 확장자 파일인지 검증
             validateImageExtension(requestFile);
@@ -154,9 +160,9 @@ public class S3ImageService {
 
     private File convertToFile(String uniqueName, MultipartFile multipartFile) throws IOException {
 
-        if (multipartFile == null || multipartFile.isEmpty()) {
-            throw new ImageException(INVALID_FILE);
-        }
+//        if (multipartFile == null || multipartFile.isEmpty()) {
+//            throw new ImageException(INVALID_FILE);
+//        }
 
         File file = new File(FILE_PATH + uniqueName + "." +
                 extractExtension(Objects.requireNonNull(multipartFile.getOriginalFilename())));
@@ -175,9 +181,9 @@ public class S3ImageService {
 
     private void validateImageExtension(MultipartFile multipartFile) {
 
-        if (multipartFile == null || !StringUtils.hasText(multipartFile.getOriginalFilename())) {
-            throw new ImageException(INVALID_FILE);
-        }
+//        if (multipartFile == null || !StringUtils.hasText(multipartFile.getOriginalFilename())) {
+//            throw new ImageException(INVALID_FILE);
+//        }
 
         String extension = extractExtension(multipartFile.getOriginalFilename());
         if (!SUPPORT_IMAGE_EXTENSION.contains(extension)) {

@@ -3,30 +3,23 @@ package com.runto.domain.gathering.dto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import com.runto.domain.gathering.domain.Gathering;
-import com.runto.domain.gathering.type.GatheringStatus;
-import com.runto.domain.gathering.type.GatheringType;
-import com.runto.domain.gathering.type.GoalDistance;
-import com.runto.domain.gathering.type.RunningConcept;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import com.runto.domain.gathering.type.*;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @Getter
 public class GatheringDetailContentResponse { // 이벤트 상세조회 시에도 사용될 예정
 
+    // 유의: dto로 바로 받아오는것으로 수정했기때문에, 만약 필드관련 수정 시 GatheringRepositoryCustomImpl - getGatheringDetailWithUserParticipation 도 수정 필요
     private Long id;
 
     private GatheringType type;
 
-    private Long organizerId;
+    //private Long organizerId;
 
     private String title;
 
@@ -44,7 +37,9 @@ public class GatheringDetailContentResponse { // 이벤트 상세조회 시에�
 
     private Long hits;
 
-    private LocationDto location;
+    private String addressFullName;
+
+    private CoordinatesDto coordinates;
 
     private GatheringStatus status;
 
@@ -52,22 +47,6 @@ public class GatheringDetailContentResponse { // 이벤트 상세조회 시에�
 
     private Integer currentNumber;
 
-    public static GatheringDetailContentResponse from(Gathering gathering) {
-        return GatheringDetailContentResponse.builder()
-                .id(gathering.getId())
-                .type(gathering.getGatheringType())
-                .organizerId(gathering.getOrganizerId())
-                .title(gathering.getTitle())
-                .description(gathering.getDescription())
-                .appointedAt(gathering.getAppointedAt())
-                .deadline(gathering.getDeadline())
-                .concept(gathering.getConcept())
-                .goalDistance(gathering.getGoalDistance())
-                .hits(gathering.getHits())
-                .location(LocationDto.from(gathering.getLocation()))
-                .status(gathering.getStatus())
-                .maxNumber(gathering.getMaxNumber())
-                .currentNumber(gathering.getCurrentNumber())
-                .build();
-    }
+    private EventRequestStatus eventRequestStatus; // 일반모임이면 해당 값은 null
+
 }

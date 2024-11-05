@@ -17,14 +17,15 @@ public enum ErrorCode {
     ALREADY_EXIST_NICKNAME(CONFLICT, "이미 사용중인 닉네임입니다."),
     INVALID_PROFILE_UPDATE_INACTIVE_USER(FORBIDDEN, "ACTIVE 상태가 아닌 회원은 프로필을 수정할 수 없습니다."),
     INVALID_UPDATE_SAME_NICKNAME(CONFLICT, "기존 닉네임과 동일합니다."),
-    INVALID_CREATE_GATHERING_INACTIVE_USER(FORBIDDEN, "ACTIVE 상태가 아닌 모임을 등록할 수 없습니다."),
+    INVALID_CREATE_GATHERING_INACTIVE_USER(FORBIDDEN, "ACTIVE 상태가 아닌 회원은 모임을 등록할 수 없습니다."),
     NOT_EVENT_ORGANIZER(BAD_REQUEST,"사용자는 이 이벤트의 주최자가 아닙니다."),
-
 
     // 모임글 & 이벤트 관련
     GATHERING_NOT_FOUND(NOT_FOUND, "존재하지 않는 모임글입니다."),
     GATHERING_REPORTED(FORBIDDEN, "신고당한 모임글입니다."),
     EVENT_GATHERING_NOT_APPROVED_ONLY_ORGANIZER_CAN_VIEW(FORBIDDEN, "승인상태가 아닌 이벤트모임은 주최자 본인만 볼 수 있습니다."),
+    EVENT_GATHERING_NOT_FOUND(NOT_FOUND, "이벤트 모임이지만, 이벤트에 대한 정보가 존재하지 않습니다. 관리자에게 문의해주세요."),
+    INVALID_CREATE_GATHERING_INACTIVE_USER(FORBIDDEN, "ACTIVE 상태가 아닌 회원은 모임을 등록할 수 없습니다."),
     GENERAL_MAX_NUMBER(BAD_REQUEST, "일반 모임의 최대 인원은 2명에서 10명 사이여야 합니다."),
     EVENT_GATHERING_MAX_NUMBER(BAD_REQUEST, "이벤트 모임의 최대 인원은 10명에서 300명 사이여야 합니다."),
     INVALID_ATTENDANCE_CHECK_NOT_ORGANIZER(FORBIDDEN, "모임의 주최자가 아니면 출석체크 할 수 없습니다."),
