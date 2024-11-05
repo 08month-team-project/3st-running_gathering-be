@@ -4,6 +4,7 @@ import com.runto.domain.user.dao.RefreshRepository;
 import com.runto.domain.user.domain.Refresh;
 import jakarta.servlet.http.Cookie;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
@@ -24,11 +25,14 @@ public class RefreshUtil {
                 .build();
         refreshRepository.save(refreshEntity);
     }
-    public Cookie createCookie(String key, String value) {
-        Cookie cookie = new Cookie(key, value);
-        cookie.setMaxAge(24*60*60*1000);
-        cookie.setSecure(true);
-        cookie.setHttpOnly(false);
+    public ResponseCookie createCookie(String key, String value) {
+        ResponseCookie cookie = ResponseCookie.from(key,value)
+                .path("/")
+                .sameSite("None")
+                .httpOnly(false)
+                .domain("myspringserver.store") // 예시입니다! 서버의 도메인만 적어주면 됨
+                .secure(true) // sameSite를 None으로 지정했다면 필수
+                .build();
 
         return cookie;
     }
