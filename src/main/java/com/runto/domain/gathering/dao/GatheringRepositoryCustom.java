@@ -1,6 +1,7 @@
 package com.runto.domain.gathering.dao;
 
 import com.runto.domain.gathering.domain.Gathering;
+import com.runto.domain.gathering.dto.GatheringDetailResponse;
 import com.runto.domain.gathering.dto.GatheringMember;
 import com.runto.domain.gathering.dto.GatheringsRequestParams;
 import com.runto.domain.gathering.dto.UserGatheringsRequestParams;
@@ -31,4 +32,7 @@ public interface GatheringRepositoryCustom {
                                         GatheringsRequestParams param);
 
     List<Gathering> getGeneralGatheringMap(Double radiusDistance, BigDecimal x, BigDecimal y);
+
+    GatheringDetailResponse getGatheringDetailWithUserParticipation(
+            Long gatheringId, Long userId);
 }

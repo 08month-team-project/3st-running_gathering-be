@@ -4,10 +4,10 @@ package com.runto.domain.gathering.application;
 import com.runto.domain.gathering.dao.EventGatheringRepository;
 import com.runto.domain.gathering.dao.GatheringMemberRepository;
 import com.runto.domain.gathering.dao.GatheringRepository;
-import com.runto.domain.gathering.domain.EventGathering;
 import com.runto.domain.gathering.domain.Gathering;
 import com.runto.domain.gathering.dto.*;
 import com.runto.domain.gathering.exception.GatheringException;
+import com.runto.domain.gathering.type.EventRequestStatus;
 import com.runto.domain.gathering.type.GatheringStatus;
 import com.runto.domain.gathering.type.GatheringType;
 import com.runto.domain.image.application.ImageService;
@@ -18,8 +18,6 @@ import com.runto.domain.user.dao.UserRepository;
 import com.runto.domain.user.domain.User;
 import com.runto.domain.user.dto.UserCalenderResponse;
 import com.runto.domain.user.excepction.UserException;
-import com.runto.global.exception.ErrorCode;
-import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -145,19 +143,24 @@ public class GatheringService {
         gathering.addContentImages(gatheringImages);
     }
 
+
+    // 왜 dto 로 바로 받는 방식으로 수정했는지는 pr 참고 (관련이슈 #110)
     public GatheringDetailResponse getGatheringDetail(Long userId, Long gatheringId) {
 
-        Gathering gathering = gatheringRepository.findGatheringById(gatheringId)
-                .orElseThrow(() -> new GatheringException(GATHERING_NOT_FOUND));
 
-        checkGatheringAccessibility(userId, gathering);
-        return GatheringDetailResponse.fromGathering(gathering);
+        GatheringDetailResponse response = gatheringRepository
+                .getGatheringDetailWithUserParticipation(gatheringId, userId);
+
+        validateGatheringAccessibility(userId, response);
+        return response;
 
     }
 
-    private void checkGatheringAccessibility(Long userId, Gathering gathering) {
+    private void validateGatheringAccessibility(Long userId, GatheringDetailResponse response) {
 
-        boolean isOrganizer = Objects.equals(gathering.getOrganizerId(), userId);
+        GatheringDetailContentResponse gathering = response.getContent();
+
+        boolean isOrganizer = Objects.equals(response.getOrganizerId(), userId);
         GatheringStatus status = gathering.getStatus();
 
         if (DELETED.equals(status)) {
@@ -170,16 +173,24 @@ public class GatheringService {
         }
 
         // 승인되지 않은 이벤트모임은 주최자가 아니면 볼 수 없음
-        if (EVENT.equals(gathering.getGatheringType()) && // 이벤트인지 검증하는 조건이 무조건 먼저 들어가야함
-                !isApprovedEventForNonOrganizer(gathering.getEventGathering(), isOrganizer)) {
+        if (EVENT.equals(gathering.getType()) &&
+                !isApprovedEventForNonOrganizer(gathering.getEventRequestStatus(), isOrganizer)) {
             throw new GatheringException(EVENT_GATHERING_NOT_APPROVED_ONLY_ORGANIZER_CAN_VIEW);
         }
     }
 
-    private boolean isApprovedEventForNonOrganizer(EventGathering eventGathering, boolean isOrganizer) {
+    private boolean isApprovedEventForNonOrganizer(EventRequestStatus eventRequestStatus,
+                                                   boolean isOrganizer) {
 
+        // dto로 받기로 해서 필요 없어짐
+        // Gathering 의 타입이 Event 이지만, 이벤트에 관한 데이터가 없을 수도 있는 상황 대비
+        if (eventRequestStatus == null) {
+            throw new GatheringException(EVENT_GATHERING_NOT_FOUND);
+        }
+
+        // 승인되지 않은 이벤트는 주최자 외에는 조회 불가
         if (!isOrganizer) {
-            return APPROVED.equals(eventGathering.getStatus());
+            return APPROVED.equals(eventRequestStatus);
         }
         return true;
     }
@@ -346,4 +357,9 @@ public class GatheringService {
 
         return GatheringsMapResponse.of(radiusDistance, x, y, generalGatheringMap);
     }
+
+//    @Transactional
+//    public void participateGathering(Long userId, Long gatheringId) {
+//
+//    }
 }
