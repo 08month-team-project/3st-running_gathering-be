@@ -3,6 +3,7 @@ package com.runto.domain.image.dto;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.runto.domain.image.domain.GatheringImage;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,6 +18,7 @@ import lombok.NoArgsConstructor;
 public class ImageUrlDto {
 
     @Pattern(regexp = "^(https?|ftp)://[^\\s/$.?#].[^\\s]*\\.(webp)$", message = "유효하지 않은 이미지 URL입니다.")
+    @NotBlank(message = "등록하려는 이미지 url 이 존재하지 않습니다.")
     private String imageUrl;
 
     private int order;
