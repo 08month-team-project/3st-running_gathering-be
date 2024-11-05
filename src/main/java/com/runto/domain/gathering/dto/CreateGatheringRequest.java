@@ -38,7 +38,6 @@ public class CreateGatheringRequest {
     @NotNull(message = "약속장소는 필수값입니다.")
     private LocationDto location;
 
-    //@ValidGatheringMaxNumber // TODO 에러해결되면 교체 (현재는 서비스에서 따로 검증 후 예외발생시키는걸로 임시조치)
     private int maxNumber;
 
     @NotBlank(message = "본문 내용은 필수값입니다.")
@@ -50,13 +49,18 @@ public class CreateGatheringRequest {
 
     @NotNull(message = "목표 km 를 설정해야합니다.")
     private RunningConcept concept;
-    
+
 
     @Valid
-    private ImageRegisterResponse imageRegisterResponse;
+    private ImageRegisterResponse imageRegisterResponse; // 이미지 등록 자체를 안한다면 null
 
 
     public Gathering toEntity(User organizer, GatheringType type) {
+
+        String thumbnailUrl =
+                (imageRegisterResponse == null) ?
+                        null : imageRegisterResponse.getRepresentativeImageUrl();
+
 
         return Gathering.builder()
                 .organizerId(organizer.getId())
@@ -66,7 +70,7 @@ public class CreateGatheringRequest {
                 .deadline(deadline)
                 .concept(concept)
                 .goalDistance(goalDistance)
-                .thumbnailUrl(imageRegisterResponse.getRepresentativeImageUrl())
+                .thumbnailUrl(thumbnailUrl)
                 .location(location.toLocation())
                 .maxNumber(maxNumber)
                 .gatheringType(type)
