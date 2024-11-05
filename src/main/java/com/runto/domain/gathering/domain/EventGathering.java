@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 import static com.runto.domain.gathering.type.EventRequestStatus.PENDING;
 import static jakarta.persistence.GenerationType.IDENTITY;
 
-
 @Getter
 @NoArgsConstructor
 @Table(name = "event_gathering")
@@ -37,4 +36,11 @@ public class EventGathering extends BaseTimeEntity {
     public EventGathering(Gathering gathering) {
         this.gathering = gathering;
     }
+
+    public void updateStatus(EventRequestStatus newStatus) {
+        if (this.status != newStatus) {
+            this.status = newStatus;
+        }
+    }
+
 }
