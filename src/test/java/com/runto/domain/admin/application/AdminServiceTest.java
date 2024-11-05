@@ -41,6 +41,6 @@ class AdminServiceTest {
 
             assertNotNull(result);
 
-        assertEquals("page", result.size(), pageSize);
+            assertEquals("page", result.size(), pageSize);
     }
 }
