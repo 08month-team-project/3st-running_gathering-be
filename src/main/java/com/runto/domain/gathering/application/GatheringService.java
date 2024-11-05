@@ -90,7 +90,7 @@ public class GatheringService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
-        if (ACTIVE.equals(user.getStatus())) {
+        if (!ACTIVE.equals(user.getStatus())) {
             throw new UserException(INVALID_CREATE_GATHERING_INACTIVE_USER);
         }
 
