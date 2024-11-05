@@ -98,6 +98,8 @@ jobs:
           -e "GROUP_QUEUE_NAME=${{ secrets.GROUP_QUEUE_NAME }}" \
           -e "GROUP_ROUTING_KEY=${{ secrets.GROUP_ROUTING_KEY }}" \
           -e "BACKEND_SERVER=${{ secrets.BACKEND_SERVER }}" \
+          -e "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}" \
+          -e "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" \
           ${{ secrets.DOCKERHUB_USERNAME }}/runto-cicd:latest
 
       - name: delete old docker image
