@@ -7,6 +7,7 @@ import com.runto.domain.admin.type.AdminGatherStatsCount;
 import com.runto.domain.admin.type.AdminStatsCount;
 import com.runto.domain.coupon.dto.CouponRequest;
 import com.runto.domain.user.type.UserStatus;
+import com.sun.jdi.request.EventRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -74,7 +75,13 @@ public class AdminController {
         return ResponseEntity.ok(responses);
     }
 
-//    @Operation(summary = )
+    @Operation(summary = "이벤트 승인 및 거절")
+    @PatchMapping("/admin/events/{event-id}")
+    public ResponseEntity<ApprovalStatusResponse> updateEventApprovalStatus(@PathVariable("event-id") Long eventId,
+                                                                            @Valid @RequestBody ApprovalStatusRequest request) {
+        ApprovalStatusResponse response = adminService.updateEventApprovalStatus(eventId,request);
+        return ResponseEntity.ok(response);
+    }
 
     @PostMapping("/coupons")
     public ResponseEntity<String> addCoupon(@Valid @RequestBody CouponRequest request) {

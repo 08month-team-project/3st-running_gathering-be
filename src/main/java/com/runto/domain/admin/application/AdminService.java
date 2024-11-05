@@ -7,7 +7,13 @@ import com.runto.domain.coupon.dao.CouponRepository;
 import com.runto.domain.coupon.domain.Coupon;
 import com.runto.domain.coupon.dto.CouponRequest;
 import com.runto.domain.admin.type.AdminStatsCount;
+import com.runto.domain.email.application.EmailService;
+import com.runto.domain.gathering.dao.EventGatheringRepository;
 import com.runto.domain.gathering.dao.GatheringRepository;
+import com.runto.domain.gathering.domain.EventGathering;
+import com.runto.domain.gathering.domain.Gathering;
+import com.runto.domain.gathering.exception.GatheringException;
+import com.runto.domain.gathering.type.EventRequestStatus;
 import com.runto.domain.user.dao.UserRepository;
 import com.runto.domain.user.domain.User;
 import com.runto.domain.user.excepction.UserException;
@@ -22,6 +28,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static com.runto.domain.gathering.type.EventRequestStatus.APPROVED;
+import static com.runto.domain.gathering.type.EventRequestStatus.REJECTED;
+import static com.runto.global.exception.ErrorCode.*;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -31,6 +41,8 @@ public class AdminService {
     private final UserRepository userRepository;
     private final CouponRepository couponRepository;
     private final GatheringRepository gatheringRepository;
+    private final EventGatheringRepository eventGatheringRepository;
+    private final EmailService emailService;
 
     public List<MonthUserResponse> getUserByMonth(UserStatus status) {
         return userRepository.findAllByUserByMonth(status);
@@ -55,7 +67,7 @@ public class AdminService {
     @Transactional
     public void releaseUser(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(
-                ()-> new UserException(ErrorCode.USER_NOT_FOUND));
+                ()-> new UserException(USER_NOT_FOUND));
         user.releaseUser();
     }
 
@@ -69,5 +81,37 @@ public class AdminService {
 
     public Slice<EventListResponse> getPendingApprovalEventList(Pageable pageable) {
         return gatheringRepository.getPendingApprovalEventList(pageable);
+    }
+
+    @Transactional
+    public ApprovalStatusResponse updateEventApprovalStatus(Long eventId, ApprovalStatusRequest request) {
+        EventGathering eventGathering = eventGatheringRepository.findById(eventId)
+                .orElseThrow(() -> new GatheringException(GATHERING_NOT_FOUND));
+
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new UserException(USER_NOT_FOUND));
+
+        Gathering gathering = gatheringRepository.findGatheringById(eventGathering.getGathering().getId())
+                .orElseThrow(() -> new GatheringException(GATHERING_NOT_FOUND));
+
+        // 주최자인지 확인
+        if (!gathering.getOrganizerId().equals(user.getId())) {
+            throw new UserException(NOT_EVENT_ORGANIZER);
+        }
+
+        eventGathering.updateStatus(request.getStatus());
+
+        String recipientEmail = user.getEmail(); // 이벤트 주최자의 이메일
+
+        // 이메일 내용을 설정
+        String statusDescription = eventGathering.getStatus().getDescription();
+        String reportReason = request.getReportReason(); // 거절 사유
+
+        // 이메일 전송
+        emailService.sendApprovalStatusEmail(recipientEmail, gathering.getTitle(), statusDescription, reportReason);
+
+        return ApprovalStatusResponse.builder()
+                .message("성공적으로 처리 되었습니다.")
+                .build();
     }
 }
