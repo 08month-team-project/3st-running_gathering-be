@@ -10,6 +10,9 @@ import com.runto.domain.user.type.UserStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -58,11 +61,20 @@ public class AdminController {
     }
 
     @Operation(summary = "월별 이벤트 개설 수 조회 및 월별 참가자 수 조회 ")
-    @GetMapping("event/events_per_month")
+    @GetMapping("events/events_per_month")
     public ResponseEntity<List<?>> getEventsPerMonth(@RequestParam AdminEventCount eventCount){
         List<?> responses = adminService.getEventsPerMonth(eventCount);
         return ResponseEntity.ok(responses);
     }
+
+    @Operation(summary = "이벤트 승인대기 목록 조회")
+    @GetMapping("events")
+    public ResponseEntity<Slice<EventListResponse>> getPendingApprovalEventList(@PageableDefault(size = 5) Pageable pageable) {
+        Slice<EventListResponse> responses = adminService.getPendingApprovalEventList(pageable);
+        return ResponseEntity.ok(responses);
+    }
+
+//    @Operation(summary = )
 
     @PostMapping("/coupons")
     public ResponseEntity<String> addCoupon(@Valid @RequestBody CouponRequest request) {
