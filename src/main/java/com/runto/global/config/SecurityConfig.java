@@ -82,6 +82,7 @@ public class SecurityConfig {
         http.authorizeHttpRequests(auth-> auth
                 .requestMatchers("/**").permitAll()
                 .requestMatchers("images/**", "gatherings/**", "users/calender/**").authenticated()
+                .requestMatchers("admin/**").hasAuthority("ADMIN")
                 .anyRequest().authenticated());
         http.oauth2Login((oauth2)->oauth2.userInfoEndpoint((userInfoEndpointConfig) -> userInfoEndpointConfig
                         .userService(customOAuth2UserService))
