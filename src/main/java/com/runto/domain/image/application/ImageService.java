@@ -4,11 +4,13 @@ import com.runto.domain.image.dao.GatheringImageRepository;
 import com.runto.domain.image.dto.*;
 import com.runto.domain.image.type.ImageUrlsResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class ImageService {
@@ -17,6 +19,8 @@ public class ImageService {
     private final GatheringImageRepository gatheringImageRepository;
 
     public ImageRegisterResponse registerGatheringImages(ImageUploadRequest uploadRequest) {
+
+        log.info("모임글 이미지 등록 서비스 진입");
 
         if (uploadRequest == null) return null;
 
