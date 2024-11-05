@@ -11,8 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
 
-import static com.runto.global.exception.ErrorCode.IMAGE_ORDER_MISMATCH;
-import static com.runto.global.exception.ErrorCode.INVALID_REPRESENTATIVE_IMAGE_INDEX;
+import static com.runto.global.exception.ErrorCode.*;
 
 @Builder
 @NoArgsConstructor
@@ -23,17 +22,16 @@ public class ImageUploadRequest {
     List<ImageDto> images;
     private int representativeImageIndex;
 
-    public static ImageUploadRequest of(Integer representativeImageIndex,
+    public static ImageUploadRequest of(int representativeImageIndex,
                                         List<MultipartFile> imageFiles,
-                                        int[] contentImageOrder) {
+                                        int[] contentImageOrders) {
 
         if (imageFiles == null || imageFiles.size() < 1) {
-            return null;
+            throw new ImageException(INVALID_FILE);
         }
-        if (representativeImageIndex == null || representativeImageIndex < 0) {
-            representativeImageIndex = 0;
-        }
-        if (contentImageOrder == null || contentImageOrder.length != imageFiles.size()) {
+        if (representativeImageIndex < 0) representativeImageIndex = 0;
+
+        if (contentImageOrders == null || contentImageOrders.length != imageFiles.size()) {
             throw new ImageException(IMAGE_ORDER_MISMATCH);
         }
         if (representativeImageIndex > imageFiles.size() - 1) {
@@ -42,7 +40,7 @@ public class ImageUploadRequest {
 
         List<ImageDto> images = new ArrayList<>();
         IntStream.range(0, imageFiles.size())
-                .forEach(i -> images.add(new ImageDto(imageFiles.get(i), contentImageOrder[i])));
+                .forEach(i -> images.add(new ImageDto(imageFiles.get(i), contentImageOrders[i])));
 
         return ImageUploadRequest.builder()
                 .representativeImageIndex(representativeImageIndex)
