@@ -6,8 +6,10 @@ import com.runto.domain.gathering.domain.Gathering;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface GatheringRepository extends JpaRepository<Gathering, Long>, GatheringRepositoryCustom, GatheringMgmtRepositoryCustom {
 
-
+    Optional<Gathering> findGatheringById(Long id);
 }

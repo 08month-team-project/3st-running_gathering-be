@@ -1,6 +1,7 @@
 package com.runto.global.exception;
 
 import com.runto.domain.chat.exception.ChatException;
+import com.runto.domain.email.exception.EmailException;
 import com.runto.domain.gathering.exception.GatheringException;
 import com.runto.domain.image.exception.ImageException;
 import com.runto.domain.user.excepction.UserException;
@@ -47,6 +48,10 @@ public class GlobalExceptionHandler {
         return makeErrorResult(e.getErrorCode());
     }
 
+    @ExceptionHandler(EmailException.class)
+    public ResponseEntity<ErrorResult> handleEmailException(EmailException e) {
+        return makeErrorResult(e.getErrorCode());
+    }
 
     private ResponseEntity<ErrorResult> makeErrorResult(ErrorCode errorCode) {
         return ResponseEntity.status(errorCode.getHttpStatus())

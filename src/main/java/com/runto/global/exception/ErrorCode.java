@@ -18,7 +18,7 @@ public enum ErrorCode {
     INVALID_PROFILE_UPDATE_INACTIVE_USER(FORBIDDEN, "ACTIVE 상태가 아닌 회원은 프로필을 수정할 수 없습니다."),
     INVALID_UPDATE_SAME_NICKNAME(CONFLICT, "기존 닉네임과 동일합니다."),
     INVALID_CREATE_GATHERING_INACTIVE_USER(FORBIDDEN, "ACTIVE 상태가 아닌 회원은 모임을 등록할 수 없습니다."),
-
+    NOT_EVENT_ORGANIZER(BAD_REQUEST,"사용자는 이 이벤트의 주최자가 아닙니다."),
 
     // 모임글 & 이벤트 관련
     GATHERING_NOT_FOUND(NOT_FOUND, "존재하지 않는 모임글입니다."),
@@ -59,8 +59,13 @@ public enum ErrorCode {
     INVALID_FILE(BAD_REQUEST, "파일이 없거나 이름이 비어 있습니다."),
     IMAGE_CONVERSION_FAILED(INTERNAL_SERVER_ERROR, "이미지 변환에 실패했습니다."),
     IMAGE_ORDER_MISMATCH(BAD_REQUEST, "요청한 이미지 개수와 순서 개수가 일치하지 않습니다."),
-    INVALID_REPRESENTATIVE_IMAGE_INDEX(BAD_REQUEST, "대표 이미지 인덱스가 유효하지 않습니다.");
+    INVALID_REPRESENTATIVE_IMAGE_INDEX(BAD_REQUEST, "대표 이미지 인덱스가 유효하지 않습니다."),
+
+    // 이메일 관련
+    INVALID_RECIPIENT(BAD_REQUEST,"유효하지 않은 수신자입니다."),
+    GENERIC_EMAIL_ERROR(INTERNAL_SERVER_ERROR,"이메일 전송 중 서버오류가 발생했습니다.");
+
+
     private final HttpStatus httpStatus;
     private final String message;
 }
-

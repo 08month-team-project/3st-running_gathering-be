@@ -1,10 +1,8 @@
 package com.runto.domain.admin.api;
 
 import com.runto.domain.admin.application.AdminService;
-import com.runto.domain.admin.dto.MonthUserResponse;
-import com.runto.domain.admin.dto.GatheringCountResponse;
-import com.runto.domain.admin.dto.PenaltyDetailsResponse;
-import com.runto.domain.admin.dto.UserCountResponse;
+import com.runto.domain.admin.dto.*;
+import com.runto.domain.admin.type.AdminEventCount;
 import com.runto.domain.admin.type.AdminGatherStatsCount;
 import com.runto.domain.admin.type.AdminStatsCount;
 import com.runto.domain.coupon.dto.CouponRequest;
@@ -13,6 +11,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -58,6 +58,28 @@ public class AdminController {
     @GetMapping("gatherings/")
     public ResponseEntity<List<GatheringCountResponse>> manageGathering(@RequestParam AdminGatherStatsCount statsCount) {
         List<GatheringCountResponse> response = adminService.manageGathering(statsCount);
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "월별 이벤트 개설 수 조회 및 월별 참가자 수 조회 ")
+    @GetMapping("events/events_per_month")
+    public ResponseEntity<List<?>> getEventsPerMonth(@RequestParam AdminEventCount eventCount){
+        List<?> responses = adminService.getEventsPerMonth(eventCount);
+        return ResponseEntity.ok(responses);
+    }
+
+    @Operation(summary = "이벤트 승인대기 목록 조회")
+    @GetMapping("events")
+    public ResponseEntity<Slice<EventListResponse>> getPendingApprovalEventList(@PageableDefault(size = 5) Pageable pageable) {
+        Slice<EventListResponse> responses = adminService.getPendingApprovalEventList(pageable);
+        return ResponseEntity.ok(responses);
+    }
+
+    @Operation(summary = "이벤트 승인 및 거절")
+    @PatchMapping("/admin/events/{event-id}")
+    public ResponseEntity<ApprovalStatusResponse> updateEventApprovalStatus(@PathVariable("event-id") Long eventId,
+                                                                            @Valid @RequestBody ApprovalStatusRequest request) {
+        ApprovalStatusResponse response = adminService.updateEventApprovalStatus(eventId,request);
         return ResponseEntity.ok(response);
     }
 

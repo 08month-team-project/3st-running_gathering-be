@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>이벤트 승인 상태 변경</title>
+</head>
+<body>
+<h1>이벤트 승인 상태 변경 알림</h1>
+<p>안녕하세요,</p>
+<p>귀하의 이벤트 요청이 <strong th:text="${status}"></strong>되었습니다.</p>
+<p th:if="${status == 'REJECTED'}">
+    거절 사유: <strong th:text="${reportReason}"></strong>
+</p>
+<p>이벤트 제목: <strong th:text="${eventTitle}"></strong></p>
+<p>감사합니다.</p>
+</body>
+</html>
