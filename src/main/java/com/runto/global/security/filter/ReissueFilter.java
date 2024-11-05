@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -83,7 +84,8 @@ public class ReissueFilter extends OncePerRequestFilter {
         refreshUtil.addRefreshEntity(username, newRefresh, 3*24*60*60*1000L);
 
         response.setHeader("Authorization", "Bearer "+newAccess);
-        response.addCookie(refreshUtil.createCookie("refresh", newRefresh));
+        ResponseCookie cookie = refreshUtil.createCookie("refresh", newRefresh);
+        response.addHeader("Set-Cookie", cookie.toString());
     /*
     Rotate 되기 이전의 토큰을 가지고 서버측으로 가도 인증이 되기 때문에 서버측에서 발급했던
      Refresh들을 기억한 뒤 블랙리스트 처리를 진행하는 로직을 작성해야 한다.
