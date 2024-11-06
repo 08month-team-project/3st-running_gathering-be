@@ -118,7 +118,7 @@ public class GatheringService {
             throw new GatheringException(EVENT_GATHERING_MAX_NUMBER);
         }
     }
-    
+
     private void validateCreateDate(LocalDateTime deadLine, LocalDateTime appointedAt) {
 
         LocalDateTime now = LocalDateTime.now();
@@ -365,9 +365,10 @@ public class GatheringService {
     }
 
     // TODO: 나중에 주석 지우기
+    // TODO: 동시성 테스트 및 수정
     @Transactional
     public void participateGathering(Long userId, Long gatheringId) {
-        
+
         // [참가/취소] 에 비관락을 써보려는 이유
         // 주로 데이터 충돌이 자주 발생하거나 데이터의 일관성이 중요한 상황에서 사용
         // -> 일단 충돌이 자주 일어난다는 기준이 뭔지 잘 모르겠음
@@ -399,11 +400,6 @@ public class GatheringService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
-        // 정상유저만 참가가능
-        if (!ACTIVE.equals(user.getStatus())) {
-            throw new UserException(INVALID_PARTICIPATE_GATHERING_INACTIVE_USER);
-        }
-
         // 이미 참가중인지 확인
         if (gatheringMemberRepository.existsByGatheringIdAndUserId(gatheringId, userId)) {
             throw new GatheringException(ALREADY_PARTICIPATE_GATHERING);
@@ -414,7 +410,6 @@ public class GatheringService {
                 .orElseThrow(() -> new GatheringException(GATHERING_MEMBER_COUNT_NOT_FOUND));
 
 
-        // 사실 이 로직이 먼저 선행되는게 나을까? 싶은
         if (memberCount.getCurrentNumber() >= memberCount.getMaxNumber()) {
             throw new GatheringException(GATHERING_MEMBER_CAPACITY_EXCEEDED);
         }
@@ -422,24 +417,34 @@ public class GatheringService {
         // 먼저 참가인원 증가
         memberCount.increaseCurrentMember();
 
+        // gathering  x-lock
+        Gathering gathering = gatheringRepository.findGatheringWithEventById(gatheringId)
+                .orElseThrow(() -> new GatheringException(GATHERING_NOT_FOUND));
+
+        gathering.addMember(user, PARTICIPANT);
+    }
+
+    @Transactional
+    public void cancelParticipateGathering(Long userId, Long gatheringId) {
+
+        if (!gatheringMemberRepository.existsByGatheringIdAndUserId(gatheringId, userId)) {
+            throw new GatheringException(NOT_PARTICIPATE_GATHERING);
+        }
+
+        // gatheringMemberCount 를 비관락으로 가져옴
+        GatheringMemberCount memberCount = gatheringMemberCountRepository.findByGatheringId(gatheringId)
+                .orElseThrow(() -> new GatheringException(GATHERING_MEMBER_COUNT_NOT_FOUND));
 
         // gathering  x-lock
         Gathering gathering = gatheringRepository.findGatheringWithEventById(gatheringId)
                 .orElseThrow(() -> new GatheringException(GATHERING_NOT_FOUND));
 
-        // 신청마감날짜 확인
-        if (LocalDateTime.now().isAfter(gathering.getDeadline())) {
-            throw new GatheringException(PASSED_GATHERING_DEADLINE);
+        if (LocalDateTime.now().isAfter(gathering.getAppointedAt())) {
+            throw new GatheringException(CANNOT_CANCEL_GATHERING_PAST_APPOINTMENT);
         }
 
-        // 이벤트모임의 경우 승인된 모임만 참가가능
-        if (gathering.getEventGathering() != null &&
-                !APPROVED.equals(gathering.getEventGathering().getStatus())) {
-
-            throw new GatheringException(INVALID_PARTICIPATE_NOT_APPROVED_EVENT);
-        }
-
-        gathering.addMember(user, PARTICIPANT);
-
+        gatheringMemberRepository.deleteByGatheringIdAndUserId(gatheringId, userId);
+        memberCount.decreaseCurrentMember();
+        gathering.decreaseCurrentNumber();
     }
 }
