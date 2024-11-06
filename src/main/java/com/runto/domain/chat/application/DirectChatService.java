@@ -4,8 +4,8 @@ import com.runto.domain.chat.dao.DirectChatRoomRepository;
 import com.runto.domain.chat.dao.DirectMessageRepository;
 import com.runto.domain.chat.domain.DirectChatContent;
 import com.runto.domain.chat.domain.DirectChatRoom;
+import com.runto.domain.chat.dto.ChatRoomResponse;
 import com.runto.domain.chat.dto.DirectChatInfoDTO;
-import com.runto.domain.chat.dto.DirectChatRoomResponse;
 import com.runto.domain.chat.dto.MessageQueueDTO;
 import com.runto.domain.chat.dto.MessageResponse;
 import com.runto.domain.chat.exception.ChatException;
@@ -81,22 +81,13 @@ public class DirectChatService {
         return DirectChatInfoDTO.of(directChatRoom.getId(),me.getId(),otherUser.getId());
     }
 
-    public Slice<DirectChatRoomResponse> getDirectChatRoomList(Long userId,int pageNum,int size){
+    public Slice<ChatRoomResponse> getDirectChatRoomList(Long userId, int pageNum, int size){
         User me = userRepository.findById(userId)
                 .orElseThrow(()->new UserException(ErrorCode.USER_NOT_FOUND));
 
         Pageable pageable = PageRequest.of(pageNum,size);
 
         return directChatRoomRepository.getChatRooms(me.getId(), pageable);
-    }
-
-    @Transactional
-    public void saveDirectChatContent(MessageQueueDTO messageQueueDTO, boolean messageSent){
-        DirectChatContent directChatContent = DirectChatContent.of(messageQueueDTO);
-        if (!messageSent){
-            directChatContent.changeStatusToFailed();
-        }
-        directMessageRepository.save(directChatContent);
     }
 
     public Slice<MessageResponse> getDirectChatMessages(Long roomId, int pageNum, int size){
@@ -119,4 +110,12 @@ public class DirectChatService {
         return new SliceImpl<>(messageResponses, pageable, directChatContents.hasNext());
     }
 
+    @Transactional
+    public void saveDirectChatContent(MessageQueueDTO messageQueueDTO, boolean messageSent){
+        DirectChatContent directChatContent = DirectChatContent.of(messageQueueDTO);
+        if (!messageSent){
+            directChatContent.changeStatusToFailed();
+        }
+        directMessageRepository.save(directChatContent);
+    }
 }
