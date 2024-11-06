@@ -20,4 +20,9 @@ public interface GatheringMemberRepository extends JpaRepository<GatheringMember
             @Param("gathering_id") Long gatheringId, Pageable pageable);
 
     List<GatheringMember> findGatheringMembersByGatheringId(Long gatheringId);
+
+    @Query("select count(gm) > 0 from GatheringMember gm " +
+            "where gm.gathering.id = :gathering_id and gm.user.id =:userId")
+    boolean existsGatheringMemberByGathering(@Param("gathering_id") Long gatheringId,
+                                     @Param("user_id") Long userId);
 }
