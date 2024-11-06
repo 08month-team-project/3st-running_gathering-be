@@ -11,5 +11,4 @@ import java.util.Optional;
 @Repository
 public interface GatheringRepository extends JpaRepository<Gathering, Long>, GatheringRepositoryCustom, GatheringMgmtRepositoryCustom {
 
-    Optional<Gathering> findGatheringById(Long id);
 }

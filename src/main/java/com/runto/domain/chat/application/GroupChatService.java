@@ -41,7 +41,7 @@ public class GroupChatService {
     // 그룹 채팅방 생성
     @Transactional
     public void createGroupChatRoom(Long gatheringId){
-        Gathering gathering = gatheringRepository.findGatheringById(gatheringId)
+        Gathering gathering = gatheringRepository.findById(gatheringId)
                 .orElseThrow(()->new ChatException(ErrorCode.GATHERING_NOT_FOUND));
 
         GroupChatRoom groupChatRoom = GroupChatRoom.createRoom(gathering);
