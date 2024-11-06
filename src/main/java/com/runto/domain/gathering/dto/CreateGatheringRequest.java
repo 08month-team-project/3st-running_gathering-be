@@ -16,6 +16,8 @@ import org.hibernate.validator.constraints.Length;
 
 import java.time.LocalDateTime;
 
+import static com.runto.domain.gathering.type.GatheringStatus.NORMAL;
+
 // 등록 api 를 분리하면서 요청값에서 GatheringType 값을 삭제하였음
 // request 의 type 값을 받아서 Gathering 을 생성하던 상황 -> 일반모임생성인데 이벤트를 요청값에 넣어서 이벤트타입의 모임글로 생성될 수 있었음
 // 예외처리보다는 type 값 자체를 받지 않는 방식을 택하였음
@@ -74,6 +76,7 @@ public class CreateGatheringRequest {
                 .location(location.toLocation())
                 .maxNumber(maxNumber)
                 .gatheringType(type)
+                .status(NORMAL)
                 .build();
     }
 }
