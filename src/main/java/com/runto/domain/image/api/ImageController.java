@@ -1,8 +1,10 @@
 package com.runto.domain.image.api;
 
 import com.runto.domain.image.application.ImageService;
+import com.runto.domain.image.dto.ImageDto;
 import com.runto.domain.image.dto.ImageRegisterResponse;
 import com.runto.domain.image.dto.ImageUploadRequest;
+import com.runto.domain.image.dto.RegisterImagesRequest;
 import com.runto.domain.image.type.ImageUrlsResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+
 @Slf4j
 @RequiredArgsConstructor
 @RestController
@@ -23,13 +26,14 @@ public class ImageController {
     @Operation(summary = "모임글 이미지 등록 (1~3개 가능)")
     @PostMapping("/gatherings")
     public ResponseEntity<ImageRegisterResponse> registerGatheringImages(
-            @RequestPart(value = "representative_image_index") int representativeImageIndex,
             @RequestPart(value = "images") List<MultipartFile> images,
-            @RequestPart(value = "image_order") int[] imageOrder) { // 안에 하나하나 null 체크 하는 것보다 0으로 받기로 함
+            @RequestPart(value = "request") RegisterImagesRequest request) { // 안에 하나하나 null 체크 하는 것보다 0으로 받기로 함
 
         log.info("모임글 이미지 등록 컨트롤러 진입={}", images);
         return ResponseEntity.ok(imageService.registerGatheringImages(
-                ImageUploadRequest.of(representativeImageIndex, images, imageOrder)));
+                ImageUploadRequest.of(
+                        request.getRepresentativeImageIndex(), images,
+                        request.getImageOrders())));
     }
 
     @Operation(summary = "모임글 이미지주소 목록 가져오기 (모임글 상세조회에 사용)")
