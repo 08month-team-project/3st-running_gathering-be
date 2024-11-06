@@ -42,7 +42,11 @@ public class GatheringMemberCount {
     }
 
     public void increaseCurrentMember() {
-        if(currentNumber == null) currentNumber = 0;
+        if (currentNumber == null) currentNumber = 0;
         currentNumber++;
+    }
+
+    public void decreaseCurrentMember() {
+        currentNumber--;
     }
 }
