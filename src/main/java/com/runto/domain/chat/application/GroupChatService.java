@@ -16,7 +16,6 @@ import com.runto.domain.user.dao.UserRepository;
 import com.runto.domain.user.domain.User;
 import com.runto.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
@@ -66,8 +65,7 @@ public class GroupChatService {
 
     // 그룹 채팅방 목록 조회
     @Transactional
-    public Slice<ChatRoomResponse> getGroupChatRoomList(Long userId, int pageNum, int size){
-        Pageable pageable = PageRequest.of(pageNum,size);
+    public Slice<ChatRoomResponse> getGroupChatRoomList(Long userId, Pageable pageable){
         Slice<GroupChatRoom> groupChatRooms = groupChatRoomRepository.findGroupChatRoomById(userId, pageable);
         System.out.println("groupChatRooms: " + groupChatRooms.getContent());
         List<ChatRoomResponse> chatRoomResponses = groupChatRooms.stream().map(ChatRoomResponse::fromGroupChatRoom).toList();
@@ -77,9 +75,8 @@ public class GroupChatService {
 
 
     // 그룹 채팅방 목록에서 조회하기
-    public Slice<MessageResponse> getGroupChatRoom(Long roomId, int pageNum, int size){
+    public Slice<MessageResponse> getGroupChatRoom(Long roomId, Pageable pageable){
         LocalDateTime daysAgo = LocalDateTime.now().minusDays(2);
-        Pageable pageable = PageRequest.of(pageNum,size);
 
         Slice<GroupChatContent> groupChatContents = groupMessageRepository.findGroupChatContent(roomId,daysAgo,pageable);
 

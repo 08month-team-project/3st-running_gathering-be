@@ -17,7 +17,6 @@ import jakarta.persistence.OptimisticLockException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
@@ -81,17 +80,13 @@ public class DirectChatService {
         return DirectChatInfoDTO.of(directChatRoom.getId(),me.getId(),otherUser.getId());
     }
 
-    public Slice<ChatRoomResponse> getDirectChatRoomList(Long userId, int pageNum, int size){
+    public Slice<ChatRoomResponse> getDirectChatRoomList(Long userId, Pageable pageable){
         User me = userRepository.findById(userId)
                 .orElseThrow(()->new UserException(ErrorCode.USER_NOT_FOUND));
-
-        Pageable pageable = PageRequest.of(pageNum,size);
-
         return directChatRoomRepository.getChatRooms(me.getId(), pageable);
     }
 
-    public Slice<MessageResponse> getDirectChatMessages(Long roomId, int pageNum, int size){
-        Pageable pageable = PageRequest.of(pageNum,size);
+    public Slice<MessageResponse> getDirectChatMessages(Long roomId, Pageable pageable){
         LocalDateTime daysAgo = LocalDateTime.now().minusDays(2);
         Slice<DirectChatContent> directChatContents = directMessageRepository.findDirectChatContent(roomId, daysAgo, pageable);
 
