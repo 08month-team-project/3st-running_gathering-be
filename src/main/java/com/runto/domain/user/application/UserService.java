@@ -54,7 +54,7 @@ public class UserService {
     public void checkEmailDuplicate(CheckEmailRequest checkEmailRequest) {
         Optional<User> findUser = userRepository.findByEmail(checkEmailRequest.getEmail());
 
-        if (findUser.isPresent() && findUser.get().getStatus().equals(ACTIVE)) {
+        if (findUser.isPresent()) {
             throw new UserException(ALREADY_EXIST_USER);
         }
     }
