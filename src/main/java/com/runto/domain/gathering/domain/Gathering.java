@@ -113,12 +113,17 @@ public class Gathering extends BaseTimeEntity {
         });
     }
 
-    // TODO: 참가 구현시 동시성 적용
     public void addMember(User user, GatheringMemberRole role) {
         if (!UserStatus.ACTIVE.equals(user.getStatus())) {
             throw new GatheringException(USER_INACTIVE);
         }
         gatheringMembers.add(GatheringMember.of(this, user, role));
+        increaseCurrentNumber();
+    }
+
+    private void increaseCurrentNumber() {
+        if(currentNumber == null) currentNumber = 0;
+        currentNumber++;
     }
 
     // 해당 모임을 이벤트모임으로 신청
@@ -139,7 +144,6 @@ public class Gathering extends BaseTimeEntity {
         hits = 0L;
         status = NORMAL;
         isNormalCompleted = false;
-        currentNumber = 1; // 주최자에 대한 수
     }
 
 
