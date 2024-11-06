@@ -134,5 +134,15 @@ public class GatheringController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = " 모임 참가취소 [일반모임, 이벤트모임]")
+    @DeleteMapping("/{gathering_id}/participation")
+    public ResponseEntity<Void> cancelParticipateGathering(
+            @PathVariable("gathering_id") Long gatheringId,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        gatheringService.cancelParticipateGathering(userDetails.getUserId(), gatheringId);
+        return ResponseEntity.ok().build();
+    }
+
 
 }
