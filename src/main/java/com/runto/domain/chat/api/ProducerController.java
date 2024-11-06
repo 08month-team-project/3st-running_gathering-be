@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 public class ProducerController {
     private final ProducerService producerService;
 
-    //웹소켓 메시지 전송
+    //1:1 채팅 웹소켓 메시지 전송
     @MessageMapping("/send/direct")
     public void sendDirectMessage(@Payload MessageDTO messageDTO,
                                   @AuthenticationPrincipal CustomUserDetails userDetails){
@@ -28,9 +28,9 @@ public class ProducerController {
         producerService.sendDirectMessage(messageDTO, userDetails.getUserId());
     }
 
-    //테스트 메시지 전송 api
-    @PostMapping("/send/message")
-    public void sendMessage(@RequestBody MessageDTO messageDTO,
+    //1:1 채팅 테스트 메시지 전송 api
+    @PostMapping("/send/message/direct")
+    public void sendMessageDirect(@RequestBody MessageDTO messageDTO,
                             @AuthenticationPrincipal CustomUserDetails userDetails){
         if (messageDTO.getTimestamp() == null){
             messageDTO.setTimestamp(LocalDateTime.now());
