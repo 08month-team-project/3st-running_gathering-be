@@ -2,12 +2,15 @@ package com.runto.domain.user.application;
 
 import com.runto.domain.image.application.ImageService;
 import com.runto.domain.image.dto.ImageUrlDto;
+import com.runto.domain.user.dao.DeactivateUserRepository;
 import com.runto.domain.user.dao.UserRepository;
+import com.runto.domain.user.domain.DeactivateUser;
 import com.runto.domain.user.domain.User;
 import com.runto.domain.user.dto.CheckEmailRequest;
 import com.runto.domain.user.dto.SignupRequest;
 import com.runto.domain.user.dto.UserProfileResponse;
 import com.runto.domain.user.excepction.UserException;
+import com.runto.global.security.detail.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -29,6 +32,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final ImageService imageService;
+    private final DeactivateUserRepository deactivateUserRepository;
 
     @Transactional
     public void createUser(SignupRequest signupRequest) {
@@ -91,5 +95,18 @@ public class UserService {
 
         user.updateProfile(imageUrlDto.getImageUrl());
         return imageUrlDto;
+    }
+
+    @Transactional
+    public void deactivateUser(CustomUserDetails userDetails) {
+        User user = userRepository.findById(userDetails.getUserId())
+                .orElseThrow(() -> new UserException(USER_NOT_FOUND));
+        String email = userDetails.getUsername();
+
+        DeactivateUser deactivateUser = DeactivateUser.from(email);
+
+        deactivateUserRepository.save(deactivateUser);
+
+        userRepository.delete(user);
     }
 }

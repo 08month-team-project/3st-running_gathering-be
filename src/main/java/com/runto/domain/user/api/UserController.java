@@ -103,7 +103,11 @@ public class UserController {
                 updateUserProfile(userDetails.getUserId(), image));
     }
 
-    //TODO 회원탈퇴
-    //1) 탈퇴한 회원테이블 따로 만들기 이메일중복방지
-    //2) 탈퇴 시 이메일 더미이메일로 교체? (별로선호하지않으나 쉬울듯.)
+    @Operation(summary = "회원 탈퇴")
+    @PostMapping("/deactivate")
+    public ResponseEntity<Void> deactivateUser(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        userService.deactivateUser(userDetails);
+        return ResponseEntity.ok().build();
+    }
+
 }
