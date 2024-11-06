@@ -4,9 +4,8 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.runto.domain.chat.domain.DirectChatRoom;
 import com.runto.domain.chat.domain.QDirectChatRoom;
-import com.runto.domain.chat.dto.DirectChatRoomResponse;
+import com.runto.domain.chat.dto.ChatRoomResponse;
 import com.runto.domain.user.domain.QUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -23,12 +22,12 @@ public class DirectChatRoomRepositoryCustomImpl implements DirectChatRoomReposit
     private final JPAQueryFactory jpaQueryFactory;
 
     @Override
-    public Slice<DirectChatRoomResponse> getChatRooms(Long userId, Pageable pageable) {
+    public Slice<ChatRoomResponse> getChatRooms(Long userId, Pageable pageable) {
         QDirectChatRoom d = QDirectChatRoom.directChatRoom;
         QUser u = QUser.user;
 
-        List<DirectChatRoomResponse> chatRoomList = jpaQueryFactory
-                .select(Projections.constructor(DirectChatRoomResponse.class,
+        List<ChatRoomResponse> chatRoomList = jpaQueryFactory
+                .select(Projections.constructor(ChatRoomResponse.class,
                         d.id,
                         JPAExpressions.select(u.name)
                                 .from(u)
@@ -47,7 +46,7 @@ public class DirectChatRoomRepositoryCustomImpl implements DirectChatRoomReposit
         return new SliceImpl<>(chatRoomList, pageable, hasNextPage(pageable, chatRoomList));
     }
 
-    private boolean hasNextPage(Pageable pageable, List<DirectChatRoomResponse> chatRoomList){
+    private boolean hasNextPage(Pageable pageable, List<ChatRoomResponse> chatRoomList){
         if (chatRoomList.size() > pageable.getPageSize()){
             chatRoomList.remove(chatRoomList.size() - 1);
             return true;

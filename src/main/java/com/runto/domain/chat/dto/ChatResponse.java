@@ -10,8 +10,8 @@ import org.springframework.data.domain.Slice;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class DirectChatResponse {
+public class ChatResponse {
+
     private Long roomId;
     private Slice<MessageResponse> messages;
-
 }
