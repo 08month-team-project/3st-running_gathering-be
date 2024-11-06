@@ -37,4 +37,24 @@ public class ProducerController {
         }
         producerService.sendDirectMessage(messageDTO, userDetails.getUserId());
     }
+
+    //그룹 채팅 웹소켓 메시지 전송
+    @MessageMapping("/send/group")
+    public void sendGroupMessage(@Payload MessageDTO messageDTO,
+                                  @AuthenticationPrincipal CustomUserDetails userDetails){
+        if (messageDTO.getTimestamp() == null){
+            messageDTO.setTimestamp(LocalDateTime.now());
+        }
+        producerService.sendGroupMessage(messageDTO, userDetails.getUserId());
+    }
+
+    //그룹 채팅 테스트 메시지 전송 api
+    @PostMapping("/send/message/group")
+    public void sendMessageGroup(@RequestBody MessageDTO messageDTO,
+                            @AuthenticationPrincipal CustomUserDetails userDetails){
+        if (messageDTO.getTimestamp() == null){
+            messageDTO.setTimestamp(LocalDateTime.now());
+        }
+        producerService.sendGroupMessage(messageDTO, userDetails.getUserId());
+    }
 }
