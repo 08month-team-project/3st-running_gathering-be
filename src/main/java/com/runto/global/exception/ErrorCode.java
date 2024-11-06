@@ -48,6 +48,10 @@ public enum ErrorCode {
     GATHERING_MEMBER_CAPACITY_EXCEEDED(FORBIDDEN, "모임 정원이 초과되었습니다. 더 이상 신청할 수 없습니다."),
     INVALID_PARTICIPATE_NOT_APPROVED_EVENT(FORBIDDEN, "승인되지 않은 이벤트는 참가할 수 없습니다."),
     PASSED_GATHERING_DEADLINE(FORBIDDEN,"모임 신청 마감일자가 지났습니다."),
+    NOT_PARTICIPATE_GATHERING(BAD_REQUEST, "참가 중인 모임이 아닙니다."),
+    INVALID_PARTICIPATE_NOT_NORMAL_GATHERING(FORBIDDEN, "NORMAL 상태가 아닌 모임에는 참가할 수 없습니다."),
+    CANNOT_CANCEL_GATHERING_PAST_APPOINTMENT(FORBIDDEN, "모임약속날짜시간이 지난 경우 참가 취소할 수 없습니다."),
+
 
     // 채팅관련,
     CHATROOM_ALREADY_EXIST(CONFLICT, "이미 존재하는 채팅방입니다."),
