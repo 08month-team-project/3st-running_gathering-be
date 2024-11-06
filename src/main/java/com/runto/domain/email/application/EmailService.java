@@ -11,6 +11,7 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import java.util.Date;
+import java.util.Objects;
 
 import static com.runto.global.exception.ErrorCode.GENERIC_EMAIL_ERROR;
 import static com.runto.global.exception.ErrorCode.INVALID_RECIPIENT;
@@ -28,11 +29,7 @@ public class EmailService {
         context.setVariable("eventTitle", eventTitle);
         context.setVariable("status", status);
 
-        if (reportReason != null) {
-            context.setVariable("reportReason", reportReason);
-        } else {
-            context.setVariable("reportReason", "");
-        }
+        context.setVariable("reportReason", Objects.requireNonNullElse(reportReason, ""));
 
         String emailContent = templateEngine.process("email", context);
 

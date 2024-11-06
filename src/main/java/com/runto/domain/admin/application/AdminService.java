@@ -87,6 +87,7 @@ public class AdminService {
 
     @Transactional
     public ApprovalStatusResponse updateEventApprovalStatus(Long eventId, ApprovalStatusRequest request) {
+
         EventGathering eventGathering = eventGatheringRepository.findById(eventId)
                 .orElseThrow(() -> new GatheringException(GATHERING_NOT_FOUND));
 
