@@ -10,6 +10,7 @@ import com.runto.domain.chat.dto.ChatRoomResponse;
 import com.runto.domain.chat.dto.MessageQueueDTO;
 import com.runto.domain.chat.dto.MessageResponse;
 import com.runto.domain.chat.exception.ChatException;
+import com.runto.domain.gathering.dao.GatheringMemberRepository;
 import com.runto.domain.gathering.dao.GatheringRepository;
 import com.runto.domain.gathering.domain.Gathering;
 import com.runto.domain.user.dao.UserRepository;
@@ -32,6 +33,7 @@ import java.util.stream.Collectors;
 public class GroupChatService {
     private final GroupChatRoomUserRepository groupChatRoomUserRepository;
     private final GatheringRepository gatheringRepository;
+    private final GatheringMemberRepository gatheringMemberRepository;
     private final GroupChatRoomRepository groupChatRoomRepository;
     private final UserRepository userRepository;
     private final GroupMessageRepository groupMessageRepository;
@@ -54,6 +56,11 @@ public class GroupChatService {
                 .orElseThrow(()->new ChatException(ErrorCode.USER_NOT_FOUND));
 
         GroupChatRoom groupChatRoom = groupChatRoomRepository.findByGatheringId(gatheringId);
+
+        //모임에 참여 중인지 확인
+        if (gatheringMemberRepository.existsGatheringMemberByGathering(gatheringId,userId)){
+            throw new ChatException(ErrorCode.GATHERING_MEMBER_NOT_FOUND);
+        }
 
         //내가 그 채팅방에 참여중인지 확인
         if (groupChatRoomUserRepository.existsByGroupChatRoomAndUser(groupChatRoom,user)){
