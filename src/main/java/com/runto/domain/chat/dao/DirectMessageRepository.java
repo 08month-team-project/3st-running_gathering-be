@@ -8,7 +8,7 @@ import org.springframework.data.mongodb.repository.Query;
 
 import java.time.LocalDateTime;
 
-public interface DirectMessageRepository extends MongoRepository<DirectChatContent,Long> {
+public interface DirectMessageRepository extends MongoRepository<DirectChatContent,String> {
     @Query("{'room_id' : ?0, 'status': 'SENT', 'timestamp' :  {$gte : ?1} }")
     Slice<DirectChatContent> findDirectChatContent(Long roomId, LocalDateTime daysAgo, Pageable pageable);
 }
