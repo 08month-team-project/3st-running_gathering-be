@@ -23,6 +23,7 @@ public enum ErrorCode {
     // 모임글 & 이벤트 관련
     GATHERING_NOT_FOUND(NOT_FOUND, "존재하지 않는 모임글입니다."),
     GATHERING_REPORTED(FORBIDDEN, "신고당한 모임글입니다."),
+    GATHERING_MEMBER_NOT_FOUND(NOT_FOUND, "모임에 참여중이지 않은 사용자입니다."),
     EVENT_GATHERING_NOT_APPROVED_ONLY_ORGANIZER_CAN_VIEW(FORBIDDEN, "승인상태가 아닌 이벤트모임은 주최자 본인만 볼 수 있습니다."),
     EVENT_GATHERING_NOT_FOUND(NOT_FOUND, "이벤트 모임이지만, 이벤트에 대한 정보가 존재하지 않습니다. 관리자에게 문의해주세요."),
     GENERAL_MAX_NUMBER(BAD_REQUEST, "일반 모임의 최대 인원은 2명에서 10명 사이여야 합니다."),
@@ -43,7 +44,7 @@ public enum ErrorCode {
     INVALID_APPOINTMENT_TOO_SOON(BAD_REQUEST, "약속 날짜는 현재 기준으로 최소 6시간 이후여야 합니다."),
     INVALID_DEADLINE_APPOINTMENT_INTERVAL(BAD_REQUEST, "약속 날짜는 마감 날짜와 최소 2시간의 차이가 있어야 합니다."),
 
-    // 채팅관련,
+    // 채팅관련
     CHATROOM_ALREADY_EXIST(CONFLICT, "이미 존재하는 채팅방입니다."),
     CHATROOM_NOT_FOUND(NOT_FOUND, "존재하지 않는 채팅방입니다."),
     CHATROOM_ALREADY_JOINED(BAD_REQUEST, "이미 참여중인 채팅방입니다."),
