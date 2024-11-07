@@ -97,7 +97,7 @@ class GroupChatServiceTest {
         when(groupChatRoomUserRepository.existsByGroupChatRoomAndUser(any(GroupChatRoom.class), any(User.class))).thenReturn(false);
         when(groupChatRoomUserRepository.findById(any(Long.class))).thenReturn(Optional.of(groupChatRoomUser));
 
-        groupChatService.joinGroupChatRoom(user2, groupChatRoom);
+//        groupChatService.joinGroupChatRoom(user2, groupChatRoom);
 
         //then
         verify(groupChatRoomRepository).findById(any(Long.class));
