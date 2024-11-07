@@ -2,9 +2,11 @@ package com.runto.domain.gathering.application;
 
 
 import com.runto.domain.gathering.dao.EventGatheringRepository;
+import com.runto.domain.gathering.dao.GatheringMemberCountRepository;
 import com.runto.domain.gathering.dao.GatheringMemberRepository;
 import com.runto.domain.gathering.dao.GatheringRepository;
 import com.runto.domain.gathering.domain.Gathering;
+import com.runto.domain.gathering.domain.GatheringMemberCount;
 import com.runto.domain.gathering.dto.*;
 import com.runto.domain.gathering.exception.GatheringException;
 import com.runto.domain.gathering.type.EventRequestStatus;
@@ -36,6 +38,7 @@ import java.util.stream.Collectors;
 import static com.runto.domain.gathering.type.AttendanceStatus.*;
 import static com.runto.domain.gathering.type.EventRequestStatus.APPROVED;
 import static com.runto.domain.gathering.type.GatheringMemberRole.ORGANIZER;
+import static com.runto.domain.gathering.type.GatheringMemberRole.PARTICIPANT;
 import static com.runto.domain.gathering.type.GatheringStatus.*;
 import static com.runto.domain.gathering.type.GatheringType.EVENT;
 import static com.runto.domain.gathering.type.GatheringType.GENERAL;
@@ -54,6 +57,7 @@ public class GatheringService {
     private final GatheringRepository gatheringRepository;
     private final EventGatheringRepository eventGatheringRepository;
     private final GatheringMemberRepository gatheringMemberRepository;
+    private final GatheringMemberCountRepository gatheringMemberCountRepository;
 
 
     // TODO moveImageProcess 에러 해결되면 주석 풀기
@@ -61,7 +65,10 @@ public class GatheringService {
     public void createGatheringGeneral(Long userId, CreateGatheringRequest request) {
 
         validateMaxNumber(GENERAL, request.getMaxNumber());
-        gatheringRepository.save(createGathering(userId, request, GENERAL));
+        Gathering savedGathering = gatheringRepository.save(createGathering(userId, request, GENERAL));
+
+        // 모임인원 관리 엔티티 넣기 (이건 양방향 X)
+        gatheringMemberCountRepository.save(GatheringMemberCount.from(savedGathering));
 
         // s3 temp 경로에 있던 이미지파일들을 정식 경로에 옮기기
 //        imageService.moveImageFromTempToPermanent(request.getGatheringImageUrls()
@@ -94,7 +101,7 @@ public class GatheringService {
             throw new UserException(INVALID_CREATE_GATHERING_INACTIVE_USER);
         }
 
-        validateDate(request.getDeadline(), request.getAppointedAt());
+        validateCreateDate(request.getDeadline(), request.getAppointedAt());
 
         Gathering gathering = request.toEntity(user, type);
         gathering.addMember(user, ORGANIZER);
@@ -112,8 +119,7 @@ public class GatheringService {
         }
     }
 
-    // 나중에 시간 설정은 바뀔 수도 있음
-    private void validateDate(LocalDateTime deadLine, LocalDateTime appointedAt) {
+    private void validateCreateDate(LocalDateTime deadLine, LocalDateTime appointedAt) {
 
         LocalDateTime now = LocalDateTime.now();
 
@@ -358,8 +364,106 @@ public class GatheringService {
         return GatheringsMapResponse.of(radiusDistance, x, y, generalGatheringMap);
     }
 
-//    @Transactional
-//    public void participateGathering(Long userId, Long gatheringId) {
-//
-//    }
+    // TODO: 나중에 주석 지우기
+    // TODO: 동시성 테스트 및 수정
+    @Transactional
+    public void participateGathering(Long userId, Long gatheringId) {
+
+        // [참가/취소] 에 비관락을 써보려는 이유
+        // 주로 데이터 충돌이 자주 발생하거나 데이터의 일관성이 중요한 상황에서 사용
+        // -> 일단 충돌이 자주 일어난다는 기준이 뭔지 잘 모르겠음
+        // -> 데이터의 일관성? 은 중요함 , 순서도 중요하고
+
+
+        // [GatheringMemberCount 이 없을때] -> [] 은 Gathering이 비관락에 걸리고 있는 상황일때
+        //  0. 인증객체에서 받아온 userId로 user 엔티티 꺼내오기 (정상유저인지 등 확인, 나중에 GatheringMember 에 넣는 용)
+        //  1. GatheringMember 에 내가 있는지 확인 exist  -> 있으면 바로 예외터뜨리기
+        // [2]. Gathering 을 비관락을 걸어서 들고온다? (수정하는 작업이니까, PESSIMISTIC_WRITE)
+        // [3]. Gathering 에서의 현재인원수 체크 -> 전체인원수 이상이면 -> 바로 예외터뜨리기
+        // [4]. GathringMember를 만들어서 Gathering에 넣기 & 현재인원수 ++; -> save
+        // 근데 이 방식은... 흠... 일단 모임이, 목록조회, 상세조회 등 조회가 잦다고 생각하면,
+        // PESSIMISTIC_WRITE 로 걸면 다른 트랜잭션에서 읽기도 안되니까, 성능상 문제가..?
+        // 그리고 [s-lock] vs [x-lock] 과의 충돌 상황이 더 많이 벌어지지 않을까?
+
+// =========================================================================================
+        // [GatheringMemberCount 이 있을 때] ->  [] 은 NumberGathering lock 에 걸리고 있는 상황일때, []] 는 Gathering 도 lock 상태일때 (x- lock)
+        //  0. 인증객체에서 받아온 userId로 user 엔티티 꺼내오기 (정상유저인지 등 확인, 나중에 GatheringMember 에 넣는 용)
+        //  1. GatheringMember 에 내가 있는지 확인 exist  -> 있으면 바로 예외터뜨리기
+        //  2. NumberGathering 만 별도로 비관락을 걸어서 들고온다. (수정하는 작업이니까, PESSIMISTIC_WRITE)
+
+        // ---- 이때부터는 또 다른 참가/취소 요청 사용자는 기다려야함
+        // [3]. NumberGathering 에 있는 현재인원수 체크 -> 전체인원수 이상이면 -> 바로 예외터뜨리기
+        // [4]. NumberGathering 에 있는 현재인원수 업데이트
+        // [5]]. Gathering 꺼내오기 (x - 락) - 이 때 사실 이 작업이 끝나기 전까진  블로킹 당할텐데.. 흠... 뭔 차이지..
+        // [6]]. GathringMember를 만들어서 Gathering에 넣기 & 현재인원수++; -> save
+
+        //  로직 시작 ================================================================
+
+
+        // 비관락을 걸기 전까지의 로직에서 최대한 x-lock 으로 들고 오는 일은 없게끔 하려고했는데,
+        // user 개인은 초반부터 x - lock 걸려도 크게 상관없겠지 했는데,
+        // 하고 생각해보니, user 의 경우 일반목록조회 시에도 프로필 이미지때문에, 패치조인해서, 사용되고 있었다.
+        // gathering 에 x-lock 이 걸리는 시간을 짧게 하려는 거에 집중해버려서, 멤버들의 프로필이미지를 생각치 못하고 있었다.
+        // 다른 트랜잭션들에서 비관락때문에 대기타면서 user 를 x - lock 으로 붙잡고 있는 것보다는
+        // 구성원 멤버로 추가(addMember)를 할 때, user 엔티티를 꺼내는게 낫지 않을까? 싶었다.
+        // 어차피 파라미터로 들어오는 userId는 인증객체로 부터 뽑아온 userId 니까 존재하는 user 인건 보장이 되어있기때문에.. 초반부터 꺼낼 필요가 없을 듯한..
+
+        // 이미 참가중인지 확인
+        if (gatheringMemberRepository.existsByGatheringIdAndUserId(gatheringId, userId)) {
+            throw new GatheringException(ALREADY_PARTICIPATE_GATHERING);
+        }
+        
+        // gatheringMemberCount 를 비관락으로 가져옴
+        GatheringMemberCount memberCount = gatheringMemberCountRepository.findByGatheringId(gatheringId)
+                .orElseThrow(() -> new GatheringException(GATHERING_MEMBER_COUNT_NOT_FOUND));
+
+
+        if (memberCount.getCurrentNumber() >= memberCount.getMaxNumber()) {
+            throw new GatheringException(GATHERING_MEMBER_CAPACITY_EXCEEDED);
+        }
+
+        // 먼저 참가인원 증가
+        memberCount.increaseCurrentMember();
+
+        // gathering  x-lock
+        Gathering gathering = gatheringRepository.findGatheringWithEventById(gatheringId)
+                .orElseThrow(() -> new GatheringException(GATHERING_NOT_FOUND));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserException(USER_NOT_FOUND));
+
+        gathering.addMember(user, PARTICIPANT);
+    }
+
+    @Transactional
+    public void cancelParticipateGathering(Long userId, Long gatheringId) {
+
+        if (!gatheringMemberRepository.existsByGatheringIdAndUserId(gatheringId, userId)) {
+            throw new GatheringException(NOT_PARTICIPATE_GATHERING);
+        }
+
+        // gatheringMemberCount 를 비관락으로 가져옴
+        GatheringMemberCount memberCount = gatheringMemberCountRepository.findByGatheringId(gatheringId)
+                .orElseThrow(() -> new GatheringException(GATHERING_MEMBER_COUNT_NOT_FOUND));
+
+        // gathering  x-lock
+        Gathering gathering = gatheringRepository.findGatheringWithEventById(gatheringId)
+                .orElseThrow(() -> new GatheringException(GATHERING_NOT_FOUND));
+
+        validateCancelParticipate(userId, gathering);
+
+        gatheringMemberRepository.deleteByGatheringIdAndUserId(gatheringId, userId);
+        memberCount.decreaseCurrentMember();
+        gathering.decreaseCurrentNumber();
+    }
+
+    private void validateCancelParticipate(Long userId, Gathering gathering) {
+        if(Objects.equals(gathering.getOrganizerId(), userId)){
+            throw new GatheringException(INVALID_CANCEL_PARTICIPATE_GATHERING_ORGANIZER);
+        }
+
+        if (LocalDateTime.now().isAfter(gathering.getAppointedAt())) {
+            throw new GatheringException(INVALID_CANCEL_GATHERING_PAST_APPOINTMENT);
+        }
+    }
 }

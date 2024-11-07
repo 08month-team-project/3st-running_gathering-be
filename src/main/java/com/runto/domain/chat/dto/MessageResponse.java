@@ -1,6 +1,7 @@
 package com.runto.domain.chat.dto;
 
 import com.runto.domain.chat.domain.DirectChatContent;
+import com.runto.domain.chat.domain.GroupChatContent;
 import com.runto.domain.user.domain.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -35,6 +36,16 @@ public class MessageResponse {
                 .senderProfileImageUrl(user.getProfileImageUrl())
                 .content(directChatContent.getContent())
                 .timestamp(directChatContent.getTimestamp().toString())
+                .build();
+    }
+
+    public static MessageResponse of(GroupChatContent groupChatContent, User user){
+        return MessageResponse.builder()
+                .senderId(groupChatContent.getSenderId())
+                .senderName(user.getName())
+                .senderProfileImageUrl(user.getProfileImageUrl())
+                .content(groupChatContent.getContent())
+                .timestamp(groupChatContent.getTimestamp().toString())
                 .build();
     }
 }

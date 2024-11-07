@@ -94,7 +94,7 @@ public class AdminService {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
-        Gathering gathering = gatheringRepository.findGatheringById(eventGathering.getGathering().getId())
+        Gathering gathering = gatheringRepository.findById(eventGathering.getGathering().getId())
                 .orElseThrow(() -> new GatheringException(GATHERING_NOT_FOUND));
 
         // 주최자인지 확인
