@@ -2,7 +2,7 @@
 INSERT INTO users (email, name, nickname, gender, user_status, user_role, profile_image_url, local_id, created_at, modified_at)
 VALUES
 -- 1월 사용자
-('user01@example.com', NULL, 'User01', 'NONE', 'ACTIVE', 'USER', NULL, NULL, '2024-01-01 00:00:00', '2024-01-01 00:00:00'),
+('user01@example.com', NULL, 'User01', 'NONE', 'ACTIVE', 'USER', NULL, NULL, '2023-01-01 00:00:00', '2023-01-01 00:00:00'),
 ('user02@example.com', NULL, 'User02', 'NONE', 'BANNED', 'USER', NULL, NULL, '2024-01-05 00:00:00', '2024-01-05 00:00:00'),
 ('user03@example.com', NULL, 'User03', 'NONE', 'ACTIVE', 'USER', NULL, NULL, '2024-01-10 00:00:00', '2024-01-10 00:00:00'),
 ('user04@example.com', NULL, 'User04', 'NONE', 'ACTIVE', 'USER', NULL, NULL, '2024-01-15 00:00:00', '2024-01-15 00:00:00'),
