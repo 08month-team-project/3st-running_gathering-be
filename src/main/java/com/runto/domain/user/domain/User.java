@@ -102,5 +102,7 @@ public class User extends BaseTimeEntity {
         status = UserStatus.ACTIVE;
     }
 
-
+    public void disabledUser(){
+        status = UserStatus.DISABLED;
+    }
 }

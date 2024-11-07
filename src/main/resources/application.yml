@@ -88,6 +88,12 @@ spring:
             timeout: 5000
             starttls:
               enable: true
+  batch:
+    job:
+      enabled: false
+    jdbc:
+      initialize-schema: never
+      schema: classpath:org/springframework/batch/core/schema-mysql.sql
 
 logging:
   level:
