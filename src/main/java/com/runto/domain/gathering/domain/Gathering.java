@@ -18,7 +18,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import static com.runto.domain.gathering.type.EventRequestStatus.APPROVED;
 import static com.runto.domain.gathering.type.GatheringStatus.NORMAL;
+import static com.runto.domain.user.type.UserStatus.*;
 import static com.runto.global.exception.ErrorCode.*;
 import static lombok.AccessLevel.PROTECTED;
 
@@ -113,12 +115,41 @@ public class Gathering extends BaseTimeEntity {
         });
     }
 
-    // TODO: 참가 구현시 동시성 적용
     public void addMember(User user, GatheringMemberRole role) {
-        if (!UserStatus.ACTIVE.equals(user.getStatus())) {
+
+        // 정상 유저만 참여가능
+        if (!ACTIVE.equals(user.getStatus())) {
             throw new GatheringException(USER_INACTIVE);
         }
+
+        // 마감날짜
+        if (LocalDateTime.now().isAfter(this.getDeadline())) {
+            throw new GatheringException(PASSED_GATHERING_DEADLINE);
+        }
+        
+        // NORMAL 상태 모임에만 참가 가능
+        if (!NORMAL.equals(this.getStatus())) {
+            throw new GatheringException(INVALID_PARTICIPATE_NOT_NORMAL_GATHERING);
+        }
+
+        // 이벤트모임의 경우 승인된 모임만 참가가능
+        if (this.getEventGathering() != null &&
+                !APPROVED.equals(this.getEventGathering().getStatus())) {
+
+            throw new GatheringException(INVALID_PARTICIPATE_NOT_APPROVED_EVENT);
+        }
+
         gatheringMembers.add(GatheringMember.of(this, user, role));
+        increaseCurrentNumber();
+    }
+
+    private void increaseCurrentNumber() {
+        if (currentNumber == null) currentNumber = 0;
+        currentNumber++;
+    }
+
+    public void decreaseCurrentNumber() {
+        currentNumber--;
     }
 
     // 해당 모임을 이벤트모임으로 신청
@@ -137,13 +168,11 @@ public class Gathering extends BaseTimeEntity {
     @PrePersist
     public void prePersist() {
         hits = 0L;
-        status = NORMAL;
         isNormalCompleted = false;
-        currentNumber = 1; // 주최자에 대한 수
     }
 
 
-    public void validateBeforeCompletion (Long userId) {
+    public void validateBeforeCompletion(Long userId) {
 
         if (!Objects.equals(userId, this.organizerId)) {
             throw new GatheringException(INVALID_COMPLETE_GATHERING_NOT_ORGANIZER);
