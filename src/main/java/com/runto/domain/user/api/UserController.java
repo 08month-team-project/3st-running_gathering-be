@@ -12,6 +12,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersBuilder;
+import org.springframework.batch.core.configuration.JobRegistry;
+import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +30,8 @@ import org.springframework.web.multipart.MultipartFile;
 public class UserController {
     private final UserService userService;
     private final GatheringService gatheringService;
+    private final JobLauncher jobLauncher;
+    private final JobRegistry jobRegistry;
 
 
     @PostMapping("/signup")
@@ -110,4 +116,14 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
+    @GetMapping("/disabled")
+    public String firstApi(@RequestParam("value") String value) throws Exception {
+
+        JobParameters jobParameters = new JobParametersBuilder()
+                .addString("date", value)
+                .toJobParameters();
+
+        jobLauncher.run(jobRegistry.getJob("disabledUserJob"), jobParameters);
+        return "ok";
+    }
 }

@@ -37,7 +37,6 @@ public class DisabledUserJobConfig {
     public Job disabledUserJob(Step disabledUserStep) {
         // JobBuilder를 사용하여 Job 생성
         return new JobBuilder("disabledUserJob", jobRepository)
-                .preventRestart() // Job 재실행 방지
                 .start(disabledUserStep) // Step 시작
                 .build();
     }
