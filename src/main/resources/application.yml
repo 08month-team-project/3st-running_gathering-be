@@ -92,7 +92,7 @@ spring:
     job:
       enabled: false
     jdbc:
-      initialize-schema: never
+      initialize-schema: always
       schema: classpath:org/springframework/batch/core/schema-mysql.sql
 
 logging:
