@@ -1,5 +1,6 @@
 package com.runto.test_api;
 
+import com.runto.domain.gathering.dao.GatheringMemberCountRepository;
 import com.runto.domain.gathering.dao.GatheringRepository;
 import com.runto.domain.gathering.domain.*;
 import com.runto.domain.gathering.type.GatheringType;
@@ -24,6 +25,7 @@ import java.util.List;
 
 import static com.runto.domain.gathering.type.GatheringMemberRole.ORGANIZER;
 import static com.runto.domain.gathering.type.GatheringMemberRole.PARTICIPANT;
+import static com.runto.domain.gathering.type.GatheringStatus.NORMAL;
 import static com.runto.domain.user.type.Gender.MAN;
 import static com.runto.domain.user.type.Gender.WOMAN;
 
@@ -36,8 +38,9 @@ public class TestDataInit {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     private final GatheringRepository gatheringRepository;
+    private final GatheringMemberCountRepository gatheringMemberCountRepository;
 
-    //@EventListener(ApplicationReadyEvent.class)
+    @EventListener(ApplicationReadyEvent.class)
     @Transactional
     public void init() {
 
@@ -91,10 +94,10 @@ public class TestDataInit {
                     .thumbnailUrl(i + "번 모임 썸네일")
                     //.hits(0)
                     .location(location)
-                    //.status(NORMAL)
-                    .maxNumber(10)
-                    .currentNumber(1)
-                    .gatheringType(GatheringType.EVENT)
+                    .status(NORMAL)
+                    .maxNumber(6)
+                    //.currentNumber(0)
+                    .gatheringType(GatheringType.GENERAL)
                     .build();
             gathering.addMember(users.get(i), ORGANIZER);
 
@@ -109,38 +112,46 @@ public class TestDataInit {
             gatherings.add(gathering);
         }
 
-        for (int i = 0; i < 10; i++) {
-            Gathering gathering = Gathering.builder()
-                    .organizerId(users.get(i).getId())
-                    .title("(기한 만료) 우리 모두 달립시다 - runto" + (i+1) + "유저")
-                    .description("재밌게 달려봅시다." + i)
-                    .appointedAt(LocalDateTime.now().minusDays(i + 2))
-                    .deadline(LocalDateTime.now().minusDays(i + 1))
-                    .concept(RunningConcept.HEALTH)
-                    .goalDistance(GoalDistance.FREE)
-                    .thumbnailUrl(i + "번 모임 썸네일")
-                    //.hits(0)
-                    .location(location)
-                    //.status(NORMAL)
-                    .maxNumber(10)
-                    .currentNumber(1)
-                    .gatheringType(GatheringType.EVENT)
-                    .build();
-            gathering.applyForEvent();
-
-            gathering.addMember(users.get(i), ORGANIZER);
-
-            for (int j = 0; j < 10; j++) {
-                if (j == i) continue;
-
-                if ((i % 2 == 0 && j % 2 == 0) || (i % 2 != 0 && j % 2 != 0)) {
-                    gathering.addMember(users.get(j), PARTICIPANT);
-                }
-            }
-
-            gatherings.add(gathering);
-        }
+//        for (int i = 0; i < 10; i++) {
+//            Gathering gathering = Gathering.builder()
+//                    .organizerId(users.get(i).getId())
+//                    .title("(기한 만료) 우리 모두 달립시다 - runto" + (i+1) + "유저")
+//                    .description("재밌게 달려봅시다." + i)
+//                    .appointedAt(LocalDateTime.now().minusDays(i + 2))
+//                    .deadline(LocalDateTime.now().minusDays(i + 1))
+//                    .concept(RunningConcept.HEALTH)
+//                    .goalDistance(GoalDistance.FREE)
+//                    .thumbnailUrl(i + "번 모임 썸네일")
+//                    //.hits(0)
+//                    .location(location)
+//                    .status(NORMAL)
+//                    .maxNumber(10)
+//                    //.currentNumber(0)
+//                    .gatheringType(GatheringType.EVENT)
+//                    .build();
+//            gathering.applyForEvent();
+//
+//            gathering.addMember(users.get(i), ORGANIZER);
+//
+//            for (int j = 0; j < 10; j++) {
+//                if (j == i) continue;
+//
+//                if ((i % 2 == 0 && j % 2 == 0) || (i % 2 != 0 && j % 2 != 0)) {
+//                    gathering.addMember(users.get(j), PARTICIPANT);
+//                }
+//            }
+//
+//            gatherings.add(gathering);
+//        }
 
         gatheringRepository.saveAll(gatherings);
+
+
+        List<GatheringMemberCount> gatheringMemberCounts = new ArrayList<>();
+        gatherings.forEach(gathering ->
+                gatheringMemberCounts.add(GatheringMemberCount.from(gathering)));
+
+        gatheringMemberCountRepository.saveAll(gatheringMemberCounts);
+
     }
 }

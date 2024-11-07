@@ -397,14 +397,22 @@ public class GatheringService {
         // [5]]. Gathering 꺼내오기 (x - 락) - 이 때 사실 이 작업이 끝나기 전까진  블로킹 당할텐데.. 흠... 뭔 차이지..
         // [6]]. GathringMember를 만들어서 Gathering에 넣기 & 현재인원수++; -> save
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserException(USER_NOT_FOUND));
+        //  로직 시작 ================================================================
+
+
+        // 비관락을 걸기 전까지의 로직에서 최대한 x-lock 으로 들고 오는 일은 없게끔 하려고했는데,
+        // user 개인은 초반부터 x - lock 걸려도 크게 상관없겠지 했는데,
+        // 하고 생각해보니, user 의 경우 일반목록조회 시에도 프로필 이미지때문에, 패치조인해서, 사용되고 있었다.
+        // gathering 에 x-lock 이 걸리는 시간을 짧게 하려는 거에 집중해버려서, 멤버들의 프로필이미지를 생각치 못하고 있었다.
+        // 다른 트랜잭션들에서 비관락때문에 대기타면서 user 를 x - lock 으로 붙잡고 있는 것보다는
+        // 구성원 멤버로 추가(addMember)를 할 때, user 엔티티를 꺼내는게 낫지 않을까? 싶었다.
+        // 어차피 파라미터로 들어오는 userId는 인증객체로 부터 뽑아온 userId 니까 존재하는 user 인건 보장이 되어있기때문에.. 초반부터 꺼낼 필요가 없을 듯한..
 
         // 이미 참가중인지 확인
         if (gatheringMemberRepository.existsByGatheringIdAndUserId(gatheringId, userId)) {
             throw new GatheringException(ALREADY_PARTICIPATE_GATHERING);
         }
-
+        
         // gatheringMemberCount 를 비관락으로 가져옴
         GatheringMemberCount memberCount = gatheringMemberCountRepository.findByGatheringId(gatheringId)
                 .orElseThrow(() -> new GatheringException(GATHERING_MEMBER_COUNT_NOT_FOUND));
@@ -420,6 +428,9 @@ public class GatheringService {
         // gathering  x-lock
         Gathering gathering = gatheringRepository.findGatheringWithEventById(gatheringId)
                 .orElseThrow(() -> new GatheringException(GATHERING_NOT_FOUND));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
         gathering.addMember(user, PARTICIPANT);
     }
@@ -439,12 +450,20 @@ public class GatheringService {
         Gathering gathering = gatheringRepository.findGatheringWithEventById(gatheringId)
                 .orElseThrow(() -> new GatheringException(GATHERING_NOT_FOUND));
 
-        if (LocalDateTime.now().isAfter(gathering.getAppointedAt())) {
-            throw new GatheringException(CANNOT_CANCEL_GATHERING_PAST_APPOINTMENT);
-        }
+        validateCancelParticipate(userId, gathering);
 
         gatheringMemberRepository.deleteByGatheringIdAndUserId(gatheringId, userId);
         memberCount.decreaseCurrentMember();
         gathering.decreaseCurrentNumber();
+    }
+
+    private void validateCancelParticipate(Long userId, Gathering gathering) {
+        if(Objects.equals(gathering.getOrganizerId(), userId)){
+            throw new GatheringException(INVALID_CANCEL_PARTICIPATE_GATHERING_ORGANIZER);
+        }
+
+        if (LocalDateTime.now().isAfter(gathering.getAppointedAt())) {
+            throw new GatheringException(INVALID_CANCEL_GATHERING_PAST_APPOINTMENT);
+        }
     }
 }
