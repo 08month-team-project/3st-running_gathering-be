@@ -18,7 +18,8 @@ public enum ErrorCode {
     INVALID_PROFILE_UPDATE_INACTIVE_USER(FORBIDDEN, "ACTIVE 상태가 아닌 회원은 프로필을 수정할 수 없습니다."),
     INVALID_UPDATE_SAME_NICKNAME(CONFLICT, "기존 닉네임과 동일합니다."),
     INVALID_CREATE_GATHERING_INACTIVE_USER(FORBIDDEN, "ACTIVE 상태가 아닌 회원은 모임을 등록할 수 없습니다."),
-    NOT_EVENT_ORGANIZER(BAD_REQUEST,"사용자는 이 이벤트의 주최자가 아닙니다."),
+    INVALID_PARTICIPATE_GATHERING_INACTIVE_USER(FORBIDDEN, "ACTIVE 상태가 아닌 회원은 모임에 참가할 수 없습니다."),
+    NOT_EVENT_ORGANIZER(BAD_REQUEST, "사용자는 이 이벤트의 주최자가 아닙니다."),
 
     // 모임글 & 이벤트 관련
     GATHERING_NOT_FOUND(NOT_FOUND, "존재하지 않는 모임글입니다."),
@@ -43,6 +44,16 @@ public enum ErrorCode {
     INVALID_DEADLINE_TOO_SOON(BAD_REQUEST, "마감 날짜는 현재 기준으로 최소 3시간 이후여야 합니다."),
     INVALID_APPOINTMENT_TOO_SOON(BAD_REQUEST, "약속 날짜는 현재 기준으로 최소 6시간 이후여야 합니다."),
     INVALID_DEADLINE_APPOINTMENT_INTERVAL(BAD_REQUEST, "약속 날짜는 마감 날짜와 최소 2시간의 차이가 있어야 합니다."),
+    ALREADY_PARTICIPATE_GATHERING(CONFLICT, "이미 참가중인 모임입니다."),
+    GATHERING_MEMBER_COUNT_NOT_FOUND(NOT_FOUND, "해당 모임의 인원 수 정보를 찾을 수 없습니다. 관리자에게 문의해주세요"),
+    GATHERING_MEMBER_CAPACITY_EXCEEDED(FORBIDDEN, "모임 정원이 초과되었습니다. 더 이상 신청할 수 없습니다."),
+    INVALID_PARTICIPATE_NOT_APPROVED_EVENT(FORBIDDEN, "승인되지 않은 이벤트는 참가할 수 없습니다."),
+    PASSED_GATHERING_DEADLINE(FORBIDDEN,"모임 신청 마감일자가 지났습니다."),
+    NOT_PARTICIPATE_GATHERING(BAD_REQUEST, "참가 중인 모임이 아닙니다."),
+    INVALID_PARTICIPATE_NOT_NORMAL_GATHERING(FORBIDDEN, "NORMAL 상태가 아닌 모임에는 참가할 수 없습니다."),
+    INVALID_CANCEL_GATHERING_PAST_APPOINTMENT(FORBIDDEN, "모임약속날짜시간이 지난 경우 참가 취소할 수 없습니다."),
+    INVALID_CANCEL_PARTICIPATE_GATHERING_ORGANIZER(FORBIDDEN, "모임의 주최자는 참가취소할 수 없습니다."),
+
 
     // 채팅관련
     CHATROOM_ALREADY_EXIST(CONFLICT, "이미 존재하는 채팅방입니다."),
@@ -63,8 +74,8 @@ public enum ErrorCode {
     INVALID_REPRESENTATIVE_IMAGE_INDEX(BAD_REQUEST, "대표 이미지 인덱스가 유효하지 않습니다."),
 
     // 이메일 관련
-    INVALID_RECIPIENT(BAD_REQUEST,"유효하지 않은 수신자입니다."),
-    GENERIC_EMAIL_ERROR(INTERNAL_SERVER_ERROR,"이메일 전송 중 서버오류가 발생했습니다.");
+    INVALID_RECIPIENT(BAD_REQUEST, "유효하지 않은 수신자입니다."),
+    GENERIC_EMAIL_ERROR(INTERNAL_SERVER_ERROR, "이메일 전송 중 서버오류가 발생했습니다.");
 
 
     private final HttpStatus httpStatus;
