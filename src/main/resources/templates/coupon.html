@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>쿠폰 발급 안내</title>
+</head>
+<body>
+<h2 th:text="${couponTitle} + ' 쿠폰을 발급해 드립니다!'"></h2>
+<p>안녕하세요, 고객님!</p>
+<p>아래는 발급된 쿠폰 번호입니다:</p>
+<p><strong th:text="'쿠폰 번호: ' + ${couponCode}"></strong></p>
+<p>해당 쿠폰을 사용하여 더 많은 혜택을 즐기세요.</p>
+<p>감사합니다.</p>
+</body>
+</html>
