@@ -75,7 +75,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
             public Message<?> preSend(Message<?> message, MessageChannel channel) {
                 StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
-                String authHeader = String.valueOf(accessor.getNativeHeader("Authorization"));
+//                String authHeader = String.valueOf(accessor.getNativeHeader("Authorization"));
 
                 StompCommand command = accessor.getCommand();
 
@@ -87,19 +87,26 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                     throw new RuntimeException("STOMP 에러");
                 }
 
-                if (authHeader == null){
-                    log.error("Authorization Header 가 존재하지 않습니다");
+//                if (authHeader == null){
+//                    log.error("Authorization Header 가 존재하지 않습니다");
+//                    throw new RuntimeException("헤더가 존재하지 않음");
+//                }
+                List<String> authHeaderList = accessor.getNativeHeader("Authorization");
+
+                if (authHeaderList == null || authHeaderList.isEmpty()) {
+                    log.error("Authorization 헤더가 존재하지 않습니다");
                     throw new RuntimeException("헤더가 존재하지 않음");
                 }
-
                 String token = "";
-                String authHeaderStr = authHeader.replace("[", "").replace("]", "").trim();
+                String authHeaderStr = authHeaderList.get(0).trim(); // 첫 번째 헤더 값을 추출하고, 앞뒤 공백을 제거
+
                 if (authHeaderStr.startsWith("Bearer ")) {
                     token = authHeaderStr.substring(7);  // "Bearer " 이후 부분만 추출
                 } else {
                     log.error("Authorization 헤더 형식이 틀립니다: {}", authHeaderStr);
                     throw new RuntimeException("올바르지 않은 헤더 형식");
                 }
+
 
                 try {
                     Long userId = jwtUtil.getId(token);
