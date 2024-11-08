@@ -14,6 +14,7 @@ import static lombok.AccessLevel.PROTECTED;
 @Getter
 @NoArgsConstructor(access = PROTECTED)
 @EntityListeners(AuditingEntityListener.class)
+@Table(name = "gathering_view_record")
 @Entity
 public class GatheringViewRecord {
 

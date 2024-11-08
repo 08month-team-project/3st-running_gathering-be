@@ -53,6 +53,8 @@ public class GatheringController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable("gathering_id") Long gatheringId) {
 
+        gatheringService.hitGathering(userDetails.getUserId(), gatheringId);
+
         return ResponseEntity.ok(gatheringService.
                 getGatheringDetail(userDetails.getUserId(), gatheringId));
     }
