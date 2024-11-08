@@ -92,6 +92,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 //                    throw new RuntimeException("헤더가 존재하지 않음");
 //                }
                 List<String> authHeaderList = accessor.getNativeHeader("Authorization");
+                log.info("authHeaderList = {}",authHeaderList);
 
                 if (authHeaderList == null || authHeaderList.isEmpty()) {
                     log.error("Authorization 헤더가 존재하지 않습니다");
