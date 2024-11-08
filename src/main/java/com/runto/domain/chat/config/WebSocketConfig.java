@@ -93,11 +93,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 }
 
                 String token = "";
-                String authHeaderStr = authHeader.replace("[","").replace("]","");
-                if (authHeaderStr.startsWith("Bearer ")) {
-                    token = authHeaderStr.replace("Bearer ", "");
+                if (authHeader.startsWith("Bearer ")) {
+                    token = authHeader.replace("Bearer ", "");
                 } else {
-                    log.error("Authorization 헤더 형식이 틀립니다. : {}", authHeaderStr);
+                    log.error("Authorization 헤더 형식이 틀립니다. : {}", authHeader);
                     throw new RuntimeException("올바르지 않은 헤더 형식");
                 }
 
