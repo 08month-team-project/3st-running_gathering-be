@@ -6,6 +6,7 @@ import com.runto.global.security.util.JWTUtil;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
@@ -36,10 +37,13 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private static final Logger log = LoggerFactory.getLogger(WebSocketConfig.class);
     private final JWTUtil jwtUtil;
 
+    @Value("${servername}")
+    private String serverName;
+
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-                .setAllowedOrigins("http://localhost:3000", "https://myspringserver.store")
+                .setAllowedOrigins("http://localhost:3000", serverName)
 //                .setAllowedOrigins("https://runto.vercel.app/")
 //                .addInterceptors(new SocketInterceptor(jwtUtil))
                 .withSockJS()
