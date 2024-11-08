@@ -407,7 +407,7 @@ public class GatheringService {
     // TODO: 나중에 주석 지우기
     // TODO: 동시성 테스트 및 수정
     @Transactional
-    public void participateGathering(Long userId, Long gatheringId) {
+    public ParticipateGatheringResponse participateGathering(Long userId, Long gatheringId) {
 
         // [참가/취소] 에 비관락을 써보려는 이유
         // 주로 데이터 충돌이 자주 발생하거나 데이터의 일관성이 중요한 상황에서 사용
@@ -472,6 +472,8 @@ public class GatheringService {
                 .orElseThrow(() -> new GatheringException(GATHERING_NOT_FOUND));
 
         gathering.addMember(user, PARTICIPANT);
+
+        return ParticipateGatheringResponse.from(gathering);
     }
 
     @Transactional

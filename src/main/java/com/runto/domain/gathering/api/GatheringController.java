@@ -126,12 +126,12 @@ public class GatheringController {
 
     @Operation(summary = " 모임 참가 [일반모임, 이벤트모임]")
     @PostMapping("/{gathering_id}/participation")
-    public ResponseEntity<Void> participateGathering(
+    public ResponseEntity<ParticipateGatheringResponse> participateGathering(
             @PathVariable("gathering_id") Long gatheringId,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        gatheringService.participateGathering(userDetails.getUserId(), gatheringId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(gatheringService
+                .participateGathering(userDetails.getUserId(), gatheringId));
     }
 
     @Operation(summary = " 모임 참가취소 [일반모임, 이벤트모임]")
