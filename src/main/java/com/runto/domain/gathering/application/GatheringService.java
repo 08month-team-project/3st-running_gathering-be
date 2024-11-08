@@ -1,16 +1,13 @@
 package com.runto.domain.gathering.application;
 
 
-import com.runto.domain.gathering.dao.EventGatheringRepository;
-import com.runto.domain.gathering.dao.GatheringMemberCountRepository;
-import com.runto.domain.gathering.dao.GatheringMemberRepository;
-import com.runto.domain.gathering.dao.GatheringRepository;
+import com.runto.domain.gathering.dao.*;
 import com.runto.domain.gathering.domain.Gathering;
 import com.runto.domain.gathering.domain.GatheringMemberCount;
+import com.runto.domain.gathering.domain.GatheringViewRecord;
 import com.runto.domain.gathering.dto.*;
 import com.runto.domain.gathering.exception.GatheringException;
 import com.runto.domain.gathering.type.EventRequestStatus;
-import com.runto.domain.gathering.type.GatheringStatus;
 import com.runto.domain.gathering.type.GatheringType;
 import com.runto.domain.image.application.ImageService;
 import com.runto.domain.image.domain.GatheringImage;
@@ -25,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -44,6 +42,7 @@ import static com.runto.domain.gathering.type.GatheringType.EVENT;
 import static com.runto.domain.gathering.type.GatheringType.GENERAL;
 import static com.runto.domain.user.type.UserStatus.ACTIVE;
 import static com.runto.global.exception.ErrorCode.*;
+import static org.springframework.transaction.annotation.Propagation.*;
 
 @Slf4j
 @Transactional(readOnly = true)
@@ -58,17 +57,20 @@ public class GatheringService {
     private final EventGatheringRepository eventGatheringRepository;
     private final GatheringMemberRepository gatheringMemberRepository;
     private final GatheringMemberCountRepository gatheringMemberCountRepository;
+    private final GatheringViewRecordRepository gatheringViewRecordRepository;
 
 
     // TODO moveImageProcess 에러 해결되면 주석 풀기
     @Transactional
-    public void createGatheringGeneral(Long userId, CreateGatheringRequest request) {
+    public CreateGatheringResponse createGatheringGeneral(Long userId, CreateGatheringRequest request) {
 
         validateMaxNumber(GENERAL, request.getMaxNumber());
         Gathering savedGathering = gatheringRepository.save(createGathering(userId, request, GENERAL));
 
         // 모임인원 관리 엔티티 넣기 (이건 양방향 X)
         gatheringMemberCountRepository.save(GatheringMemberCount.from(savedGathering));
+
+        return CreateGatheringResponse.from(savedGathering);
 
         // s3 temp 경로에 있던 이미지파일들을 정식 경로에 옮기기
 //        imageService.moveImageFromTempToPermanent(request.getGatheringImageUrls()
@@ -150,31 +152,71 @@ public class GatheringService {
     }
 
 
+    /**
+     * 현재 서비스의 경우, 모든 조회 자체가 로그인회원만 접근 할 수 있는 상황
+     * <p>
+     * 조회수 카운팅을 일정 기간 동안 이미 조회했는지로 따질 건지, -> 레디스가 필수?
+     * 아니면, 한번 조회했으면, 영영 더이상 카운팅 되지 않게 할 건지?
+     * <p>
+     * Redis에 조회수를 캐싱하고, 일정 주기마다 데이터베이스와 동기화하는 방식은 특히 조회 수가 많은 서비스에서 효과적
+     * 근데 일단 우리는 Redis를 적용한 곳이 없어서, 막바지에 조회수 하나때문에 Redis를 도입한다라.. 애매하다
+     * <p>
+     * 비관적 락
+     * 충돌이 많이 발생하고 데이터의 일관성, 정합성들이 중요시될 때
+     * <p>
+     * 낙관적 락
+     * 충돌이 적게 발생하고 데이터의 일관성, 정합성보다는 성능이 중요시될 때
+     *
+     */
     // 왜 dto 로 바로 받는 방식으로 수정했는지는 pr 참고 (관련이슈 #110)
+    // TODO: 조회수 로직 추가
     public GatheringDetailResponse getGatheringDetail(Long userId, Long gatheringId) {
 
+        //hitGathering(userId, gatheringId);
 
         GatheringDetailResponse response = gatheringRepository
                 .getGatheringDetailWithUserParticipation(gatheringId, userId);
 
         validateGatheringAccessibility(userId, response);
+
         return response;
 
     }
 
+
+    // QUESTION: 이걸 new 로 잡았는데, 얘도 read_only 로 된다.
+    // Connection is read-only. Queries leading to data modification are not allowed
+    // 조회 수 증가를 했을 시, 나중에 dto 꺼내올때 그게 반영된 모임이어야함
+    //@Transactional(readOnly = false, propagation = REQUIRES_NEW)
+    @Transactional
+    public void hitGathering(Long userId, Long gatheringId) {
+        if (gatheringViewRecordRepository.existsByGatheringIdAndUserId(gatheringId, userId))
+            return;
+
+        // 문제는 조회할 Gathering 이 문제임 (동시성제어 필요)
+        Gathering gathering = gatheringRepository.findById(gatheringId)
+                .orElseThrow(() -> new GatheringException(GATHERING_NOT_FOUND));
+
+        gatheringViewRecordRepository
+                .save(new GatheringViewRecord(gatheringId, userId));
+
+        gathering.increaseHits();
+        //gatheringRepository.flush();
+    }
+
     private void validateGatheringAccessibility(Long userId, GatheringDetailResponse response) {
+
+        if (response == null || DELETED.equals(response.getContent().getStatus())) {
+            throw new GatheringException(GATHERING_NOT_FOUND);
+        }
 
         GatheringDetailContentResponse gathering = response.getContent();
 
         boolean isOrganizer = Objects.equals(response.getOrganizerId(), userId);
-        GatheringStatus status = gathering.getStatus();
 
-        if (DELETED.equals(status)) {
-            throw new GatheringException(GATHERING_NOT_FOUND);
-        }
 
         // 신고당한 모임글 상세조회는 작성자만 볼 수 있음
-        if (!isOrganizer && REPORTED.equals(status)) {
+        if (!isOrganizer && REPORTED.equals(gathering.getStatus())) {
             throw new GatheringException(GATHERING_REPORTED);
         }
 
@@ -367,7 +409,7 @@ public class GatheringService {
     // TODO: 나중에 주석 지우기
     // TODO: 동시성 테스트 및 수정
     @Transactional
-    public void participateGathering(Long userId, Long gatheringId) {
+    public ParticipateGatheringResponse participateGathering(Long userId, Long gatheringId) {
 
         // [참가/취소] 에 비관락을 써보려는 이유
         // 주로 데이터 충돌이 자주 발생하거나 데이터의 일관성이 중요한 상황에서 사용
@@ -412,11 +454,10 @@ public class GatheringService {
         if (gatheringMemberRepository.existsByGatheringIdAndUserId(gatheringId, userId)) {
             throw new GatheringException(ALREADY_PARTICIPATE_GATHERING);
         }
-        
+
         // gatheringMemberCount 를 비관락으로 가져옴
         GatheringMemberCount memberCount = gatheringMemberCountRepository.findByGatheringId(gatheringId)
                 .orElseThrow(() -> new GatheringException(GATHERING_MEMBER_COUNT_NOT_FOUND));
-
 
         if (memberCount.getCurrentNumber() >= memberCount.getMaxNumber()) {
             throw new GatheringException(GATHERING_MEMBER_CAPACITY_EXCEEDED);
@@ -425,14 +466,16 @@ public class GatheringService {
         // 먼저 참가인원 증가
         memberCount.increaseCurrentMember();
 
-        // gathering  x-lock
-        Gathering gathering = gatheringRepository.findGatheringWithEventById(gatheringId)
-                .orElseThrow(() -> new GatheringException(GATHERING_NOT_FOUND));
-
+        // x-lock
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
+        Gathering gathering = gatheringRepository.findGatheringWithEventById(gatheringId)
+                .orElseThrow(() -> new GatheringException(GATHERING_NOT_FOUND));
+
         gathering.addMember(user, PARTICIPANT);
+
+        return ParticipateGatheringResponse.from(gathering);
     }
 
     @Transactional
@@ -458,7 +501,7 @@ public class GatheringService {
     }
 
     private void validateCancelParticipate(Long userId, Gathering gathering) {
-        if(Objects.equals(gathering.getOrganizerId(), userId)){
+        if (Objects.equals(gathering.getOrganizerId(), userId)) {
             throw new GatheringException(INVALID_CANCEL_PARTICIPATE_GATHERING_ORGANIZER);
         }
 
