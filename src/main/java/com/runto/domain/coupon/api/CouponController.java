@@ -21,6 +21,7 @@ public class CouponController {
     private final JobLauncher jobLauncher;
     private final JobRegistry jobRegistry;
 
+    // 배치 추가
     @PatchMapping("/coupons/{coupon-id}/request")
     public ResponseEntity<String> requestCoupon(@PathVariable("coupon-id") Long couponId,
                                                 @RequestParam("value") String value,
