@@ -3,12 +3,14 @@ package com.runto.domain.coupon.api;
 import com.runto.domain.coupon.application.CouponService;
 import com.runto.global.security.detail.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
+import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersBuilder;
+import org.springframework.batch.core.configuration.JobRegistry;
+import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.batch.core.launch.NoSuchJobException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/coupons")
@@ -16,11 +18,21 @@ import org.springframework.web.bind.annotation.RestController;
 public class CouponController {
 
     private final CouponService couponService;
+    private final JobLauncher jobLauncher;
+    private final JobRegistry jobRegistry;
 
     @PatchMapping("/coupons/{coupon-id}/request")
     public ResponseEntity<String> requestCoupon(@PathVariable("coupon-id") Long couponId,
-                                                @AuthenticationPrincipal CustomUserDetails userDetails) {
+                                                @RequestParam("value") String value,
+                                                @AuthenticationPrincipal CustomUserDetails userDetails) throws Exception  {
         couponService.requestCoupon(couponId, userDetails);
+
+        JobParameters jobParameters = new JobParametersBuilder()
+                .addString("date", value)
+                .toJobParameters();
+
+        jobLauncher.run(jobRegistry.getJob("couponJob"), jobParameters);
+
         return ResponseEntity.ok("쿠폰 요청이 성공적으로 처리되었습니다.");
     }
 
