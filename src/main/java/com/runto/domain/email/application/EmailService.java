@@ -10,7 +10,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
-
+import java.util.UUID;
 import java.util.Date;
 import java.util.Objects;
 
@@ -51,4 +51,34 @@ public class EmailService {
             throw new EmailException(GENERIC_EMAIL_ERROR);
         }
     }
+
+    @Async
+    public void sendRequestCoupon(String to, String couponTitle) {
+
+        // 임시 쿠폰 번호 생성
+        String couponCode = "COUPON-" + UUID.randomUUID().toString().substring(0, 8);
+
+        Context context = new Context();
+        context.setVariable("couponTitle", couponTitle);
+        context.setVariable("couponCode", couponCode);
+
+        String emailContent = templateEngine.process("coupon", context);
+
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+            helper.setTo(to);
+            helper.setSubject("런투에서 발급하는 쿠폰입니다.");
+            helper.setText(emailContent, true);
+            helper.setSentDate(new Date());
+
+            mailSender.send(message);
+        } catch (MailSendException e) {
+            throw new EmailException(INVALID_RECIPIENT);
+        } catch (Exception e) {
+            throw new EmailException(GENERIC_EMAIL_ERROR);
+        }
+    }
+
 }
