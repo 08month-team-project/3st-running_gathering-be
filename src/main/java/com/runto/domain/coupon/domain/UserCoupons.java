@@ -1,6 +1,7 @@
 package com.runto.domain.coupon.domain;
 
 import com.runto.domain.coupon.type.CouponStatus;
+import com.runto.domain.gathering.type.EventRequestStatus;
 import com.runto.domain.user.domain.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -41,6 +42,12 @@ public class UserCoupons {
                 .receivedAt(receivedAt)
                 .status(status)
                 .build();
+    }
+
+    public void updateStatus(CouponStatus status) {
+        if (this.status != status) {
+            this.status = status;
+        }
     }
 
 }
