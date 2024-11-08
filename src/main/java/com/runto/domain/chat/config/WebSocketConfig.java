@@ -93,17 +93,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 }
 
                 String token = "";
-                List<String> authHeaderList = accessor.getNativeHeader("Authorization");
-
-                if (authHeaderList == null || authHeaderList.isEmpty()) {
-                    log.error("Authorization 헤더가 존재하지 않습니다");
-                    throw new RuntimeException("헤더가 존재하지 않음");
-                }
-
-                String authHeaderStr = authHeaderList.get(0).replace("[", "").replace("]", "");
-
+                String authHeaderStr = authHeader.replace("[", "").replace("]", "").trim();
                 if (authHeaderStr.startsWith("Bearer ")) {
-                    token = authHeaderStr.replace("Bearer ", "");
+                    token = authHeaderStr.substring(7);  // "Bearer " 이후 부분만 추출
                 } else {
                     log.error("Authorization 헤더 형식이 틀립니다: {}", authHeaderStr);
                     throw new RuntimeException("올바르지 않은 헤더 형식");
