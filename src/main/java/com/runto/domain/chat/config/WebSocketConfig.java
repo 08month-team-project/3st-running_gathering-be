@@ -46,8 +46,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .setAllowedOrigins("http://localhost:3000", serverName)
 //                .setAllowedOrigins("https://runto.vercel.app/")
                 .addInterceptors(new SocketInterceptor(jwtUtil))
-//                .withSockJS()
-//                .setClientLibraryUrl("https://cdn.jsdelivr.net/sockjs/1.6.1/sockjs.min.js")
+                .withSockJS()
+                .setClientLibraryUrl("https://cdn.jsdelivr.net/sockjs/1.6.1/sockjs.min.js")
                 ;
     }
 
