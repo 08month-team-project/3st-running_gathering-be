@@ -45,9 +45,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.addEndpoint("/ws")
                 .setAllowedOrigins("http://localhost:3000", serverName)
 //                .setAllowedOrigins("https://runto.vercel.app/")
-//                .addInterceptors(new SocketInterceptor(jwtUtil))
-                .withSockJS()
-                .setClientLibraryUrl("https://cdn.jsdelivr.net/sockjs/1.6.1/sockjs.min.js");
+                .addInterceptors(new SocketInterceptor(jwtUtil))
+//                .withSockJS()
+//                .setClientLibraryUrl("https://cdn.jsdelivr.net/sockjs/1.6.1/sockjs.min.js")
+                ;
     }
 
     @Override
@@ -71,7 +72,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         retryTemplate.setBackOffPolicy(backOffPolicy);
         return retryTemplate;
     }
-
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
         registration.interceptors(new ChannelInterceptor() {
@@ -81,6 +81,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
                 String authHeader = String.valueOf(accessor.getNativeHeader("Authorization"));
                 log.info("authHeader = {}",authHeader);
+
 
                 StompCommand command = accessor.getCommand();
 
