@@ -47,8 +47,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 //                .setAllowedOrigins("https://runto.vercel.app/")
                 .addInterceptors(new SocketInterceptor(jwtUtil))
                 .withSockJS()
-                .setClientLibraryUrl("https://cdn.jsdelivr.net/sockjs/1.6.1/sockjs.min.js")
-                ;
+//                .setClientLibraryUrl("https://cdn.jsdelivr.net/sockjs/1.6.1/sockjs.min.js")
+        ;
     }
 
     @Override
@@ -58,7 +58,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     }
 
     @Bean
-    public RetryTemplate retryTemplate(){
+    public RetryTemplate retryTemplate() {
         RetryTemplate retryTemplate = new RetryTemplate();
 
         SimpleRetryPolicy simpleRetryPolicy = new SimpleRetryPolicy();
@@ -72,70 +72,99 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         retryTemplate.setBackOffPolicy(backOffPolicy);
         return retryTemplate;
     }
+
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
         registration.interceptors(new ChannelInterceptor() {
             @Override
             public Message<?> preSend(Message<?> message, MessageChannel channel) {
-                StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
+                StompHeaderAccessor headerAccessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
+                String authHeader = headerAccessor.getFirstNativeHeader("Authorization");
 
-                String authHeader = String.valueOf(accessor.getNativeHeader("Authorization"));
-                log.info("authHeader = {}",authHeader);
+                if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                    String token = authHeader.substring(7);
+                    try {
+                        Long userId = jwtUtil.getId(token);  // JWT에서 사용자 정보 추출
+                        String username = jwtUtil.getUsername(token);
+                        String role = jwtUtil.getRole(token);
 
+                        // 인증된 사용자 정보 설정
+                        CustomUserDetails userDetails = new CustomUserDetails(new UserDetailsDTO(userId,username,null,null,null,null,role));
+                        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, List.of(new SimpleGrantedAuthority(role)));
+                        SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 
-                StompCommand command = accessor.getCommand();
-
-                if (command.equals(StompCommand.UNSUBSCRIBE) || command.equals(StompCommand.MESSAGE) ||
-                command.equals(StompCommand.CONNECTED) || command.equals(StompCommand.SEND)){
-                    return message;
-                }else if (command.equals(StompCommand.ERROR)){
-                    log.error("STOMP ERROR");
-                    throw new RuntimeException("STOMP 에러");
+                    } catch (Exception e) {
+                        throw new RuntimeException("Invalid token: " + e.getMessage());
+                    }
                 }
-
-                if (authHeader == null){
-                    log.error("Authorization Header 가 존재하지 않습니다");
-                    throw new RuntimeException("헤더가 존재하지 않음");
-                }
-
-                List<String> authHeaderList = accessor.getNativeHeader("Authorization");
-                log.info("authHeaderList = {}",authHeaderList);
-
-                if (authHeaderList == null || authHeaderList.isEmpty()) {
-                    log.error("Authorization 헤더가 존재하지 않습니다");
-                    throw new RuntimeException("헤더가 존재하지 않음");
-                }
-                String token = "";
-                String authHeaderStr = authHeaderList.get(0).trim(); // 첫 번째 헤더 값을 추출하고, 앞뒤 공백을 제거
-
-                if (authHeaderStr.startsWith("Bearer ")) {
-                    token = authHeaderStr.substring(7);  // "Bearer " 이후 부분만 추출
-                } else {
-                    log.error("Authorization 헤더 형식이 틀립니다: {}", authHeaderStr);
-                    throw new RuntimeException("올바르지 않은 헤더 형식");
-                }
-
-
-                try {
-                    Long userId = jwtUtil.getId(token);
-                    String username = jwtUtil.getUsername(token);
-                    String role = jwtUtil.getRole(token);
-
-                    CustomUserDetails userDetails = new CustomUserDetails(new UserDetailsDTO(userId,username,null,null,null,null,role));
-                    UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, List.of(new SimpleGrantedAuthority(role)));
-                    SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-
-                } catch (Exception e) {
-                    log.error("JWT 처리 중 오류 발생: {}", e.getMessage());
-                    throw new RuntimeException("유효하지 않은 토큰입니다.");
-                }
-
                 return message;
             }
         });
     }
-
-
-
-
+//    @Override
+//    public void configureClientInboundChannel(ChannelRegistration registration) {
+//        registration.interceptors(new ChannelInterceptor() {
+//            @Override
+//            public Message<?> preSend(Message<?> message, MessageChannel channel) {
+//                StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
+//
+//                String authHeader = String.valueOf(accessor.getNativeHeader("Authorization"));
+//                log.info("authHeader = {}",authHeader);
+//
+//
+//                StompCommand command = accessor.getCommand();
+//
+//                if (command.equals(StompCommand.UNSUBSCRIBE) || command.equals(StompCommand.MESSAGE) ||
+//                command.equals(StompCommand.CONNECTED) || command.equals(StompCommand.SEND)){
+//                    return message;
+//                }else if (command.equals(StompCommand.ERROR)){
+//                    log.error("STOMP ERROR");
+//                    throw new RuntimeException("STOMP 에러");
+//                }
+//
+//                if (authHeader == null){
+//                    log.error("Authorization Header 가 존재하지 않습니다");
+//                    throw new RuntimeException("헤더가 존재하지 않음");
+//                }
+//
+//                List<String> authHeaderList = accessor.getNativeHeader("Authorization");
+//                log.info("authHeaderList = {}",authHeaderList);
+//
+//                if (authHeaderList == null || authHeaderList.isEmpty()) {
+//                    log.error("Authorization 헤더가 존재하지 않습니다");
+//                    throw new RuntimeException("헤더가 존재하지 않음");
+//                }
+//                String token = "";
+//                String authHeaderStr = authHeaderList.get(0).trim(); // 첫 번째 헤더 값을 추출하고, 앞뒤 공백을 제거
+//
+//                if (authHeaderStr.startsWith("Bearer ")) {
+//                    token = authHeaderStr.substring(7);  // "Bearer " 이후 부분만 추출
+//                } else {
+//                    log.error("Authorization 헤더 형식이 틀립니다: {}", authHeaderStr);
+//                    throw new RuntimeException("올바르지 않은 헤더 형식");
+//                }
+//
+//
+//                try {
+//                    Long userId = jwtUtil.getId(token);
+//                    String username = jwtUtil.getUsername(token);
+//                    String role = jwtUtil.getRole(token);
+//
+//                    CustomUserDetails userDetails = new CustomUserDetails(new UserDetailsDTO(userId,username,null,null,null,null,role));
+//                    UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, List.of(new SimpleGrantedAuthority(role)));
+//                    SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+//
+//                } catch (Exception e) {
+//                    log.error("JWT 처리 중 오류 발생: {}", e.getMessage());
+//                    throw new RuntimeException("유효하지 않은 토큰입니다.");
+//                }
+//
+//                return message;
+//            }
+//        });
+//    }
 }
+
+
+
+
