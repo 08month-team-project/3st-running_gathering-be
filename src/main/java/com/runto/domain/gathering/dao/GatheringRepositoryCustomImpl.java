@@ -50,6 +50,7 @@ public class GatheringRepositoryCustomImpl implements GatheringRepositoryCustom 
     private final JPAQueryFactory jpaQueryFactory;
 
     // 왜 dto 로 바로 받는 방식으로 수정했는지는 pr 참고 (관련이슈 #110)
+    // 쿼리문 2번으로 db를 2번 오가는 것 vs 한번의 무거운 쿼리 -> 어떤게 더 나은건가..
     public GatheringDetailResponse getGatheringDetailWithUserParticipation(Long gatheringId, Long userId) {
 
         // 하나의 QGatheringMember 만 사용할 수 없는 상황이기때문에 따로 분리

@@ -42,6 +42,7 @@ import static com.runto.domain.gathering.type.GatheringType.EVENT;
 import static com.runto.domain.gathering.type.GatheringType.GENERAL;
 import static com.runto.domain.user.type.UserStatus.ACTIVE;
 import static com.runto.global.exception.ErrorCode.*;
+import static org.springframework.transaction.annotation.Propagation.*;
 
 @Slf4j
 @Transactional(readOnly = true)
@@ -171,8 +172,7 @@ public class GatheringService {
     // TODO: 조회수 로직 추가
     public GatheringDetailResponse getGatheringDetail(Long userId, Long gatheringId) {
 
-        // 처음보는거면 조회 수 증가를 해야한다.
-        hitGathering(userId, gatheringId);
+        //hitGathering(userId, gatheringId);
 
         GatheringDetailResponse response = gatheringRepository
                 .getGatheringDetailWithUserParticipation(gatheringId, userId);
@@ -184,22 +184,24 @@ public class GatheringService {
     }
 
 
-    // QUESTION: 이걸 new 로 잡아 말어?
+    // QUESTION: 이걸 new 로 잡았는데, 얘도 read_only 로 된다.
+    // Connection is read-only. Queries leading to data modification are not allowed
     // 조회 수 증가를 했을 시, 나중에 dto 꺼내올때 그게 반영된 모임이어야함
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    private void hitGathering(Long userId, Long gatheringId) {
+    //@Transactional(readOnly = false, propagation = REQUIRES_NEW)
+    @Transactional
+    public void hitGathering(Long userId, Long gatheringId) {
         if (gatheringViewRecordRepository.existsByGatheringIdAndUserId(gatheringId, userId))
             return;
-
-        gatheringViewRecordRepository
-                .save(new GatheringViewRecord(gatheringId, userId));
 
         // 문제는 조회할 Gathering 이 문제임 (동시성제어 필요)
         Gathering gathering = gatheringRepository.findById(gatheringId)
                 .orElseThrow(() -> new GatheringException(GATHERING_NOT_FOUND));
 
-        gathering.increaseHits();
+        gatheringViewRecordRepository
+                .save(new GatheringViewRecord(gatheringId, userId));
 
+        gathering.increaseHits();
+        //gatheringRepository.flush();
     }
 
     private void validateGatheringAccessibility(Long userId, GatheringDetailResponse response) {

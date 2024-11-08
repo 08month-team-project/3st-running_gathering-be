@@ -115,8 +115,19 @@ public class Gathering extends BaseTimeEntity {
         });
     }
 
+    public void increaseHits() {
+        hits++;
+    }
+
     public void addMember(User user, GatheringMemberRole role) {
 
+        validateAddMember(user);
+
+        gatheringMembers.add(GatheringMember.of(this, user, role));
+        increaseCurrentNumber();
+    }
+
+    private void validateAddMember(User user) {
         // 정상 유저만 참여가능
         if (!ACTIVE.equals(user.getStatus())) {
             throw new GatheringException(USER_INACTIVE);
@@ -138,9 +149,6 @@ public class Gathering extends BaseTimeEntity {
 
             throw new GatheringException(INVALID_PARTICIPATE_NOT_APPROVED_EVENT);
         }
-
-        gatheringMembers.add(GatheringMember.of(this, user, role));
-        increaseCurrentNumber();
     }
 
     private void increaseCurrentNumber() {
