@@ -6,6 +6,7 @@ import com.runto.global.security.util.JWTUtil;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
@@ -36,10 +37,13 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private static final Logger log = LoggerFactory.getLogger(WebSocketConfig.class);
     private final JWTUtil jwtUtil;
 
+    @Value("${servername}")
+    private String serverName;
+
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-                .setAllowedOrigins("http://localhost:3000")
+                .setAllowedOrigins("http://localhost:3000", serverName)
 //                .setAllowedOrigins("https://runto.vercel.app/")
 //                .addInterceptors(new SocketInterceptor(jwtUtil))
                 .withSockJS()
@@ -87,20 +91,25 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                     throw new RuntimeException("STOMP 에러");
                 }
 
-                if (authHeader == null){
-                    log.error("Authorization Header 가 존재하지 않습니다");
+//                if (authHeader == null){
+//                    log.error("Authorization Header 가 존재하지 않습니다");
+//                    throw new RuntimeException("헤더가 존재하지 않음");
+//                }
+
+                List<String> authHeaderList = accessor.getNativeHeader("Authorization");
+                log.info("authHeaderList = {}",authHeaderList);
+
+                if (authHeaderList == null || authHeaderList.isEmpty()) {
+                    log.error("Authorization 헤더가 존재하지 않습니다");
                     throw new RuntimeException("헤더가 존재하지 않음");
                 }
-
-                log.info("authHeader = {}",authHeader);
-
                 String token = "";
+                String authHeaderStr = authHeaderList.get(0).trim(); // 첫 번째 헤더 값을 추출하고, 앞뒤 공백을 제거
 
-                if (authHeader.startsWith("[Bearer ")) {
-                    token = authHeader.substring(8);// "Bearer " 이후 부분만 추출
-                    token.replace("]","");
+                if (authHeaderStr.startsWith("Bearer ")) {
+                    token = authHeaderStr.substring(7);  // "Bearer " 이후 부분만 추출
                 } else {
-                    log.error("Authorization 헤더 형식이 틀립니다: {}", authHeader);
+                    log.error("Authorization 헤더 형식이 틀립니다: {}", authHeaderStr);
                     throw new RuntimeException("올바르지 않은 헤더 형식");
                 }
 
