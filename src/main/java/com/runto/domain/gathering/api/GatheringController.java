@@ -28,12 +28,12 @@ public class GatheringController {
 
     @Operation(summary = "일반 모임 등록")
     @PostMapping
-    public ResponseEntity<Void> createGathering(
+    public ResponseEntity<CreateGatheringResponse> createGathering(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody CreateGatheringRequest request) {
 
-        gatheringService.createGatheringGeneral(userDetails.getUserId(), request);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(gatheringService
+                .createGatheringGeneral(userDetails.getUserId(), request));
     }
 
     @Operation(summary = "이벤트 개최신청 (이벤트 모임 등록)")
