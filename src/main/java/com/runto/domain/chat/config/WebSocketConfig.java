@@ -37,7 +37,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private static final Logger log = LoggerFactory.getLogger(WebSocketConfig.class);
     private final JWTUtil jwtUtil;
-    private final WebSocketSecurityInterceptor webSocketSecurityInterceptor;
 
     @Value("${servername}")
     private String serverName;
@@ -77,7 +76,36 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-         registration.interceptors(webSocketSecurityInterceptor);
+        registration.interceptors(new ChannelInterceptor() {
+            @Override
+            public Message<?> preSend(Message<?> message, MessageChannel channel) {
+                StompHeaderAccessor headerAccessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
+                String authHeader = headerAccessor.getFirstNativeHeader("Authorization");
+
+                if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                    String token = authHeader.substring(7);
+                    try {
+                        Long userId = jwtUtil.getId(token);  // JWT에서 사용자 정보 추출
+                        log.info("InboundChannel userId = {}",userId);
+                        String username = jwtUtil.getUsername(token);
+                        log.info("InboundChannel username = {}",username);
+                        String role = jwtUtil.getRole(token);
+
+                        // 인증된 사용자 정보 설정
+                        CustomUserDetails userDetails = new CustomUserDetails(new UserDetailsDTO(userId,null,null,null,username,null,role));
+                        log.info("InboundChannel userDetails userId = {}",userDetails.getUserId());
+                        Authentication authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, List.of(new SimpleGrantedAuthority(role)));
+                        SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+                        log.info("InboundChannel Context Authentication = {}",SecurityContextHolder.getContext().getAuthentication());
+
+                        SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
+                    } catch (Exception e) {
+                        throw new RuntimeException("Invalid token: " + e.getMessage());
+                    }
+                }
+                return message;
+            }
+        });
     }
 
 //    @Override
