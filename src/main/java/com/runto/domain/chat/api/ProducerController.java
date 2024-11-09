@@ -4,6 +4,7 @@ import com.runto.domain.chat.application.ProducerService;
 import com.runto.domain.chat.dto.MessageDTO;
 import com.runto.global.security.detail.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -13,6 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
 
+
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 public class ProducerController {
@@ -42,6 +45,7 @@ public class ProducerController {
     @MessageMapping("/send/group")
     public void sendGroupMessage(@Payload MessageDTO messageDTO,
                                   @AuthenticationPrincipal CustomUserDetails userDetails){
+        log.info("ProducerController userDetails userId = {}",userDetails.getUserId());
         if (messageDTO.getTimestamp() == null){
             messageDTO.setTimestamp(LocalDateTime.now());
         }
