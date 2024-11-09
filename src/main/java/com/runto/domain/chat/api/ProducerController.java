@@ -2,16 +2,19 @@ package com.runto.domain.chat.api;
 
 import com.runto.domain.chat.application.ProducerService;
 import com.runto.domain.chat.dto.MessageDTO;
+import com.runto.global.security.detail.CustomUserDetailService;
 import com.runto.global.security.detail.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.security.Principal;
 import java.time.LocalDateTime;
 
 
@@ -20,6 +23,7 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class ProducerController {
     private final ProducerService producerService;
+    private final CustomUserDetailService userDetailsService;
 
     //1:1 채팅 웹소켓 메시지 전송
     @MessageMapping("/send/direct")
@@ -41,10 +45,24 @@ public class ProducerController {
         producerService.sendDirectMessage(messageDTO, userDetails.getUserId());
     }
 
+//    //그룹 채팅 웹소켓 메시지 전송
+//    @MessageMapping("/send/group")
+//    public void sendGroupMessage(@Payload MessageDTO messageDTO,
+//                                  @AuthenticationPrincipal CustomUserDetails userDetails){
+//        log.info("ProducerController userDetails userId = {}",userDetails.getUserId());
+//        if (messageDTO.getTimestamp() == null){
+//            messageDTO.setTimestamp(LocalDateTime.now());
+//        }
+//        producerService.sendGroupMessage(messageDTO, userDetails.getUserId());
+//    }
+
     //그룹 채팅 웹소켓 메시지 전송
     @MessageMapping("/send/group")
     public void sendGroupMessage(@Payload MessageDTO messageDTO,
-                                  @AuthenticationPrincipal CustomUserDetails userDetails){
+                                 Principal principal){
+        String username = principal.getName();
+        CustomUserDetails userDetails = userDetailsService.loadUserByUsername(username);
+
         log.info("ProducerController userDetails userId = {}",userDetails.getUserId());
         if (messageDTO.getTimestamp() == null){
             messageDTO.setTimestamp(LocalDateTime.now());
