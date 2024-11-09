@@ -106,6 +106,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 return message;
             }
         });
+        SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
     }
 //    @Override
 //    public void configureClientInboundChannel(ChannelRegistration registration) {
