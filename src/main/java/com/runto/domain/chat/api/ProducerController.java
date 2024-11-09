@@ -8,7 +8,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -58,11 +61,12 @@ public class ProducerController {
 
     //그룹 채팅 웹소켓 메시지 전송
     @MessageMapping("/send/group")
-    public void sendGroupMessage(@Payload MessageDTO messageDTO,
-                                 Principal principal){
-        String username = principal.getName();
-        CustomUserDetails userDetails = userDetailsService.loadUserByUsername(username);
-
+    public void sendGroupMessage(@Payload MessageDTO messageDTO){
+        SecurityContext context = SecurityContextHolder.getContext();
+        log.info("ProducerController context = {}",context);
+        Authentication authentication = context.getAuthentication();
+        log.info("ProducerController authentication = {}",authentication);
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         log.info("ProducerController userDetails userId = {}",userDetails.getUserId());
         if (messageDTO.getTimestamp() == null){
             messageDTO.setTimestamp(LocalDateTime.now());
