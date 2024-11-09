@@ -2,15 +2,15 @@ package com.runto.global.security.detail;
 
 import com.runto.global.security.dto.UserDetailsDTO;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.ArrayList;
 import java.util.Collection;
 
-
+@NoArgsConstructor
 public class CustomUserDetails implements UserDetails {
-
 
     private String userEmail;
     private String userPassword;
