@@ -22,7 +22,7 @@ public class MessageResponse {
     public static MessageResponse of(MessageQueueDTO messageQueueDTO, User user){
         return MessageResponse.builder()
                 .senderId(messageQueueDTO.getSenderId())
-                .senderName(user.getName())
+                .senderName(user.getNickname())
                 .senderProfileImageUrl(user.getProfileImageUrl())
                 .content(messageQueueDTO.getContent())
                 .timestamp(messageQueueDTO.getTimestamp())
@@ -32,7 +32,7 @@ public class MessageResponse {
     public static MessageResponse of(DirectChatContent directChatContent, User user){
         return MessageResponse.builder()
                 .senderId(directChatContent.getSenderId())
-                .senderName(user.getName())
+                .senderName(user.getNickname())
                 .senderProfileImageUrl(user.getProfileImageUrl())
                 .content(directChatContent.getContent())
                 .timestamp(directChatContent.getTimestamp().toString())
@@ -42,7 +42,7 @@ public class MessageResponse {
     public static MessageResponse of(GroupChatContent groupChatContent, User user){
         return MessageResponse.builder()
                 .senderId(groupChatContent.getSenderId())
-                .senderName(user.getName())
+                .senderName(user.getNickname())
                 .senderProfileImageUrl(user.getProfileImageUrl())
                 .content(groupChatContent.getContent())
                 .timestamp(groupChatContent.getTimestamp().toString())
