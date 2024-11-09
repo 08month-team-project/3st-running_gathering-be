@@ -76,6 +76,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
+        SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
         registration.interceptors(new ChannelInterceptor() {
             @Override
             public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -98,7 +99,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                         SecurityContextHolder.getContext().setAuthentication(authenticationToken);
                         log.info("InboundChannel Context Authentication = {}",SecurityContextHolder.getContext().getAuthentication());
 
-                        SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
                     } catch (Exception e) {
                         throw new RuntimeException("Invalid token: " + e.getMessage());
                     }
