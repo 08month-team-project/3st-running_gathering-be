@@ -85,11 +85,14 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                     String token = authHeader.substring(7);
                     try {
                         Long userId = jwtUtil.getId(token);  // JWT에서 사용자 정보 추출
+                        log.info("InboundChannel userId = {}",userId);
                         String username = jwtUtil.getUsername(token);
+                        log.info("InboundChannel username = {}",username);
                         String role = jwtUtil.getRole(token);
 
                         // 인증된 사용자 정보 설정
-                        CustomUserDetails userDetails = new CustomUserDetails(new UserDetailsDTO(userId,username,null,null,null,null,role));
+                        CustomUserDetails userDetails = new CustomUserDetails(new UserDetailsDTO(userId,null,null,null,username,null,role));
+                        log.info("InboundChannel userDetails userId = {}",userDetails.getUserId());
                         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, List.of(new SimpleGrantedAuthority(role)));
                         SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 
@@ -163,6 +166,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 //            }
 //        });
 //    }
+
 }
 
 

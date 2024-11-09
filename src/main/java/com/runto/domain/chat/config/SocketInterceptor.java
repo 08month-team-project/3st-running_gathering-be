@@ -35,11 +35,14 @@ public class SocketInterceptor implements HandshakeInterceptor {
             String jwtToken = token.substring(7);
             try {
                 Long userId = jwtUtil.getId(jwtToken);  // JWT에서 사용자 정보 추출
+                log.info("SocketInterceptor userId = {}",userId);
                 String username = jwtUtil.getUsername(jwtToken);
+                log.info("SocketInterceptor username = {}",username);
                 String role = jwtUtil.getRole(jwtToken);
 
                 // 인증된 사용자 정보 설정
-                CustomUserDetails userDetails = new CustomUserDetails(new UserDetailsDTO(userId,username,null,null,null,null,role));
+                CustomUserDetails userDetails = new CustomUserDetails(new UserDetailsDTO(userId,null,null,null,username,null,role));
+                log.info("SocketInterceptor userDetails userId = {}",userDetails.getUserId());
                 UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, List.of(new SimpleGrantedAuthority(role)));
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             } catch (Exception e) {
