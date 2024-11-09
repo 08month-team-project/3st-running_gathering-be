@@ -21,6 +21,7 @@ import org.springframework.retry.backoff.ExponentialBackOffPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
@@ -93,8 +94,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                         // 인증된 사용자 정보 설정
                         CustomUserDetails userDetails = new CustomUserDetails(new UserDetailsDTO(userId,null,null,null,username,null,role));
                         log.info("InboundChannel userDetails userId = {}",userDetails.getUserId());
-                        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, List.of(new SimpleGrantedAuthority(role)));
+                        Authentication authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, List.of(new SimpleGrantedAuthority(role)));
                         SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+                        log.info("InboundChannel Context Authentication = {}",SecurityContextHolder.getContext().getAuthentication());
+
 
                     } catch (Exception e) {
                         throw new RuntimeException("Invalid token: " + e.getMessage());
