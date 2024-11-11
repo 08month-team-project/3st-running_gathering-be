@@ -106,6 +106,8 @@ public class GatheringService {
 
         Gathering gathering = request.toEntity(user, type);
         gathering.addMember(user, ORGANIZER);
+        gathering.updateCurrentNumber(1);
+
         addContentImages(request.getImageRegisterResponse(), gathering);
 
         return gathering;
