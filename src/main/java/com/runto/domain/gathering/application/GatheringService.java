@@ -10,7 +10,6 @@ import com.runto.domain.gathering.exception.GatheringException;
 import com.runto.domain.gathering.type.EventRequestStatus;
 import com.runto.domain.gathering.type.GatheringType;
 import com.runto.domain.image.application.ImageService;
-import com.runto.domain.image.application.GatheringViewCountService;
 import com.runto.domain.image.domain.GatheringImage;
 import com.runto.domain.image.dto.ImageRegisterResponse;
 import com.runto.domain.image.dto.ImageUrlDto;
@@ -57,7 +56,6 @@ public class GatheringService {
     private final GatheringMemberRepository gatheringMemberRepository;
     private final GatheringMemberCountRepository gatheringMemberCountRepository;
     private final GatheringViewRecordRepository gatheringViewRecordRepository;
-    private final GatheringViewCountService gatheringViewCountService;
 
 
     // TODO moveImageProcess 에러 해결되면 주석 풀기
