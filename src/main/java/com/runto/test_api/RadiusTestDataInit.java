@@ -1,5 +1,6 @@
 package com.runto.test_api;
 
+import com.runto.domain.gathering.dao.GatheringMemberCountRepository;
 import com.runto.domain.gathering.dao.GatheringRepository;
 import com.runto.domain.gathering.domain.*;
 import com.runto.domain.gathering.type.GatheringType;
@@ -29,7 +30,7 @@ import static com.runto.domain.gathering.type.GatheringStatus.NORMAL;
 import static com.runto.domain.user.type.Gender.WOMAN;
 
 @RequiredArgsConstructor
-//@Component
+@Component
 public class RadiusTestDataInit {
 
     private final UserRepository userRepository;
@@ -37,6 +38,7 @@ public class RadiusTestDataInit {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     private final GatheringRepository gatheringRepository;
+    private final GatheringMemberCountRepository gatheringMemberCountRepository;
 
     @EventListener(ApplicationReadyEvent.class)
     @Transactional
@@ -52,9 +54,9 @@ public class RadiusTestDataInit {
                     .build();
 
             users.add(User.builder()
-                    .email("runto" + i + "@gmail.com")
+                    .email("radius_runto" + i + "@gmail.com")
                     .name("테스트유저이름" + i + 1)
-                    .nickname("테스트유저닉네임" + i + 1)
+                    .nickname("radius" + i + 1)
                     .gender(WOMAN)
                     //.status()
                     .localAccount(localAccount)
@@ -125,11 +127,15 @@ public class RadiusTestDataInit {
                     .location(location)
                     .status(NORMAL)
                     .maxNumber(10)
-                    .currentNumber(1)
+                    .currentNumber(0)
                     .gatheringType(GatheringType.GENERAL)
                     .build();
             gathering.addMember(users.get(0), ORGANIZER);
-            gathering.applyForEvent();
+            gathering.updateCurrentNumber(1);
+
+            // 이벤트로 세팅하고싶다면
+            // gatheringType(GatheringType.EVENT) 로 바꾸고 아래 코드 추가
+            //gathering.applyForEvent();
 
             // 0번 유저는 주최자
             for (int j = 1; j < users.size(); j++) {
@@ -140,7 +146,14 @@ public class RadiusTestDataInit {
             gatherings.add(gathering);
         }
 
-        gatheringRepository.saveAll(gatherings);
+        gatherings = gatheringRepository.saveAll(gatherings);
+
+
+        List<GatheringMemberCount> gatheringMemberCounts = new ArrayList<>();
+        gatherings.forEach(gathering ->
+                gatheringMemberCounts.add(GatheringMemberCount.from(gathering)));
+
+        gatheringMemberCountRepository.saveAll(gatheringMemberCounts);
 
     }
 
