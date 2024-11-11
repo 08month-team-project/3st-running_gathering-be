@@ -31,4 +31,6 @@ public interface GatheringMemberRepository extends JpaRepository<GatheringMember
     boolean existsByGatheringIdAndUserId(Long GatheringId, Long userId);
 
     void deleteByGatheringIdAndUserId(Long gatheringId, Long userId);
+
+    int countByGatheringId(Long GatheringId);
 }
