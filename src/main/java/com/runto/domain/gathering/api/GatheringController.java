@@ -53,10 +53,14 @@ public class GatheringController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable("gathering_id") Long gatheringId) {
 
-        gatheringService.hitGathering(userDetails.getUserId(), gatheringId);
+        // 접근 가능한지 먼저 알아야함
+        GatheringDetailResponse gatheringDetail = gatheringService
+                .getGatheringDetail(userDetails.getUserId(), gatheringId);
 
-        return ResponseEntity.ok(gatheringService.
-                getGatheringDetail(userDetails.getUserId(), gatheringId));
+        gatheringDetail.getContent()
+                .addMyHit(gatheringService.hitGathering(userDetails.getUserId(), gatheringId));
+
+        return ResponseEntity.ok(gatheringDetail);
     }
 
     @Operation(summary = "모임목록 조회 [일반모임, 이벤트모임]")

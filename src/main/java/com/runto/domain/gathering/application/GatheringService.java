@@ -22,7 +22,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -42,7 +41,6 @@ import static com.runto.domain.gathering.type.GatheringType.EVENT;
 import static com.runto.domain.gathering.type.GatheringType.GENERAL;
 import static com.runto.domain.user.type.UserStatus.ACTIVE;
 import static com.runto.global.exception.ErrorCode.*;
-import static org.springframework.transaction.annotation.Propagation.*;
 
 @Slf4j
 @Transactional(readOnly = true)
@@ -107,6 +105,8 @@ public class GatheringService {
 
         Gathering gathering = request.toEntity(user, type);
         gathering.addMember(user, ORGANIZER);
+        gathering.updateCurrentNumber(1);
+
         addContentImages(request.getImageRegisterResponse(), gathering);
 
         return gathering;
@@ -166,13 +166,9 @@ public class GatheringService {
      * <p>
      * 낙관적 락
      * 충돌이 적게 발생하고 데이터의 일관성, 정합성보다는 성능이 중요시될 때
-     *
      */
     // 왜 dto 로 바로 받는 방식으로 수정했는지는 pr 참고 (관련이슈 #110)
-    // TODO: 조회수 로직 추가
     public GatheringDetailResponse getGatheringDetail(Long userId, Long gatheringId) {
-
-        //hitGathering(userId, gatheringId);
 
         GatheringDetailResponse response = gatheringRepository
                 .getGatheringDetailWithUserParticipation(gatheringId, userId);
@@ -180,28 +176,27 @@ public class GatheringService {
         validateGatheringAccessibility(userId, response);
 
         return response;
-
     }
 
 
-    // QUESTION: 이걸 new 로 잡았는데, 얘도 read_only 로 된다.
-    // Connection is read-only. Queries leading to data modification are not allowed
-    // 조회 수 증가를 했을 시, 나중에 dto 꺼내올때 그게 반영된 모임이어야함
-    //@Transactional(readOnly = false, propagation = REQUIRES_NEW)
+    /**
+     * QUESTION: 이걸 readOnly = false, propagation = REQUIRES_NEW 로 잡고,
+     *  getGatheringDetail 안에서 호출했더니, 얘도 read_only 로 된다.
+     *  Connection is read-only. Queries leading to data modification are not allowed
+     * <p>
+     * 컨트롤러에서 별도로  getGatheringDetail 와는 별도로 호출해서, 수정관련 트랜잭션은 짧게 끝내기
+     */
     @Transactional
-    public void hitGathering(Long userId, Long gatheringId) {
+    public boolean hitGathering(Long userId, Long gatheringId) {
         if (gatheringViewRecordRepository.existsByGatheringIdAndUserId(gatheringId, userId))
-            return;
+            return false;
 
-        // 문제는 조회할 Gathering 이 문제임 (동시성제어 필요)
-        Gathering gathering = gatheringRepository.findById(gatheringId)
+
+        Gathering gathering = gatheringRepository.findByIdWithPessimisticLock(gatheringId)
                 .orElseThrow(() -> new GatheringException(GATHERING_NOT_FOUND));
 
-        gatheringViewRecordRepository
-                .save(new GatheringViewRecord(gatheringId, userId));
-
-        gathering.increaseHits();
-        //gatheringRepository.flush();
+        gathering.addGatheringViewRecord(userId);
+        return true;
     }
 
     private void validateGatheringAccessibility(Long userId, GatheringDetailResponse response) {
@@ -408,47 +403,38 @@ public class GatheringService {
 
     // TODO: 나중에 주석 지우기
     // TODO: 동시성 테스트 및 수정
-    @Transactional
-    public ParticipateGatheringResponse participateGathering(Long userId, Long gatheringId) {
 
-        // [참가/취소] 에 비관락을 써보려는 이유
-        // 주로 데이터 충돌이 자주 발생하거나 데이터의 일관성이 중요한 상황에서 사용
-        // -> 일단 충돌이 자주 일어난다는 기준이 뭔지 잘 모르겠음
-        // -> 데이터의 일관성? 은 중요함 , 순서도 중요하고
+    // [참가/취소] 에 비관락을 써보려는 이유
+    // 주로 데이터 충돌이 자주 발생하거나 데이터의 일관성이 중요한 상황에서 사용
+    // -> 일단 충돌이 자주 일어난다는 기준이 뭔지 잘 모르겠음
+    // -> 데이터의 일관성? 은 중요함 , 순서도 중요하고
 
 
-        // [GatheringMemberCount 이 없을때] -> [] 은 Gathering이 비관락에 걸리고 있는 상황일때
-        //  0. 인증객체에서 받아온 userId로 user 엔티티 꺼내오기 (정상유저인지 등 확인, 나중에 GatheringMember 에 넣는 용)
-        //  1. GatheringMember 에 내가 있는지 확인 exist  -> 있으면 바로 예외터뜨리기
-        // [2]. Gathering 을 비관락을 걸어서 들고온다? (수정하는 작업이니까, PESSIMISTIC_WRITE)
-        // [3]. Gathering 에서의 현재인원수 체크 -> 전체인원수 이상이면 -> 바로 예외터뜨리기
-        // [4]. GathringMember를 만들어서 Gathering에 넣기 & 현재인원수 ++; -> save
-        // 근데 이 방식은... 흠... 일단 모임이, 목록조회, 상세조회 등 조회가 잦다고 생각하면,
-        // PESSIMISTIC_WRITE 로 걸면 다른 트랜잭션에서 읽기도 안되니까, 성능상 문제가..?
-        // 그리고 [s-lock] vs [x-lock] 과의 충돌 상황이 더 많이 벌어지지 않을까?
+    // [GatheringMemberCount 이 없을때] -> [] 은 Gathering이 비관락에 걸리고 있는 상황일때
+    //  0. 인증객체에서 받아온 userId로 user 엔티티 꺼내오기 (정상유저인지 등 확인, 나중에 GatheringMember 에 넣는 용)
+    //  1. GatheringMember 에 내가 있는지 확인 exist  -> 있으면 바로 예외터뜨리기
+    // [2]. Gathering 을 비관락을 걸어서 들고온다? (수정하는 작업이니까, PESSIMISTIC_WRITE)
+    // [3]. Gathering 에서의 현재인원수 체크 -> 전체인원수 이상이면 -> 바로 예외터뜨리기
+    // [4]. GathringMember를 만들어서 Gathering에 넣기 & 현재인원수 ++; -> save
+    // 근데 이 방식은... 흠... 일단 모임이, 목록조회, 상세조회 등 조회가 잦다고 생각하면,
+    // PESSIMISTIC_WRITE 로 걸면 다른 트랜잭션에서 읽기도 안되니까, 성능상 문제가..?
+    // 그리고 [s-lock] vs [x-lock] 과의 충돌 상황이 더 많이 벌어지지 않을까?
 
 // =========================================================================================
-        // [GatheringMemberCount 이 있을 때] ->  [] 은 NumberGathering lock 에 걸리고 있는 상황일때, []] 는 Gathering 도 lock 상태일때 (x- lock)
-        //  0. 인증객체에서 받아온 userId로 user 엔티티 꺼내오기 (정상유저인지 등 확인, 나중에 GatheringMember 에 넣는 용)
-        //  1. GatheringMember 에 내가 있는지 확인 exist  -> 있으면 바로 예외터뜨리기
-        //  2. NumberGathering 만 별도로 비관락을 걸어서 들고온다. (수정하는 작업이니까, PESSIMISTIC_WRITE)
+    // [GatheringMemberCount 이 있을 때] ->  [] 은 NumberGathering lock 에 걸리고 있는 상황일때, []] 는 Gathering 도 lock 상태일때 (x- lock)
+    //  0. 인증객체에서 받아온 userId로 user 엔티티 꺼내오기 (정상유저인지 등 확인, 나중에 GatheringMember 에 넣는 용)
+    //  1. GatheringMember 에 내가 있는지 확인 exist  -> 있으면 바로 예외터뜨리기
+    //  2. NumberGathering 만 별도로 비관락을 걸어서 들고온다. (수정하는 작업이니까, PESSIMISTIC_WRITE)
 
-        // ---- 이때부터는 또 다른 참가/취소 요청 사용자는 기다려야함
-        // [3]. NumberGathering 에 있는 현재인원수 체크 -> 전체인원수 이상이면 -> 바로 예외터뜨리기
-        // [4]. NumberGathering 에 있는 현재인원수 업데이트
-        // [5]]. Gathering 꺼내오기 (x - 락) - 이 때 사실 이 작업이 끝나기 전까진  블로킹 당할텐데.. 흠... 뭔 차이지..
-        // [6]]. GathringMember를 만들어서 Gathering에 넣기 & 현재인원수++; -> save
-
-        //  로직 시작 ================================================================
+    // ---- 이때부터는 또 다른 참가/취소 요청 사용자는 기다려야함
+    // [3]. NumberGathering 에 있는 현재인원수 체크 -> 전체인원수 이상이면 -> 바로 예외터뜨리기
+    // [4]. NumberGathering 에 있는 현재인원수 업데이트
+    // [5]]. Gathering 꺼내오기 (x - 락) - 이 때 사실 이 작업이 끝나기 전까진  블로킹 당할텐데.. 흠... 뭔 차이지..
+    // [6]]. GathringMember를 만들어서 Gathering에 넣기 & 현재인원수++; -> save
 
 
-        // 비관락을 걸기 전까지의 로직에서 최대한 x-lock 으로 들고 오는 일은 없게끔 하려고했는데,
-        // user 개인은 초반부터 x - lock 걸려도 크게 상관없겠지 했는데,
-        // 하고 생각해보니, user 의 경우 일반목록조회 시에도 프로필 이미지때문에, 패치조인해서, 사용되고 있었다.
-        // gathering 에 x-lock 이 걸리는 시간을 짧게 하려는 거에 집중해버려서, 멤버들의 프로필이미지를 생각치 못하고 있었다.
-        // 다른 트랜잭션들에서 비관락때문에 대기타면서 user 를 x - lock 으로 붙잡고 있는 것보다는
-        // 구성원 멤버로 추가(addMember)를 할 때, user 엔티티를 꺼내는게 낫지 않을까? 싶었다.
-        // 어차피 파라미터로 들어오는 userId는 인증객체로 부터 뽑아온 userId 니까 존재하는 user 인건 보장이 되어있기때문에.. 초반부터 꺼낼 필요가 없을 듯한..
+    @Transactional
+    public ParticipateGatheringResponse participateGathering(Long userId, Long gatheringId) {
 
         // 이미 참가중인지 확인
         if (gatheringMemberRepository.existsByGatheringIdAndUserId(gatheringId, userId)) {
@@ -456,24 +442,27 @@ public class GatheringService {
         }
 
         // gatheringMemberCount 를 비관락으로 가져옴
-        GatheringMemberCount memberCount = gatheringMemberCountRepository.findByGatheringId(gatheringId)
+        GatheringMemberCount memberCount = gatheringMemberCountRepository.findByGatheringIdWithPessimisticLock(gatheringId)
                 .orElseThrow(() -> new GatheringException(GATHERING_MEMBER_COUNT_NOT_FOUND));
 
         if (memberCount.getCurrentNumber() >= memberCount.getMaxNumber()) {
             throw new GatheringException(GATHERING_MEMBER_CAPACITY_EXCEEDED);
         }
 
-        // 먼저 참가인원 증가
+        // 참가인원 증가
         memberCount.increaseCurrentMember();
 
-        // x-lock
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
         Gathering gathering = gatheringRepository.findGatheringWithEventById(gatheringId)
                 .orElseThrow(() -> new GatheringException(GATHERING_NOT_FOUND));
 
+        log.info("gathering.getCurrentNumber() ={} ", gathering.getCurrentNumber());
         gathering.addMember(user, PARTICIPANT);
+
+        gathering.updateCurrentNumber(memberCount.getCurrentNumber());
+        //gathering.increaseCurrentNumber(); //동시성 제어 X
 
         return ParticipateGatheringResponse.from(gathering);
     }
@@ -486,10 +475,10 @@ public class GatheringService {
         }
 
         // gatheringMemberCount 를 비관락으로 가져옴
-        GatheringMemberCount memberCount = gatheringMemberCountRepository.findByGatheringId(gatheringId)
+        GatheringMemberCount memberCount = gatheringMemberCountRepository
+                .findByGatheringIdWithPessimisticLock(gatheringId)
                 .orElseThrow(() -> new GatheringException(GATHERING_MEMBER_COUNT_NOT_FOUND));
 
-        // gathering  x-lock
         Gathering gathering = gatheringRepository.findGatheringWithEventById(gatheringId)
                 .orElseThrow(() -> new GatheringException(GATHERING_NOT_FOUND));
 
@@ -497,7 +486,7 @@ public class GatheringService {
 
         gatheringMemberRepository.deleteByGatheringIdAndUserId(gatheringId, userId);
         memberCount.decreaseCurrentMember();
-        gathering.decreaseCurrentNumber();
+        gathering.updateCurrentNumber(memberCount.getCurrentNumber());
     }
 
     private void validateCancelParticipate(Long userId, Gathering gathering) {

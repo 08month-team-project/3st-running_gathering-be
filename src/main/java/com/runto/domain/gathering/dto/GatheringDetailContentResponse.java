@@ -49,4 +49,8 @@ public class GatheringDetailContentResponse { // 이벤트 상세조회 시에�
 
     private EventRequestStatus eventRequestStatus; // 일반모임이면 해당 값은 null
 
+    public void addMyHit(boolean myNewHit) {
+        if(myNewHit) hits++;
+    }
+
 }

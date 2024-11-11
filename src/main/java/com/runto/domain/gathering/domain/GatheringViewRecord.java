@@ -8,6 +8,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
+import static jakarta.persistence.FetchType.*;
 import static jakarta.persistence.GenerationType.IDENTITY;
 import static lombok.AccessLevel.PROTECTED;
 
@@ -23,8 +24,10 @@ public class GatheringViewRecord {
     @Column(name = "view_record_id")
     private Long id;
 
-    // ID 간접참조로 설정하였음
-    private Long gatheringId;
+
+    @JoinColumn(name = "gathering_id")
+    @ManyToOne(fetch = LAZY)
+    private Gathering gathering;
 
     private Long userId;
 
@@ -32,8 +35,8 @@ public class GatheringViewRecord {
     @CreatedDate
     private LocalDateTime createdAt;
 
-    public GatheringViewRecord(Long gatheringId, Long userId) {
-        this.gatheringId = gatheringId;
+    public GatheringViewRecord(Gathering gathering, Long userId) {
+        this.gathering = gathering;
         this.userId = userId;
     }
 }

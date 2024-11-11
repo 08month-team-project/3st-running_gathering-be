@@ -8,4 +8,6 @@ import org.springframework.stereotype.Repository;
 public interface GatheringViewRecordRepository extends JpaRepository<GatheringViewRecord, Long> {
 
     boolean existsByGatheringIdAndUserId(Long gatheringId, Long userId);
+
+    int countByGatheringId(Long GatheringId);
 }
