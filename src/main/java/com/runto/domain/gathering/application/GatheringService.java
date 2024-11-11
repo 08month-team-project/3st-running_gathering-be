@@ -4,6 +4,7 @@ package com.runto.domain.gathering.application;
 import com.runto.domain.gathering.dao.*;
 import com.runto.domain.gathering.domain.Gathering;
 import com.runto.domain.gathering.domain.GatheringMemberCount;
+import com.runto.domain.gathering.domain.GatheringViewRecord;
 import com.runto.domain.gathering.dto.*;
 import com.runto.domain.gathering.exception.GatheringException;
 import com.runto.domain.gathering.type.EventRequestStatus;
@@ -188,14 +189,16 @@ public class GatheringService {
      * 컨트롤러에서 별도로  getGatheringDetail 와는 별도로 호출해서, 수정관련 트랜잭션은 짧게 끝내기
      */
     @Transactional
-    public void hitGathering(Long userId, Long gatheringId) {
+    public boolean hitGathering(Long userId, Long gatheringId) {
         if (gatheringViewRecordRepository.existsByGatheringIdAndUserId(gatheringId, userId))
-            return;
+            return false;
 
-        Gathering gathering = gatheringRepository.findByIdWithOptimisticLock(gatheringId)
+
+        Gathering gathering = gatheringRepository.findByIdWithPessimisticLock(gatheringId)
                 .orElseThrow(() -> new GatheringException(GATHERING_NOT_FOUND));
 
-        gatheringViewCountService.addGatheringViewRecord(userId, gathering);
+        gathering.addGatheringViewRecord(userId);
+        return true;
     }
 
     private void validateGatheringAccessibility(Long userId, GatheringDetailResponse response) {
@@ -457,7 +460,7 @@ public class GatheringService {
         Gathering gathering = gatheringRepository.findGatheringWithEventById(gatheringId)
                 .orElseThrow(() -> new GatheringException(GATHERING_NOT_FOUND));
 
-        log.info("gathering.getCurrentNumber() ={} ",gathering.getCurrentNumber());
+        log.info("gathering.getCurrentNumber() ={} ", gathering.getCurrentNumber());
         gathering.addMember(user, PARTICIPANT);
 
         gathering.updateCurrentNumber(memberCount.getCurrentNumber());
