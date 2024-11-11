@@ -20,6 +20,12 @@ public interface UserRepository extends JpaRepository<User, Long>, UserRepositor
             "WHERE u.email = :email")
     Optional<User> findByEmail(String email);
 
+    @Query("SELECT u " +
+            " FROM User u " +
+            " JOIN FETCH u.localAccount " +
+            "WHERE u.nickname = :nickname")
+    Optional<User> findByNickname(String nickname);
+
 
     @Query("SELECT u " +
             " FROM User u " +

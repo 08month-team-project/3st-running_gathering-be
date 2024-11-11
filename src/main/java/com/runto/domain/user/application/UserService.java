@@ -36,6 +36,10 @@ public class UserService {
 
     @Transactional
     public void createUser(SignupRequest signupRequest) {
+        userRepository.findByNickname(signupRequest.getNickname())
+                .ifPresent(user -> {
+                    throw new UserException(ALREADY_EXIST_NICKNAME);
+                });
         userRepository.findByEmail(signupRequest.getEmail())
                 .ifPresent(user -> {
                     throw new UserException(ALREADY_EXIST_USER);
