@@ -6,7 +6,6 @@ import com.runto.domain.gathering.exception.GatheringException;
 import com.runto.domain.gathering.type.*;
 import com.runto.domain.image.domain.GatheringImage;
 import com.runto.domain.user.domain.User;
-import com.runto.domain.user.type.UserStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,8 +18,9 @@ import java.util.List;
 import java.util.Objects;
 
 import static com.runto.domain.gathering.type.EventRequestStatus.APPROVED;
+import static com.runto.domain.gathering.type.GatheringMemberRole.*;
 import static com.runto.domain.gathering.type.GatheringStatus.NORMAL;
-import static com.runto.domain.user.type.UserStatus.*;
+import static com.runto.domain.user.type.UserStatus.ACTIVE;
 import static com.runto.global.exception.ErrorCode.*;
 import static lombok.AccessLevel.PROTECTED;
 
@@ -91,6 +91,9 @@ public class Gathering extends BaseTimeEntity {
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private EventGathering eventGathering;
 
+//    @Version
+//    private Long version;
+
     @Builder.Default
     @OneToMany(mappedBy = "gathering", cascade = CascadeType.ALL)
     private List<GatheringImage> contentImages = new ArrayList<>();
@@ -98,6 +101,10 @@ public class Gathering extends BaseTimeEntity {
     @Builder.Default
     @OneToMany(mappedBy = "gathering", cascade = CascadeType.ALL)
     private List<GatheringMember> gatheringMembers = new ArrayList<>();
+
+    @Builder.Default
+    @OneToMany(mappedBy = "gathering", cascade = CascadeType.ALL)
+    private List<GatheringViewRecord> gatheringViewRecords = new ArrayList<>();
 
 
     // 양방향관계,영속성전이를 통한 저장방식, 엔티티에서 dto를 참조하지 않는 구조를 고려하여 만들었음
@@ -115,19 +122,28 @@ public class Gathering extends BaseTimeEntity {
         });
     }
 
+    public void addGatheringViewRecord(Long userId) {
+        gatheringViewRecords.add(new GatheringViewRecord(this, userId));
+        increaseHits();
+    }
+
     public void increaseHits() {
         hits++;
     }
 
     public void addMember(User user, GatheringMemberRole role) {
 
-        validateAddMember(user);
+        validateAddMember(user, role);
 
         gatheringMembers.add(GatheringMember.of(this, user, role));
-        increaseCurrentNumber();
+        //increaseCurrentNumber();
     }
 
-    private void validateAddMember(User user) {
+    public void updateCurrentNumber(int currentNumber) {
+        this.currentNumber = currentNumber;
+    }
+
+    private void validateAddMember(User user, GatheringMemberRole role) {
         // 정상 유저만 참여가능
         if (!ACTIVE.equals(user.getStatus())) {
             throw new GatheringException(USER_INACTIVE);
@@ -137,21 +153,22 @@ public class Gathering extends BaseTimeEntity {
         if (LocalDateTime.now().isAfter(this.getDeadline())) {
             throw new GatheringException(PASSED_GATHERING_DEADLINE);
         }
-        
+
         // NORMAL 상태 모임에만 참가 가능
         if (!NORMAL.equals(this.getStatus())) {
             throw new GatheringException(INVALID_PARTICIPATE_NOT_NORMAL_GATHERING);
         }
 
-        // 이벤트모임의 경우 승인된 모임만 참가가능
+        // 이벤트모임의 경우 주최자 외에는 승인된 모임만 참가가능
         if (this.getEventGathering() != null &&
-                !APPROVED.equals(this.getEventGathering().getStatus())) {
+                !APPROVED.equals(this.getEventGathering().getStatus()) &&
+                !ORGANIZER.equals(role)) {
 
             throw new GatheringException(INVALID_PARTICIPATE_NOT_APPROVED_EVENT);
         }
     }
 
-    private void increaseCurrentNumber() {
+    public void increaseCurrentNumber() {
         if (currentNumber == null) currentNumber = 0;
         currentNumber++;
     }
