@@ -27,8 +27,8 @@ public class JwtChannelInterceptor implements ChannelInterceptor {
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
 
-
-        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
+//        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
+        StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
         if (StompCommand.CONNECT.equals(accessor.getCommand())) {
             log.info("command = {}",accessor.getCommand());
@@ -45,10 +45,7 @@ public class JwtChannelInterceptor implements ChannelInterceptor {
                     CustomUserDetails userDetails = new CustomUserDetails(new UserDetailsDTO(userId, null, null, null, username, null, role));
                     Authentication authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, List.of(new SimpleGrantedAuthority(role)));
 
-                    // 새로운 SecurityContext 생성 및 설정
-                    SecurityContext context = SecurityContextHolder.createEmptyContext();
-                    context.setAuthentication(authenticationToken);
-                    SecurityContextHolder.setContext(context);
+                    accessor.setUser(authenticationToken);
 
                     log.info("새로운 WebSocket 연결: SecurityContext 설정 완료 (UserID: {}, Username: {})", userId, username);
                 } catch (Exception e) {
