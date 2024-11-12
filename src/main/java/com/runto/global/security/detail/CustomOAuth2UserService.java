@@ -18,6 +18,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import static com.runto.global.exception.ErrorCode.USER_NOT_FOUND;
 
@@ -38,7 +39,11 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         //리소스 서버에서 발급 받은 정보로 사용자를 특정할 아이디값을 만듬
         String oAuth2Key = oAuth2Response.getProvider()+" "+oAuth2Response.getProviderId();
-        String username = oAuth2Response.getName();
+
+        String uuid = UUID.randomUUID().toString();
+        String shortUuid = uuid.substring(0, 8);
+
+        String username = oAuth2Response.getName()+" "+shortUuid;
         String userEmail = oAuth2Response.getEmail();
 
         Optional<OAuth2> existData = OAuth2Repository.findByOAuth2Key(oAuth2Key);
