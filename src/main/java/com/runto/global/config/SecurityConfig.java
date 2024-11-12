@@ -2,10 +2,7 @@ package com.runto.global.config;
 
 import com.runto.domain.user.dao.RefreshRepository;
 import com.runto.global.security.detail.CustomOAuth2UserService;
-import com.runto.global.security.filter.CustomLogoutFilter;
-import com.runto.global.security.filter.JwtFilter;
-import com.runto.global.security.filter.LoginFilter;
-import com.runto.global.security.filter.ReissueFilter;
+import com.runto.global.security.filter.*;
 import com.runto.global.security.oauth2.CustomSuccessHandler;
 import com.runto.global.security.util.JWTUtil;
 import com.runto.global.security.util.RefreshUtil;
@@ -92,6 +89,8 @@ public class SecurityConfig {
                 UsernamePasswordAuthenticationFilter.class);
         http.addFilterBefore(new JwtFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
         http.addFilterBefore(new CustomLogoutFilter(jwtUtil,refreshRepository), LogoutFilter.class);
+        http.addFilterBefore(new OAuthLogoutFilter(jwtUtil), LogoutFilter.class);
+
 
         http.sessionManagement(session->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
