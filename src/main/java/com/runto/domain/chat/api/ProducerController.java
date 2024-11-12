@@ -34,20 +34,20 @@ public class ProducerController {
     //1:1 채팅 웹소켓 메시지 전송
     @MessageMapping("/send/direct")
     public void sendDirectMessage(@Payload MessageDTO messageDTO, StompHeaderAccessor headerAccessor){
-        String token = headerAccessor.getFirstNativeHeader("Authorization");
-        Long id = jwtUtil.getId(token);
-
+        Authentication authentication = (Authentication) headerAccessor.getUser();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        Long userId = userDetails.getUserId();
 //        SecurityContext context = SecurityContextHolder.getContext();
 //        log.info("ProducerController direct context = {}",context);
 //        Authentication authentication = context.getAuthentication();
-//        log.info("ProducerController direct authentication = {}",authentication);
+        log.info("ProducerController direct authentication = {}",authentication);
 //        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-//        log.info("ProducerController direct userDetails userId = {}",userDetails.getUserId());
+        log.info("ProducerController direct userDetails userId = {}",userDetails.getUserId());
         if (messageDTO.getTimestamp() == null){
             messageDTO.setTimestamp(LocalDateTime.now());
         }
 //        producerService.sendDirectMessage(messageDTO, userDetails.getUserId());
-        producerService.sendDirectMessage(messageDTO,id);
+        producerService.sendDirectMessage(messageDTO,userId);
     }
 
     //1:1 채팅 테스트 메시지 전송 api
