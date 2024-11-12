@@ -77,15 +77,13 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
+        // SecurityContextHolder의 전략을 InheritableTHREADLOCAL로 설정하여 WebSocket 스레드에서 상속 가능하도록 한다.
+        SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
+
         registration.interceptors(new ChannelInterceptor() {
             @Override
             public Message<?> preSend(Message<?> message, MessageChannel channel) {
                 StompHeaderAccessor headerAccessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
-                if (StompCommand.DISCONNECT.equals(headerAccessor.getCommand())) {
-                    // SecurityContext 초기화
-                    SecurityContextHolder.clearContext();
-                    log.info("WebSocket 연결 종료: SecurityContext 초기화 완료");
-                }
 
                 if (StompCommand.CONNECT.equals(headerAccessor.getCommand())) {
                     String authHeader = headerAccessor.getFirstNativeHeader("Authorization");
@@ -117,21 +115,15 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
             public void afterSendCompletion(Message<?> message, MessageChannel channel, boolean sent, Exception ex) {
                 StompHeaderAccessor headerAccessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
-                // 연결 종료 상태인지 확인
                 if (StompCommand.DISCONNECT.equals(headerAccessor.getCommand())) {
-                    // SecurityContext 초기화
+                    // WebSocket 연결 종료 후 SecurityContext 초기화
                     SecurityContextHolder.clearContext();
                     log.info("WebSocket 연결 종료 후 SecurityContext 초기화 완료");
-                }
-
-                if (sent) {
-                    System.out.println("Message sent successfully: " + message.getPayload());
-                } else {
-                    System.out.println("Message sending failed: " + message.getPayload());
                 }
             }
         });
     }
+
 
 
 //    @Override
