@@ -11,6 +11,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseCookie;
 import org.springframework.web.filter.GenericFilterBean;
 
 import java.io.IOException;
@@ -80,12 +81,25 @@ public class CustomLogoutFilter extends GenericFilterBean {
         refreshRepository.deleteByRefresh(refresh);
 
         //Refresh 토큰 Cookie 값 0
-        Cookie cookie = new Cookie("refresh", null);
-        cookie.setMaxAge(0);
-        cookie.setPath("/");
+//        Cookie cookie = new Cookie("refresh", null);
+//        cookie.setMaxAge(0);
+//        cookie.setPath("/");
+//        response.addCookie(cookie);
 
-        response.addCookie(cookie);
+        ResponseCookie zeroCookie = zeroCookie("refresh",refresh);
 
+        response.setHeader("Set-Cookie", zeroCookie.toString());
         response.setStatus(HttpServletResponse.SC_OK);
+    }
+
+    private ResponseCookie zeroCookie(String key,String value) {
+        return ResponseCookie.from(key,value)
+                .path("/")
+                .maxAge(0)
+                .sameSite("None")
+                .httpOnly(false)
+                .domain("myspringserver.store") // 예시입니다! 서버의 도메인만 적어주면 됨
+                .secure(true) // sameSite를 None으로 지정했다면 필수
+                .build();
     }
 }
