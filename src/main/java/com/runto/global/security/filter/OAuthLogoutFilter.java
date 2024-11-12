@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseCookie;
 import org.springframework.web.filter.GenericFilterBean;
 
 import java.io.IOException;
@@ -43,9 +44,20 @@ public class OAuthLogoutFilter extends GenericFilterBean {
             kakaoApi = new KakaoAPI();
             kakaoApi.logout(accessToken);
 
-            Cookie cookie = new Cookie("Authorization", null);
-            cookie.setMaxAge(0);
-            cookie.setPath("/");
+//            Cookie cookie = new Cookie("Authorization", null);
+//            cookie.setMaxAge(0);
+//            cookie.setPath("/");
+            response.setContentType("application/json");
+            ResponseCookie cookie = ResponseCookie.from("Authorization",accessToken)
+                    .path("/")
+                    .maxAge(0)
+                    .sameSite("None")
+                    .httpOnly(false)
+                    .domain("myspringserver.store") // 예시입니다! 서버의 도메인만 적어주면 됨
+                    .secure(true) // sameSite를 None으로 지정했다면 필수
+                    .build();
+            response.setHeader("Set-Cookie", cookie.toString());
+            response.sendRedirect("http://localhost:3000");
 
             log.info("logout success");
         }

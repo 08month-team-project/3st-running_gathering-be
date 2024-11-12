@@ -30,6 +30,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         //OAuth2User
         CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
         Long id = customUserDetails.getId();
+        String userEmail = customUserDetails.getEmail();
         String username = customUserDetails.getName();
 
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
@@ -37,11 +38,16 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         GrantedAuthority auth = iterator.next();
         String role = auth.getAuthority();
 
-        String token = jwtUtil.createJwt("access",id,username,role,2*60*60*1000L);
+        String token = jwtUtil.createJwt("access",id,userEmail,role,2*60*60*1000L);
 
         //OAuth2에서는 요청 특성상 응답 헤더로 받을 수 없습니다. 따라서 쿠키 방식으로 받으셔야 합니다.
         log.info(token);
+
+
         response.setContentType("application/json");
+        response.getWriter().write("{" +
+                "\"username\":\""+ username+"\"" +
+                "}");
         ResponseCookie cookie = ResponseCookie.from("Authorization",token)
                 .path("/")
                 .sameSite("None")
