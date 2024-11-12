@@ -57,7 +57,6 @@ public class OAuthLogoutFilter extends GenericFilterBean {
                     .secure(true) // sameSite를 None으로 지정했다면 필수
                     .build();
             response.setHeader("Set-Cookie", cookie.toString());
-            response.sendRedirect("http://localhost:3000");
 
             log.info("logout success");
         }
