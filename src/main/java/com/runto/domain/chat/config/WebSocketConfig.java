@@ -81,6 +81,12 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registration.interceptors(new ChannelInterceptor() {
             @Override
             public Message<?> preSend(Message<?> message, MessageChannel channel) {
+                SecurityContextHolder.clearContext();
+                return message;
+            }
+
+            @Override
+            public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
                 StompHeaderAccessor headerAccessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
                 String authHeader = headerAccessor.getFirstNativeHeader("Authorization");
 
@@ -106,13 +112,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                         throw new RuntimeException("Invalid token: " + e.getMessage());
                     }
                 }
-                return message;
-            }
-
-            @Override
-            public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
-                SecurityContextHolder.clearContext();
-                log.info("메시지를 보낸후 clearContext");
+                log.info("post Send Log");
             }
         });
     }
