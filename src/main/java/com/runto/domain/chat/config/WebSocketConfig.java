@@ -45,8 +45,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
+        String server = serverName.replace("https://", "");
         registry.addEndpoint("/ws")
-                .setAllowedOrigins("http://localhost:3000", serverName)
+                .setAllowedOrigins("localhost:3000", server)
 //                .setAllowedOrigins("https://runto.vercel.app/")
                 .addInterceptors(new SocketInterceptor(jwtUtil))
 //                .withSockJS()
