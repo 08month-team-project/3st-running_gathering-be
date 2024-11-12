@@ -100,11 +100,13 @@ VALUES
 
 INSERT into local_account(password)
 values
+('qweasdzxc123'),
 ('qweasdzxc123');
 
 INSERT INTO users (email, name, nickname, gender, user_status, user_role, profile_image_url, local_id, created_at, modified_at)
 VALUES
-('sola201@naver.com', NULL, 'User64', 'NONE', 'ACTIVE', 'USER', NULL, 1, '2024-09-20 00:00:00', '2024-09-20 00:00:00');
+('sola201@naver.com', NULL, 'User64', 'NONE', 'ACTIVE', 'USER', NULL, 1, '2024-09-20 00:00:00', '2024-09-20 00:00:00'),
+('glglwlgud@naver.com', NULL, 'User65', 'NONE', 'ACTIVE', 'USER', NULL, 2, '2024-09-20 00:00:00', '2024-09-20 00:00:00');
 
 
 INSERT INTO black_list (user_id, cumulative_number ,expires_at)
@@ -210,7 +212,8 @@ INSERT INTO event_gathering(created_at, modified_at, status) VALUES
 ('2024-09-01 18:00:00', '2024-09-01 18:00:00', 'REJECTED'),
 ('2024-09-05 18:00:00', '2024-09-05 18:00:00', 'REJECTED'),
 ('2024-10-28 18:00:00', '2024-10-28 18:00:00', 'PENDING'),
-('2024-11-05 18:00:00', '2024-11-05 18:00:00', 'PENDING');
+('2024-11-05 18:00:00', '2024-11-05 18:00:00', 'PENDING'),
+('2024-11-12 18:00:00', '2024-11-12 18:00:00', 'PENDING');
 
 -- 이벤트용
 INSERT INTO gatherings (b_code, current_number, h_code, max_number, x, y, appointed_at, created_at, deadline, event_gathering_id, hits, modified_at, organizer_id, title, description, address_name, region_1depth_name, region_2depth_name, region_3depth_name, thumbnail_url, concept, gathering_type, goal_distance, status, is_normal_completed)
@@ -241,6 +244,7 @@ VALUES
 (0, 50, 0, 10,0.0,0.0, '2024-09-01 18:00:00', '2024-09-01 18:00:00', '2024-09-02 18:00:00', 24,  0, '2024-09-01 18:00:00', 18, '서울 성동구 성수동에서 열리는 이벤트', '성수동에서의 모임.', '서울특별시 성동구 성수동 1', '서울특별시', '성동구', '성수동', 'thumbnail49.jpg', 'HEALTH', 'EVENT', 'FREE', 'NORMAL',0),
 (0, 40, 0, 10,0.0, 0.0, '2024-09-05 18:00:00', '2024-09-05 18:00:00', '2024-09-06 18:00:00', 25,  0, '2024-09-05 18:00:00', 11, '대구 수성구 범어에서 열리는 이벤트', '범어에서의 모임.', '대구광역시 수성구 범어동 3', '대구광역시', '수성구', '범어', 'thumbnail50.jpg', 'HEALTH', 'EVENT', 'THREE_KM', 'NORMAL',0),
 (0, 50, 0, 10,0.0,0.0, '2024-10-28 18:00:00', '2024-10-28 18:00:00', '2024-10-28 18:00:00', 26,  0, '2024-09-01 18:00:00', 63, '서울 성동구 성수동에서 열리는 이벤트', '성수동에서의 모임.', '서울특별시 성동구 성수동 1', '서울특별시', '성동구', '성수동', 'thumbnail49.jpg', 'HEALTH', 'EVENT', 'FREE', 'NORMAL',0),
-(0, 40, 0, 10,0.0, 0.0, '2024-11-05 18:00:00', '2024-11-05 18:00:00', '2024-11-05 18:00:00', 27,  0, '2024-09-05 18:00:00', 64, '대구 수성구 범어에서 열리는 이벤트', '범어에서의 모임.', '대구광역시 수성구 범어동 3', '대구광역시', '수성구', '범어', 'thumbnail50.jpg', 'HEALTH', 'EVENT', 'THREE_KM', 'NORMAL',0);
+(0, 40, 0, 10,0.0, 0.0, '2024-11-05 18:00:00', '2024-11-05 18:00:00', '2024-11-05 18:00:00', 27,  0, '2024-09-05 18:00:00', 64, '대구 수성구 범어에서 열리는 이벤트', '범어에서의 모임.', '대구광역시 수성구 범어동 3', '대구광역시', '수성구', '범어', 'thumbnail50.jpg', 'HEALTH', 'EVENT', 'THREE_KM', 'NORMAL',0),
+(0, 50, 0, 10,0.0,0.0, '2024-11-12 18:00:00', '2024-11-12 18:00:00', '2024-11-12 18:00:00', 28,  0, '2024-11-12 18:00:00', 65, '서울 성동구 성수동에서 열리는 이벤트', '성수동에서의 모임.', '서울특별시 성동구 성수동 1', '서울특별시', '성동구', '성수동', 'thumbnail49.jpg', 'HEALTH', 'EVENT', 'FREE', 'NORMAL',0);
 
 
