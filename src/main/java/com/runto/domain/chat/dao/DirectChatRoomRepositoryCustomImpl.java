@@ -29,7 +29,7 @@ public class DirectChatRoomRepositoryCustomImpl implements DirectChatRoomReposit
         List<ChatRoomResponse> chatRoomList = jpaQueryFactory
                 .select(Projections.constructor(ChatRoomResponse.class,
                         d.id,
-                        JPAExpressions.select(u.name)
+                        JPAExpressions.select(u.nickname)
                                 .from(u)
                                 .where(isUserOpponent(userId,d,u)),
                         JPAExpressions.select(u.profileImageUrl)
