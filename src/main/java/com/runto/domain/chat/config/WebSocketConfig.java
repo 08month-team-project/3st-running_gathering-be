@@ -22,6 +22,7 @@ import org.springframework.retry.support.RetryTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
@@ -96,14 +97,21 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                         CustomUserDetails userDetails = new CustomUserDetails(new UserDetailsDTO(userId,null,null,null,username,null,role));
                         log.info("InboundChannel userDetails userId = {}",userDetails.getUserId());
                         Authentication authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, List.of(new SimpleGrantedAuthority(role)));
-                        SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-                        log.info("InboundChannel Context Authentication = {}",SecurityContextHolder.getContext().getAuthentication());
+                        SecurityContext context = SecurityContextHolder.createEmptyContext();
+                        context.setAuthentication(authenticationToken);
+                        SecurityContextHolder.setContext(context);  // WebSocket 스레드에만 유효한 context 설정
 
+                        log.info("InboundChannel Context Authentication = {}", SecurityContextHolder.getContext().getAuthentication());
                     } catch (Exception e) {
                         throw new RuntimeException("Invalid token: " + e.getMessage());
                     }
                 }
                 return message;
+            }
+
+            @Override
+            public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
+                SecurityContextHolder.clearContext();
             }
         });
     }
