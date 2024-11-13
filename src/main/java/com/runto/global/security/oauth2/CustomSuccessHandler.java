@@ -49,7 +49,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         ResponseCookie cookie = ResponseCookie.from("Authorization",token)
                 .path("/")
                 .sameSite("None")
-                .httpOnly(false)
+                .httpOnly(true)
                 .domain("myspringserver.store") // 예시입니다! 서버의 도메인만 적어주면 됨
                 .secure(true) // sameSite를 None으로 지정했다면 필수
                 .build();
