@@ -27,9 +27,9 @@ import static com.runto.global.exception.ErrorCode.*;
 @Service
 public class S3ImageService {
 
-    private static final List<String> SUPPORT_IMAGE_EXTENSION = List.of("jpg", "jpeg", "png", "bmp", "webp");
-    private static final String TEMPORARY_STORE_PREFIX = "temp/";
-    private static final String PERMANENT_STORE_PREFIX = "permanent/";
+    public static final List<String> SUPPORT_IMAGE_EXTENSION = List.of("jpg", "jpeg", "png", "bmp", "webp");
+    public static final String TEMPORARY_STORE_PREFIX = "temp/";
+    public static final String PERMANENT_STORE_PREFIX = "permanent/";
     private static final String FILE_PATH = System.getProperty("user.dir") + "/src/main/resources/temp_images/";
 
     private final S3Client s3Client;
@@ -53,13 +53,13 @@ public class S3ImageService {
 
         List<ImageUrlDto> imageUrls = new ArrayList<>();
         images.forEach(imageDto -> imageUrls
-                .add(uploadImage(imageDto, imageNamePrefix)));
+                .add(uploadImage(TEMPORARY_STORE_PREFIX, imageDto, imageNamePrefix)));
 
         return imageUrls;
     }
 
 
-    private ImageUrlDto uploadImage(ImageDto imageDto, String imageNamePrefix) {
+    public ImageUrlDto uploadImage(String storePrefix, ImageDto imageDto, String imageNamePrefix) {
 
         File convertedFile = null;
         File optimizedFile = null;
@@ -85,15 +85,15 @@ public class S3ImageService {
 
 
             // s3에 webp형식으로 최적화한 이미지 업로드
-            s3Client.putObject(getPutObjectRequest(optimizedFile),
+            s3Client.putObject(getPutObjectRequest(storePrefix, optimizedFile),
                     RequestBody.fromFile(optimizedFile));
 
             // 실제로 업로드가 잘 됐는지 검증
-            validateUpload(optimizedFile);
+            validateUpload(storePrefix, optimizedFile);
 
-            //S3 URL과 , 요청에서 받아온 이미지 순서를 다시 넣어서 반환 (이건 아직 실제로 저장돼있는 url 이 아님)
+            //S3 URL과 , 요청에서 받아온 이미지 순서를 다시 넣어서 반환 (본문 이미지의 경우 아직 실제로 저장돼있는 url 이 아님)
             return new ImageUrlDto(getImageUrl(optimizedFile, PERMANENT_STORE_PREFIX), imageDto.getOrder());
-            
+
 
         } catch (ImageException e) {
             throw new ImageException(e.getErrorCode());
@@ -106,10 +106,10 @@ public class S3ImageService {
         }
     }
 
-    private PutObjectRequest getPutObjectRequest(File file) {
+    private PutObjectRequest getPutObjectRequest(String storePrefix, File file) {
         return PutObjectRequest.builder()
                 .bucket(bucketName)
-                .key(TEMPORARY_STORE_PREFIX + file.getName())
+                .key(storePrefix + file.getName())
                 .acl(ObjectCannedACL.PUBLIC_READ)
                 .build();
     }
@@ -137,17 +137,32 @@ public class S3ImageService {
                 bucketName, region, prefix + imageName);
     }
 
-    public void validateUpload(File pressedFile) {
+    public void validateUpload(String storePrefix, File pressedFile) {
 
         // 업로드된 객체 확인 (headObject 사용)
         HeadObjectRequest headRequest = HeadObjectRequest.builder()
                 .bucket(bucketName)
-                .key(TEMPORARY_STORE_PREFIX + pressedFile.getName())
+                .key(storePrefix + pressedFile.getName())
                 .build();
 
         HeadObjectResponse response = s3Client.headObject(headRequest);
 
         if (response == null) {
+            throw new ImageException(S3_OBJECT_NOT_FOUND);
+        }
+    }
+
+    public void validateUpload(String imageName) {
+
+        // 해당 url이 s3에 업로드가 돼있는 객체인지 확인 (headObject 사용)
+        HeadObjectRequest headRequest = HeadObjectRequest.builder()
+                .bucket(bucketName)
+                .key(imageName)
+                .build();
+
+        try {
+            s3Client.headObject(headRequest);
+        } catch (Exception e) {
             throw new ImageException(S3_OBJECT_NOT_FOUND);
         }
     }
@@ -203,21 +218,6 @@ public class S3ImageService {
         }
 
         return parts[parts.length - 1]; // 마지막 부분이 파일 이름
-    }
-
-    public void validateUpload(String imageName) {
-
-        // 해당 url이 s3에 업로드가 돼있는 객체인지 확인 (headObject 사용)
-        HeadObjectRequest headRequest = HeadObjectRequest.builder()
-                .bucket(bucketName)
-                .key(imageName)
-                .build();
-
-        try {
-            s3Client.headObject(headRequest);
-        } catch (Exception e) {
-            throw new ImageException(S3_OBJECT_NOT_FOUND);
-        }
     }
 
     public void copyS3ObjectToNewPath(String imageName, String beforePath, String newPath) {
