@@ -35,12 +35,22 @@ public class JwtChannelInterceptor implements ChannelInterceptor {
 
             if (authHeader == null){
                 Map<String, Object> attributes = accessor.getSessionAttributes();
-                authHeader = (String) attributes.get("Authorization");
-                log.info("Jwt Channel Interceptor authHeader = {}",authHeader);
+                String token = (String) attributes.get("Authorization");
+                log.info("Jwt Channel Interceptor token = {}",token);
+                try {
+                    Long userId = jwtUtil.getId(token);
+                    String username = jwtUtil.getUsername(token);
+                    String role = jwtUtil.getRole(token);
+                    String status = jwtUtil.getStatus(token);
+                    log.info("Jwt Channel Interceptor userId = {}",userId);
+                    CustomUserDetails userDetails = new CustomUserDetails(new UserDetailsDTO(userId, null, null, null, username, null,status, role));
+                    Authentication authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, List.of(new SimpleGrantedAuthority(role)));
+                    log.info("Jwt Channel Interceptor authentication = {}",authenticationToken);
+                    accessor.setUser(authenticationToken);
 
-                Authentication authentication = (Authentication) accessor.getUser();
-                log.info("Jwt Channel Interceptor authentication = {}",authentication);
-                accessor.setUser(authentication);
+                } catch (Exception e) {
+                    throw new RuntimeException("Invalid token: " + e.getMessage());
+                }
             }
 
             if (authHeader != null && authHeader.startsWith("Bearer ")) {
