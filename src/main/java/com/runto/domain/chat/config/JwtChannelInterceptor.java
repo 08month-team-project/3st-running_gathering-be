@@ -1,8 +1,10 @@
 package com.runto.domain.chat.config;
 
+import com.runto.domain.chat.dto.CustomPrincipal;
 import com.runto.global.security.detail.CustomUserDetails;
 import com.runto.global.security.dto.UserDetailsDTO;
 import com.runto.global.security.util.JWTUtil;
+import com.sun.security.auth.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.Message;
@@ -14,9 +16,8 @@ import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 
@@ -35,7 +36,11 @@ public class JwtChannelInterceptor implements ChannelInterceptor {
             if (authHeader == null){
                 Map<String, Object> attributes = accessor.getSessionAttributes();
                 authHeader = (String) attributes.get("Authorization");
-                log.info("Jwt Interceptor authHeader = {}",authHeader);
+                log.info("Jwt Channel Interceptor authHeader = {}",authHeader);
+
+                Authentication authentication = (Authentication) accessor.getUser();
+                log.info("Jwt Channel Interceptor authentication = {}",authentication);
+                accessor.setUser(authentication);
             }
 
             if (authHeader != null && authHeader.startsWith("Bearer ")) {
@@ -51,7 +56,6 @@ public class JwtChannelInterceptor implements ChannelInterceptor {
 
                     accessor.setUser(authenticationToken);
 
-                    log.info("새로운 WebSocket 연결: SecurityContext 설정 완료 (UserID: {}, Username: {})", userId, username);
                 } catch (Exception e) {
                     throw new RuntimeException("Invalid token: " + e.getMessage());
                 }

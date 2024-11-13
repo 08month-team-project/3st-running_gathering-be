@@ -1,7 +1,8 @@
 package com.runto.domain.chat.config;
 
+import com.runto.domain.chat.dto.CustomPrincipal;
 import com.runto.global.security.util.JWTUtil;
-import com.sun.security.auth.UserPrincipal;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.stereotype.Component;
@@ -10,7 +11,7 @@ import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 
 import java.security.Principal;
 import java.util.Map;
-
+@Slf4j
 @Component
 public class WebSocketHandShakeHandler extends DefaultHandshakeHandler {
 
@@ -24,19 +25,23 @@ public class WebSocketHandShakeHandler extends DefaultHandshakeHandler {
     protected Principal determineUser(ServerHttpRequest request, WebSocketHandler wsHandler, Map<String, Object> attributes) {
         HttpHeaders headers = request.getHeaders();
         String token = headers.getFirst("Authorization");
-
-        if (token != null && token.startsWith("Bearer ")) {
-            token = token.substring(7);  // "Bearer " 부분을 제거
-        } else {
-            return null;  // 토큰이 없는 경우 null을 반환하여 연결을 거부
+        if (token == null){
+            log.info("WebSocketHandShakeHandler : Authorization 에 토큰 없음 attribute 에서 받기");
+            token =  (String) attributes.get("Authorization");
+            log.info("WebSocketHandShakeHandler :  attribute 에서 받은 토큰 = {}",token);
         }
-
+        if (token != null && token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        } else {
+            return null;
+        }
         // JWT 토큰을 검증하고 사용자 정보 추출
         if (!jwtUtil.isExpired(token)) {
             String username = jwtUtil.getUsername(token);
-            return new UserPrincipal(username);  // 검증된 사용자의 Principal 반환
+            Long id = jwtUtil.getId(token);
+            return new CustomPrincipal(id,username);
         } else {
-            return null;  // 토큰이 유효하지 않은 경우 null 반환
+            return null;
         }
     }
 }
