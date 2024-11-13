@@ -139,6 +139,7 @@ public class UserController {
         for (Cookie cookie : cookies) {
             System.out.println(cookie.getName());
             if (cookie.getName().equals("Authorization")) {
+                log.info(cookie.getValue());
                 return ResponseEntity.ok(cookie.getValue());
             }
         }
