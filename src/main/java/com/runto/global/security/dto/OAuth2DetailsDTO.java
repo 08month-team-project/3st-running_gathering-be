@@ -18,6 +18,7 @@ public class OAuth2DetailsDTO {
     private String nickname;
     private String email;
     private String gender;
+    private String status;
     private String role;
 
     public static OAuth2DetailsDTO of(User user) {
@@ -26,6 +27,7 @@ public class OAuth2DetailsDTO {
                 .name(user.getName())
                 .nickname(user.getNickname())
                 .email(user.getEmail())
+                .status(user.getStatus().name())
                 .gender(user.getGender().name())
                 .oauthKey(user.getOAuth2().getOAuth2Key())
                 .role(user.getRole().name())
