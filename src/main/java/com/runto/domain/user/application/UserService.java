@@ -12,8 +12,11 @@ import com.runto.domain.user.dto.SignupRequest;
 import com.runto.domain.user.dto.UserProfileResponse;
 import com.runto.domain.user.excepction.UserException;
 import com.runto.global.security.detail.CustomUserDetails;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -115,11 +118,24 @@ public class UserService {
         userRepository.delete(user);
     }
 
-    public CookieResponse token(CustomUserDetails userDetails,String token) {
+    public CookieResponse token(CustomUserDetails userDetails, HttpServletRequest request) {
         User user = userRepository.findById(userDetails.getUserId())
                 .orElseThrow(() -> new UserException(USER_NOT_FOUND));
         String nickname = user.getNickname();
 
+        String token = "";
+
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            log.error("cookie is null");
+            return null;
+        }
+        for (Cookie cookie : cookies) {
+            System.out.println(cookie.getName());
+            if (cookie.getName().equals("Authorization")) {
+                token =  cookie.getValue();
+            }
+        }
         return CookieResponse.builder()
                 .token(token)
                 .name(nickname)
