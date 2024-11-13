@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
 
-@Component
+//@Component
 public class DataSqlInitializer {
 
     private final DataSource dataSource;

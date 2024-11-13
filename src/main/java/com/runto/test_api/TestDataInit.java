@@ -30,7 +30,7 @@ import static com.runto.domain.user.type.Gender.MAN;
 import static com.runto.domain.user.type.Gender.WOMAN;
 
 @RequiredArgsConstructor
-@Component
+//@Component
 public class TestDataInit {
 
     private final UserRepository userRepository;
