@@ -37,6 +37,7 @@ public class CustomUserDetails implements UserDetails {
         status = dto.getStatus();
         authorities = new ArrayList<>();
         authorities.add((GrantedAuthority) dto::getRole);
+        authorities.add((GrantedAuthority) dto::getStatus);
     }
 
     @Override

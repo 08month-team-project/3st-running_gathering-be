@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -19,6 +20,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -70,13 +72,25 @@ public class SecurityConfig {
 
                 .anyRequest().authenticated());
 
+
+        http.exceptionHandling(exception -> exception
+                .defaultAuthenticationEntryPointFor(
+                        new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
+                        request -> true   // Authority 요청에 대해 401 상태 코드 반환
+                )
+        );
+
         http.oauth2Login((oauth2)->oauth2.userInfoEndpoint((userInfoEndpointConfig) -> userInfoEndpointConfig
                         .userService(customOAuth2UserService))
-                        .successHandler(customSuccessHandler));
+                .successHandler(customSuccessHandler));
+
         http.addFilterBefore(new ReissueFilter(jwtUtil,refreshUtil,refreshRepository),UsernamePasswordAuthenticationFilter.class);
+
         http.addFilterAt(new LoginFilter(jwtUtil,authenticationManager(authenticationConfiguration),refreshUtil),
                 UsernamePasswordAuthenticationFilter.class);
+
         http.addFilterBefore(new JwtFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
+
         http.addFilterBefore(new CustomLogoutFilter(jwtUtil,refreshRepository), LogoutFilter.class);
         http.addFilterBefore(new OAuthLogoutFilter(jwtUtil), LogoutFilter.class);
 
