@@ -58,7 +58,7 @@ public class GroupChatService {
         GroupChatRoom groupChatRoom = groupChatRoomRepository.findByGatheringId(gatheringId);
 
         //모임에 참여 중인지 확인
-        if (gatheringMemberRepository.existsGatheringMemberByGatheringIdAndUserId(gatheringId,userId)){
+        if (!gatheringMemberRepository.existsGatheringMemberByGatheringIdAndUserId(gatheringId,userId)){
             throw new ChatException(ErrorCode.GATHERING_MEMBER_NOT_FOUND);
         }
 
