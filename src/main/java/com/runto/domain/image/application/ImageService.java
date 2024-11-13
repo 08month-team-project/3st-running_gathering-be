@@ -11,6 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
+import static com.runto.domain.image.application.S3ImageService.*;
 import static com.runto.global.exception.ErrorCode.INVALID_FILE;
 
 @Slf4j
@@ -25,7 +26,7 @@ public class ImageService {
 
         log.info("모임글 이미지 등록 서비스 진입");
 
-        if (uploadRequest == null){
+        if (uploadRequest == null) {
             throw new ImageException(INVALID_FILE);
         }
 
@@ -55,14 +56,15 @@ public class ImageService {
 
     public ImageUrlDto updateUserProfile(Long userId, MultipartFile newImageFile, String oldImageUrl) {
 
-        s3ImageService.deleteS3Object(oldImageUrl, "temp/"); // TODO 나중에 이미지 버그 수정 및 리팩토링 때 수정될 수도 있음
+        s3ImageService.deleteS3Object(oldImageUrl, PERMANENT_STORE_PREFIX);
 
         if (newImageFile == null || newImageFile.isEmpty()) {
             return new ImageUrlDto(null, 0);
         }
 
-        return s3ImageService.uploadContentImages(
-                List.of(new ImageDto(newImageFile, 0)),
-                        String.format("profile[%s]", userId)).get(0);
+        return s3ImageService.uploadImage(PERMANENT_STORE_PREFIX,
+                new ImageDto(newImageFile, 0),
+                String.format("profile[%s]", userId));
+
     }
 }
