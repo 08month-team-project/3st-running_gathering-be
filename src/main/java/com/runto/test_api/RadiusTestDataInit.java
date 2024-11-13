@@ -30,7 +30,7 @@ import static com.runto.domain.gathering.type.GatheringStatus.NORMAL;
 import static com.runto.domain.user.type.Gender.WOMAN;
 
 @RequiredArgsConstructor
-@Component
+//@Component
 public class RadiusTestDataInit {
 
     private final UserRepository userRepository;

@@ -48,18 +48,22 @@ public class OAuthLogoutFilter extends GenericFilterBean {
 //            cookie.setMaxAge(0);
 //            cookie.setPath("/");
             response.setContentType("application/json");
-            ResponseCookie cookie = ResponseCookie.from("Authorization",accessToken)
-                    .path("/")
-                    .maxAge(0)
-                    .sameSite("None")
-                    .httpOnly(false)
-                    .domain("myspringserver.store") // 예시입니다! 서버의 도메인만 적어주면 됨
-                    .secure(true) // sameSite를 None으로 지정했다면 필수
-                    .build();
-            response.setHeader("Set-Cookie", cookie.toString());
+            ResponseCookie zeroCookie = zeroCookie("Authorization",accessToken);
+
+            response.setHeader("Set-Cookie", zeroCookie.toString());
 
             log.info("logout success");
         }
-    }
 
+    }
+    private ResponseCookie zeroCookie(String key,String value) {
+        return ResponseCookie.from(key,value)
+                .path("/")
+                .maxAge(0)
+                .sameSite("None")
+                .httpOnly(false)
+                .domain("myspringserver.store") // 예시입니다! 서버의 도메인만 적어주면 됨
+                .secure(true) // sameSite를 None으로 지정했다면 필수
+                .build();
+    }
 }
