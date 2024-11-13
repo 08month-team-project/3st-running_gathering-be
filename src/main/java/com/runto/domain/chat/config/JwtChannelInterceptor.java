@@ -41,8 +41,9 @@ public class JwtChannelInterceptor implements ChannelInterceptor {
                     Long userId = jwtUtil.getId(token);
                     String username = jwtUtil.getUsername(token);
                     String role = jwtUtil.getRole(token);
+                    String status = jwtUtil.getStatus(token);
 
-                    CustomUserDetails userDetails = new CustomUserDetails(new UserDetailsDTO(userId, null, null, null, username, null, role));
+                    CustomUserDetails userDetails = new CustomUserDetails(new UserDetailsDTO(userId, null, null, null, username, null,status, role));
                     Authentication authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, List.of(new SimpleGrantedAuthority(role)));
 
                     accessor.setUser(authenticationToken);

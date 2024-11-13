@@ -64,11 +64,13 @@ public class JwtFilter extends OncePerRequestFilter {
         String username = jwtUtil.getUsername(accessToken);
         Long userId = jwtUtil.getId(accessToken);
         String role = jwtUtil.getRole(accessToken);
+        String status = jwtUtil.getStatus(accessToken);
 
         UserDetailsDTO user = UserDetailsDTO.builder()
                 .userId(userId)
                 .email(username)
                 .role(role)
+                .status(status)
                 .build();
 
         CustomUserDetails customUserDetails = new CustomUserDetails(user);

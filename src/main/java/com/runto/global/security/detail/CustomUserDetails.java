@@ -23,6 +23,8 @@ public class CustomUserDetails implements UserDetails {
     private String nickname;
     @Getter
     private String gender;
+    @Getter
+    private String status;
 
 
     public CustomUserDetails(UserDetailsDTO dto) {
@@ -32,6 +34,7 @@ public class CustomUserDetails implements UserDetails {
         name = dto.getName();
         nickname = dto.getNickname();
         gender = dto.getGender();
+        status = dto.getStatus();
         authorities = new ArrayList<>();
         authorities.add((GrantedAuthority) dto::getRole);
     }

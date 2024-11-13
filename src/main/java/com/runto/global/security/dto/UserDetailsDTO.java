@@ -18,6 +18,7 @@ public class UserDetailsDTO {
     private String nickname;
     private String email;
     private String gender;
+    private String status;
     private String role;
 
     public static UserDetailsDTO of(User user) {
@@ -27,6 +28,7 @@ public class UserDetailsDTO {
                 .nickname(user.getNickname())
                 .email(user.getEmail())
                 .gender(user.getGender().name())
+                .status(user.getStatus().name())
                 .password(user.getLocalAccount().getPassword())
                 .role(user.getRole().name())
                 .build();

@@ -73,11 +73,12 @@ public class ReissueFilter extends OncePerRequestFilter {
         Long userId = jwtUtil.getId(refresh);
         String username = jwtUtil.getUsername(refresh);
         String role = jwtUtil.getRole(refresh);
+        String status = jwtUtil.getStatus(refresh);
 
         //다맞다면 엑세스 재발급
-        String newAccess = jwtUtil.createJwt("access",userId,username,role,2*60*60*1000L);
+        String newAccess = jwtUtil.createJwt("access",userId,username,role,status,2*60*60*1000L);
         //Refresh Rotate
-        String newRefresh = jwtUtil.createJwt("refresh",userId,username,role,3*24*60*60*1000L);
+        String newRefresh = jwtUtil.createJwt("refresh",userId,username,role,status,3*24*60*60*1000L);
 
         //Refresh 토큰 저장 DB에 기존의 Refresh 토큰 삭제 후 새 Refresh 토큰 저장
         refreshRepository.deleteByRefresh(refresh);
