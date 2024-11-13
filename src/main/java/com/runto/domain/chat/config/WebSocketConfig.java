@@ -71,6 +71,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public CustomHttpSessionHandShakeInterceptor customHttpSessionHandshakeInterceptor() {
         return new CustomHttpSessionHandShakeInterceptor();
     }
+
+    @Bean
+    public WebSocketHandShakeHandler webSocketHandShakeHandler() {
+        return new WebSocketHandShakeHandler(jwtUtil);
+    }
 }
 
 
