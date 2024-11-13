@@ -14,7 +14,7 @@ import static com.runto.domain.user.type.Gender.NONE;
 import static com.runto.domain.user.type.UserRole.ADMIN;
 
 @RequiredArgsConstructor
-@Component
+//@Component
 public class AdminDataInit {
 
     private final UserRepository userRepository;
