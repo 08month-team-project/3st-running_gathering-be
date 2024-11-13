@@ -38,13 +38,12 @@ public class GatheringController {
 
     @Operation(summary = "이벤트 개최신청 (이벤트 모임 등록)")
     @PostMapping("/events")
-    public ResponseEntity<Void> requestEventGatheringHosting(
+    public ResponseEntity<CreateGatheringResponse> requestEventGatheringHosting(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody CreateGatheringRequest request) {
 
-        log.info("userId = {}", userDetails.getUserId());
-        gatheringService.requestEventGatheringHosting(userDetails.getUserId(), request);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(gatheringService
+                .requestEventGatheringHosting(userDetails.getUserId(), request));
     }
 
     @Operation(summary = "모임 상세조회 [일반모임, 이벤트모임]") // 같이 쓰게 된 이유는 pr 참조

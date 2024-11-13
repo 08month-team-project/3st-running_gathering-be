@@ -58,27 +58,26 @@ public class GatheringService {
     private final GatheringViewRecordRepository gatheringViewRecordRepository;
 
 
-    // TODO moveImageProcess 에러 해결되면 주석 풀기
     @Transactional
     public CreateGatheringResponse createGatheringGeneral(Long userId, CreateGatheringRequest request) {
 
         validateMaxNumber(GENERAL, request.getMaxNumber());
-        Gathering savedGathering = gatheringRepository.save(createGathering(userId, request, GENERAL));
+
+        Gathering gathering = createGathering(userId, request, GENERAL);
+        gatheringRepository.save(gathering);
 
         // 모임인원 관리 엔티티 넣기 (이건 양방향 X)
-        gatheringMemberCountRepository.save(GatheringMemberCount.from(savedGathering));
-
-        return CreateGatheringResponse.from(savedGathering);
+        gatheringMemberCountRepository.save(GatheringMemberCount.from(gathering));
 
         // s3 temp 경로에 있던 이미지파일들을 정식 경로에 옮기기
-//        imageService.moveImageFromTempToPermanent(request.getGatheringImageUrls()
-//                .getContentImageUrls());
+        imageService.moveImageFromTempToPermanent(request.getImageRegisterResponse().getContentImageUrls());
+
+        return CreateGatheringResponse.from(gathering);
     }
 
-    // TODO moveImageProcess 에러 해결되면 주석 풀기
     @Transactional
-    public void requestEventGatheringHosting(Long userId,
-                                             CreateGatheringRequest request) {
+    public CreateGatheringResponse requestEventGatheringHosting(Long userId,
+                                                                CreateGatheringRequest request) {
 
         validateMaxNumber(EVENT, request.getMaxNumber());
 
@@ -87,9 +86,9 @@ public class GatheringService {
         gatheringRepository.save(gathering);
 
         // s3 temp 경로에 있던 이미지파일들을 정식 경로에 옮기기
-//        imageService.moveImageFromTempToPermanent(request.getGatheringImageUrls()
-//                .getContentImageUrls());
+        imageService.moveImageFromTempToPermanent(request.getImageRegisterResponse().getContentImageUrls());
 
+        return CreateGatheringResponse.from(gathering);
     }
 
     private Gathering createGathering(Long userId, CreateGatheringRequest request, GatheringType type) {
@@ -152,21 +151,6 @@ public class GatheringService {
     }
 
 
-    /**
-     * 현재 서비스의 경우, 모든 조회 자체가 로그인회원만 접근 할 수 있는 상황
-     * <p>
-     * 조회수 카운팅을 일정 기간 동안 이미 조회했는지로 따질 건지, -> 레디스가 필수?
-     * 아니면, 한번 조회했으면, 영영 더이상 카운팅 되지 않게 할 건지?
-     * <p>
-     * Redis에 조회수를 캐싱하고, 일정 주기마다 데이터베이스와 동기화하는 방식은 특히 조회 수가 많은 서비스에서 효과적
-     * 근데 일단 우리는 Redis를 적용한 곳이 없어서, 막바지에 조회수 하나때문에 Redis를 도입한다라.. 애매하다
-     * <p>
-     * 비관적 락
-     * 충돌이 많이 발생하고 데이터의 일관성, 정합성들이 중요시될 때
-     * <p>
-     * 낙관적 락
-     * 충돌이 적게 발생하고 데이터의 일관성, 정합성보다는 성능이 중요시될 때
-     */
     // 왜 dto 로 바로 받는 방식으로 수정했는지는 pr 참고 (관련이슈 #110)
     public GatheringDetailResponse getGatheringDetail(Long userId, Long gatheringId) {
 
