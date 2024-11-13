@@ -9,6 +9,8 @@ import com.runto.domain.user.application.UserService;
 import com.runto.domain.user.dto.*;
 import com.runto.global.security.detail.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -125,5 +127,21 @@ public class UserController {
 
         jobLauncher.run(jobRegistry.getJob("disabledUserJob"), jobParameters);
         return "ok";
+    }
+
+    @GetMapping("/cookie")
+    public ResponseEntity<String> sendCookie(HttpServletRequest request){
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            log.error("cookie is null");
+            return null;
+        }
+        for (Cookie cookie : cookies) {
+            System.out.println(cookie.getName());
+            if (cookie.getName().equals("Authorization")) {
+                return ResponseEntity.ok(cookie.getValue());
+            }
+        }
+        return null;
     }
 }
