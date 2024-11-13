@@ -32,23 +32,10 @@ public class ProducerController {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         Long userId = userDetails.getUserId();
 
-        log.info("ProducerController direct authentication = {}",authentication);
-
-        log.info("ProducerController direct userDetails userId = {}",userDetails.getUserId());
         if (messageDTO.getTimestamp() == null){
-            messageDTO.setTimestamp(LocalDateTime.now());
+            messageDTO.setTimestamp(LocalDateTime.now().plusHours(9));
         }
         producerService.sendDirectMessage(messageDTO,userId);
-    }
-
-    //1:1 채팅 테스트 메시지 전송 api
-    @PostMapping("/send/message/direct")
-    public void sendMessageDirect(@RequestBody MessageDTO messageDTO,
-                            @AuthenticationPrincipal CustomUserDetails userDetails){
-        if (messageDTO.getTimestamp() == null){
-            messageDTO.setTimestamp(LocalDateTime.now());
-        }
-        producerService.sendDirectMessage(messageDTO, userDetails.getUserId());
     }
 
     //그룹 채팅 웹소켓 메시지 전송
@@ -57,22 +44,11 @@ public class ProducerController {
         Authentication authentication = (Authentication) headerAccessor.getUser();
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         Long userId = userDetails.getUserId();
-        log.info("ProducerController group authentication = {}",authentication);
 
-        log.info("ProducerController group userDetails userId = {}",userId);
         if (messageDTO.getTimestamp() == null){
-            messageDTO.setTimestamp(LocalDateTime.now());
+            messageDTO.setTimestamp(LocalDateTime.now().plusHours(9));
         }
         producerService.sendGroupMessage(messageDTO, userId);
     }
 
-    //그룹 채팅 테스트 메시지 전송 api
-    @PostMapping("/send/message/group")
-    public void sendMessageGroup(@RequestBody MessageDTO messageDTO,
-                            @AuthenticationPrincipal CustomUserDetails userDetails){
-        if (messageDTO.getTimestamp() == null){
-            messageDTO.setTimestamp(LocalDateTime.now());
-        }
-        producerService.sendGroupMessage(messageDTO, userDetails.getUserId());
-    }
 }
