@@ -54,33 +54,22 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-        http.cors((corsCustomizer -> corsCustomizer.configurationSource(new CorsConfigurationSource() {
-            @Override
-            public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
-
-                CorsConfiguration configuration = new CorsConfiguration();
-
-                configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", backendServerName));
-//                configuration.setAllowedOrigins(Collections.singletonList("https://runto.vercel.app/"));
-                configuration.setAllowedMethods(Collections.singletonList("*"));
-                configuration.setAllowCredentials(true);
-                configuration.setAllowedHeaders(Collections.singletonList("*"));
-                configuration.setMaxAge(3600L);
-                configuration.setExposedHeaders(Collections.singletonList("Set-Cookie"));
-                configuration.setExposedHeaders(Collections.singletonList("Authorization"));
-
-                return configuration;
-            }
-        })));
-
-        http.csrf(AbstractHttpConfigurer::disable);
-        http.formLogin(AbstractHttpConfigurer::disable);
-        http.httpBasic(AbstractHttpConfigurer::disable);
         http.authorizeHttpRequests(auth-> auth
-                .requestMatchers("/**").permitAll()
-                .requestMatchers("images/**", "gatherings/**", "users/calender/**").authenticated()
-                .requestMatchers("admin/**").hasAuthority("ADMIN")
+                //유저인증
+                .requestMatchers(
+                        "users/signup",
+                        "users/login",
+                        "users/check-email").permitAll()
+                //api문서
+                .requestMatchers(
+                        "swagger-ui/**",
+                        "v3/**").permitAll()
+                //관리자
+                .requestMatchers(
+                        "admin/**").hasAuthority("ADMIN")
+
                 .anyRequest().authenticated());
+
         http.oauth2Login((oauth2)->oauth2.userInfoEndpoint((userInfoEndpointConfig) -> userInfoEndpointConfig
                         .userService(customOAuth2UserService))
                         .successHandler(customSuccessHandler));
@@ -91,6 +80,26 @@ public class SecurityConfig {
         http.addFilterBefore(new CustomLogoutFilter(jwtUtil,refreshRepository), LogoutFilter.class);
         http.addFilterBefore(new OAuthLogoutFilter(jwtUtil), LogoutFilter.class);
 
+        http.csrf(AbstractHttpConfigurer::disable);
+        http.formLogin(AbstractHttpConfigurer::disable);
+        http.httpBasic(AbstractHttpConfigurer::disable);
+        http.cors((corsCustomizer -> corsCustomizer.configurationSource(new CorsConfigurationSource() {
+            @Override
+            public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
+
+                CorsConfiguration configuration = new CorsConfiguration();
+
+                configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", backendServerName, "https://runto.vercel.app/"));
+                configuration.setAllowedMethods(Collections.singletonList("*"));
+                configuration.setAllowCredentials(true);
+                configuration.setAllowedHeaders(Collections.singletonList("*"));
+                configuration.setMaxAge(3600L);
+                configuration.setExposedHeaders(Collections.singletonList("Set-Cookie"));
+                configuration.setExposedHeaders(Collections.singletonList("Authorization"));
+
+                return configuration;
+            }
+        })));
 
         http.sessionManagement(session->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));

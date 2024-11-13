@@ -57,5 +57,6 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                 .build();
         response.addHeader("Set-Cookie", cookie.toString());
         response.sendRedirect("http://localhost:3000");
+        //response.sendRedirect("https://runto.vercel.app/");
     }
 }
