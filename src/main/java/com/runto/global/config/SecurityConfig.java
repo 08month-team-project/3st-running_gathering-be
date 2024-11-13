@@ -66,6 +66,10 @@ public class SecurityConfig {
                 .requestMatchers(
                         "swagger-ui/**",
                         "v3/**").permitAll()
+
+                .requestMatchers(
+                        "ws/**").permitAll()
+
                 //관리자
                 .requestMatchers(
                         "admin/**").hasAuthority("ADMIN")
