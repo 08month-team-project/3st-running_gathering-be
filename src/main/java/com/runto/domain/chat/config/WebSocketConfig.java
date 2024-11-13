@@ -31,6 +31,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.addEndpoint("/ws")
                 .setAllowedOrigins("http://localhost:3000", serverName,"https://runto.vercel.app/")
                 .addInterceptors(customHttpSessionHandshakeInterceptor())
+                .setHandshakeHandler(webSocketHandShakeHandler())
                 .withSockJS();
     }
 
