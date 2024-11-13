@@ -20,6 +20,9 @@ public class CustomHttpSessionHandShakeInterceptor implements HandshakeIntercept
         if(request instanceof ServletServerHttpRequest servletRequest){
             HttpServletRequest httpServletRequest = servletRequest.getServletRequest();
             Cookie[] cookies = httpServletRequest.getCookies();
+            if (cookies == null) {
+                return true;
+            }
             for (Cookie cookie : cookies){
                 if ("Authorization".equals(cookie.getName())){
                     log.info("CustomHttpSessionHandShakeInterceptor Cookie Authorization = {}",cookie.getValue());
