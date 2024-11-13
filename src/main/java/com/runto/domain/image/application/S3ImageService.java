@@ -29,6 +29,7 @@ public class S3ImageService {
 
     private static final List<String> SUPPORT_IMAGE_EXTENSION = List.of("jpg", "jpeg", "png", "bmp", "webp");
     private static final String TEMPORARY_STORE_PREFIX = "temp/";
+    private static final String PERMANENT_STORE_PREFIX = "permanent/";
     private static final String FILE_PATH = System.getProperty("user.dir") + "/src/main/resources/temp_images/";
 
     private final S3Client s3Client;
@@ -90,11 +91,9 @@ public class S3ImageService {
             // 실제로 업로드가 잘 됐는지 검증
             validateUpload(optimizedFile);
 
-            // S3 URL과 , 요청에서 받아온 이미지 순서를 다시 넣어서 반환 (이건 아직 실제로 저장돼있는 url 이 아님)
-            //return new ImageUrlDto(getImageUrl(optimizedFile, ""), imageDto.getOrder());
-
-            // TODO 임시용 (moveImageProcess 에러 해결 전까지 사용)
-            return new ImageUrlDto(getImageUrl(optimizedFile, TEMPORARY_STORE_PREFIX), imageDto.getOrder());
+            //S3 URL과 , 요청에서 받아온 이미지 순서를 다시 넣어서 반환 (이건 아직 실제로 저장돼있는 url 이 아님)
+            return new ImageUrlDto(getImageUrl(optimizedFile, PERMANENT_STORE_PREFIX), imageDto.getOrder());
+            
 
         } catch (ImageException e) {
             throw new ImageException(e.getErrorCode());
@@ -123,8 +122,7 @@ public class S3ImageService {
 
         validateUpload(TEMPORARY_STORE_PREFIX + imageName);
 
-        // TODO copy 에러 해결
-        copyS3ObjectToNewPath(imageName, TEMPORARY_STORE_PREFIX, "");
+        copyS3ObjectToNewPath(imageName, TEMPORARY_STORE_PREFIX, PERMANENT_STORE_PREFIX);
         deleteS3ObjectFromImageName(imageName, TEMPORARY_STORE_PREFIX);
     }
 
@@ -209,37 +207,40 @@ public class S3ImageService {
 
     public void validateUpload(String imageName) {
 
-        // 업로드된 객체 확인 (headObject 사용)
+        // 해당 url이 s3에 업로드가 돼있는 객체인지 확인 (headObject 사용)
         HeadObjectRequest headRequest = HeadObjectRequest.builder()
                 .bucket(bucketName)
                 .key(imageName)
                 .build();
 
-        HeadObjectResponse response = s3Client.headObject(headRequest);
-
-        if (response == null) {
+        try {
+            s3Client.headObject(headRequest);
+        } catch (Exception e) {
             throw new ImageException(S3_OBJECT_NOT_FOUND);
         }
     }
 
     public void copyS3ObjectToNewPath(String imageName, String beforePath, String newPath) {
-        // TODO 에러 해결
+
         CopyObjectRequest copyObjectRequest = CopyObjectRequest.builder()
                 .sourceBucket(bucketName)
                 .sourceKey(beforePath + imageName)
+                .destinationBucket(bucketName)
                 .destinationKey(newPath + imageName)
                 .acl(ObjectCannedACL.PUBLIC_READ)
                 .build();
+
         s3Client.copyObject(copyObjectRequest);
     }
 
     private void deleteS3ObjectFromImageName(String imageName, String prefixPath) {
-        DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
-                .bucket(bucketName)
-                .key(prefixPath + imageName)
-                .build();
 
         try {
+            DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(prefixPath + imageName)
+                    .build();
+
             s3Client.deleteObject(deleteObjectRequest);
         } catch (Exception e) {
             log.error("S3 이미지 삭제 실패 ={}", imageName);
