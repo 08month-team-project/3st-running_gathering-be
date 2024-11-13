@@ -21,7 +21,6 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
-    private static final Logger log = LoggerFactory.getLogger(WebSocketConfig.class);
     private final JWTUtil jwtUtil;
 
     @Value("${servername}")
@@ -30,13 +29,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-                .setAllowedOrigins("http://localhost:3000", serverName)
-//                .setAllowedOrigins("https://runto.vercel.app/")
-//                .addInterceptors(new SocketInterceptor(jwtUtil))
+                .setAllowedOrigins("http://localhost:3000", serverName,"https://runto.vercel.app/")
                 .addInterceptors(customHttpSessionHandshakeInterceptor())
-                .withSockJS()
-//                .setClientLibraryUrl("https://cdn.jsdelivr.net/sockjs/1.6.1/sockjs.min.js")
-        ;
+                .withSockJS();
     }
 
     @Override
@@ -65,51 +60,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
         registration.interceptors(jwtChannelInterceptor());
-//        // SecurityContextHolder의 전략을 InheritableTHREADLOCAL로 설정하여 WebSocket 스레드에서 상속 가능하도록 한다.
-//        SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
-//
-//        registration.interceptors(new ChannelInterceptor() {
-//            @Override
-//            public Message<?> preSend(Message<?> message, MessageChannel channel) {
-//                StompHeaderAccessor headerAccessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
-//
-//                if (StompCommand.CONNECT.equals(headerAccessor.getCommand())) {
-//                    String authHeader = headerAccessor.getFirstNativeHeader("Authorization");
-//                    if (authHeader != null && authHeader.startsWith("Bearer ")) {
-//                        String token = authHeader.substring(7);
-//                        try {
-//                            Long userId = jwtUtil.getId(token);
-//                            String username = jwtUtil.getUsername(token);
-//                            String role = jwtUtil.getRole(token);
-//
-//                            CustomUserDetails userDetails = new CustomUserDetails(new UserDetailsDTO(userId, null, null, null, username, null, role));
-//                            Authentication authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, List.of(new SimpleGrantedAuthority(role)));
-//
-//                            // 새로운 SecurityContext 생성 및 설정
-//                            SecurityContext context = SecurityContextHolder.createEmptyContext();
-//                            context.setAuthentication(authenticationToken);
-//                            SecurityContextHolder.setContext(context);
-//
-//                            log.info("새로운 WebSocket 연결: SecurityContext 설정 완료 (UserID: {}, Username: {})", userId, username);
-//                        } catch (Exception e) {
-//                            throw new RuntimeException("Invalid token: " + e.getMessage());
-//                        }
-//                    }
-//                }
-//                return message;
-//            }
-//
-//            @Override
-//            public void afterSendCompletion(Message<?> message, MessageChannel channel, boolean sent, Exception ex) {
-//                StompHeaderAccessor headerAccessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
-//
-//                if (StompCommand.DISCONNECT.equals(headerAccessor.getCommand())) {
-//                    // WebSocket 연결 종료 후 SecurityContext 초기화
-//                    SecurityContextHolder.clearContext();
-//                    log.info("WebSocket 연결 종료 후 SecurityContext 초기화 완료");
-//                }
-//            }
-//        });
     }
 
     @Bean

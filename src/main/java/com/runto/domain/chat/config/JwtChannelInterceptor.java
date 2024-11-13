@@ -18,6 +18,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
+import java.util.Map;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -26,15 +27,17 @@ public class JwtChannelInterceptor implements ChannelInterceptor {
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
-
-//        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
         if (StompCommand.CONNECT.equals(accessor.getCommand())) {
-            log.info("command = {}",accessor.getCommand());
-            log.info("token = {}",accessor.getFirstNativeHeader("Authorization"));
-        }
             String authHeader = accessor.getFirstNativeHeader("Authorization");
+
+            if (authHeader == null){
+                Map<String, Object> attributes = accessor.getSessionAttributes();
+                authHeader = (String) attributes.get("Authorization");
+                log.info("Jwt Interceptor authHeader = {}",authHeader);
+            }
+
             if (authHeader != null && authHeader.startsWith("Bearer ")) {
                 String token = authHeader.substring(7);
                 try {
@@ -53,6 +56,8 @@ public class JwtChannelInterceptor implements ChannelInterceptor {
                     throw new RuntimeException("Invalid token: " + e.getMessage());
                 }
             }
+        }
+
         return message;
     }
 }
