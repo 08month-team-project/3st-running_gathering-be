@@ -7,6 +7,7 @@ import com.runto.domain.user.dao.UserRepository;
 import com.runto.domain.user.domain.DeactivateUser;
 import com.runto.domain.user.domain.User;
 import com.runto.domain.user.dto.CheckEmailRequest;
+import com.runto.domain.user.dto.CookieResponse;
 import com.runto.domain.user.dto.SignupRequest;
 import com.runto.domain.user.dto.UserProfileResponse;
 import com.runto.domain.user.excepction.UserException;
@@ -112,5 +113,16 @@ public class UserService {
         deactivateUserRepository.save(deactivateUser);
 
         userRepository.delete(user);
+    }
+
+    public CookieResponse token(CustomUserDetails userDetails,String token) {
+        User user = userRepository.findById(userDetails.getUserId())
+                .orElseThrow(() -> new UserException(USER_NOT_FOUND));
+        String nickname = user.getNickname();
+
+        return CookieResponse.builder()
+                .token(token)
+                .name(nickname)
+                .build();
     }
 }

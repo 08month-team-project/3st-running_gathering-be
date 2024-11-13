@@ -8,6 +8,7 @@ import com.runto.domain.image.dto.ImageUrlDto;
 import com.runto.domain.user.application.UserService;
 import com.runto.domain.user.dto.*;
 import com.runto.global.security.detail.CustomUserDetails;
+import com.runto.global.security.util.JWTUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,6 +35,7 @@ public class UserController {
     private final GatheringService gatheringService;
     private final JobLauncher jobLauncher;
     private final JobRegistry jobRegistry;
+    private final JWTUtil jwtUtil;
 
 
     @PostMapping("/signup")
@@ -130,7 +132,8 @@ public class UserController {
     }
 
     @GetMapping("/cookie")
-    public ResponseEntity<String> sendCookie(HttpServletRequest request){
+    public ResponseEntity<CookieResponse> sendCookie(@AuthenticationPrincipal CustomUserDetails userDetails,
+                                                     HttpServletRequest request){
         Cookie[] cookies = request.getCookies();
         if (cookies == null) {
             log.error("cookie is null");
@@ -139,7 +142,8 @@ public class UserController {
         for (Cookie cookie : cookies) {
             System.out.println(cookie.getName());
             if (cookie.getName().equals("Authorization")) {
-                return ResponseEntity.ok(cookie.getValue());
+                CookieResponse cookieResponse = userService.token(userDetails,cookie.getValue());
+                return ResponseEntity.ok(cookieResponse);
             }
         }
         return null;
