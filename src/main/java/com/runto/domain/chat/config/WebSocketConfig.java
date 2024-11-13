@@ -22,7 +22,6 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final JWTUtil jwtUtil;
-    private final WebSocketHandShakeHandler webSocketHandShakeHandler;
 
     @Value("${servername}")
     private String serverName;
@@ -32,7 +31,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.addEndpoint("/ws")
                 .setAllowedOrigins("http://localhost:3000", serverName,"https://runto.vercel.app/")
                 .addInterceptors(customHttpSessionHandshakeInterceptor())
-                .setHandshakeHandler(webSocketHandShakeHandler)
                 .withSockJS();
     }
 
