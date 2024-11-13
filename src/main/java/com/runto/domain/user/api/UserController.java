@@ -134,18 +134,7 @@ public class UserController {
     @GetMapping("/cookie")
     public ResponseEntity<CookieResponse> sendCookie(@AuthenticationPrincipal CustomUserDetails userDetails,
                                                      HttpServletRequest request){
-        Cookie[] cookies = request.getCookies();
-        if (cookies == null) {
-            log.error("cookie is null");
-            return null;
-        }
-        for (Cookie cookie : cookies) {
-            System.out.println(cookie.getName());
-            if (cookie.getName().equals("Authorization")) {
-                CookieResponse cookieResponse = userService.token(userDetails,cookie.getValue());
-                return ResponseEntity.ok(cookieResponse);
-            }
-        }
-        return null;
+
+        return ResponseEntity.ok(userService.token(userDetails,request));
     }
 }
