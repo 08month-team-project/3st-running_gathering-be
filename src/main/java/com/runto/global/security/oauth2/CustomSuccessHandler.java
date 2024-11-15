@@ -54,7 +54,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                 .secure(true) // sameSite를 None으로 지정했다면 필수
                 .build();
         response.addHeader("Set-Cookie", cookie.toString());
-        response.sendRedirect("http://localhost:3000");
-        //response.sendRedirect("https://runto.vercel.app/");
+        //response.sendRedirect("http://localhost:3000");
+        response.sendRedirect("https://runto.vercel.app/");
     }
 }
