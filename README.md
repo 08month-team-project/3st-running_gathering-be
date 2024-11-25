@@ -130,6 +130,8 @@ __FE와 AWS를 연동해 웹 서버를 배포한 프로젝트__
 
 ## Architecture
 
+![image](https://github.com/user-attachments/assets/4932f293-2cef-4fff-ba46-1a4d17dd6ea6)
+
 
 ### Package structure
 
